@@ -24,3 +24,33 @@ export function anyToColor(input: string | number): ColorNumber {
     
     return input;
 }
+
+export function parseColor(colorString: string): Phaser.Display.Color {
+    return Phaser.Display.Color.HexStringToColor(colorString);
+}
+
+export function interpolateColor(
+    from: Phaser.Display.Color,
+    to: Phaser.Display.Color,
+    progress: number
+): number {
+    const progressValue = progress * 100;
+    const interpolated = Phaser.Display.Color.Interpolate.ColorWithColor(
+        from, to, 100, progressValue
+    );
+    return Phaser.Display.Color.GetColor(interpolated.r, interpolated.g, interpolated.b);
+}
+
+export function interpolateColorToHex(
+    from: Phaser.Display.Color,
+    to: Phaser.Display.Color,
+    progress: number
+): string {
+    const progressValue = progress * 100;
+    const interpolated = Phaser.Display.Color.Interpolate.ColorWithColor(
+        from, to, 100, progressValue
+    );
+    return Phaser.Display.Color.RGBToString(
+        interpolated.r, interpolated.g, interpolated.b, 255, '#'
+    );
+}

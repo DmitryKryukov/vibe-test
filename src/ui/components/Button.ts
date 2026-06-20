@@ -1,40 +1,39 @@
 import Phaser from 'phaser';
 import { COLORTOKEN } from '@/ui/styles/ColorTokens';
-import { anyToColor } from '@/utils/UtilsColor';
 import { TYPETOKEN } from '../styles/TypeTokens';
 
-export interface ButtonStyleScheme {
-    width: number;
-    height: number;
-    paddings: { x: number; y: number };
-    minWidth: number;
-    minHeight: number;
-    state: {
-        idle: {
-            text: { color: string | CanvasGradient | CanvasPattern };
-            background: {
-                backgroundColor: number | string;
-                strokeColor: number | string;
-                strokeWidth: number;
-            }
-        };
-        hover: {
-            text: { color: string | CanvasGradient | CanvasPattern };
-            background: {
-                backgroundColor: number | string;
-                strokeColor: number | string;
-                strokeWidth: number;
-            }
-        };
-        press: {
-            text: { color: string | CanvasGradient | CanvasPattern };
-            background: {
-                backgroundColor: number | string;
-                strokeColor: number | string;
-                strokeWidth: number;
-            }
-        };
+import { anyToColor, parseColor, interpolateColor, interpolateColorToHex } from '@/utils/UtilsColor';
+import { createProgressTween, stopTweenSafely } from '@/utils/UtilsTween';
+
+interface StateConfig {
+    text: { color: string };
+    background: {
+        backgroundColor: string;
+        strokeColor: string;
+        strokeWidth: number;
+        cornerRadius: number;
     }
+}
+
+interface ButtonState {
+    readonly idle: StateConfig;
+    readonly hover: StateConfig;
+    readonly press: StateConfig;
+}
+
+export interface ButtonStyleScheme {
+    readonly width: number;
+    readonly height: number;
+    readonly paddings: { x: number; y: number };
+    readonly minWidth: number;
+    readonly minHeight: number;
+    readonly states: ButtonState;
+    readonly animationDuration: {
+        readonly hoverIn: number;
+        readonly hoverOut: number;
+        readonly pressIn: number;
+        readonly pressOut: number;
+    };
 }
 
 export interface ButtonLayoutScheme {
@@ -52,31 +51,40 @@ const defaultStyle: ButtonStyleScheme = {
     paddings: { x: 24, y: 8 },
     minWidth: 48,
     minHeight: 48,
-    state: {
+    states: {
         idle: {
-            text: { color: COLORTOKEN.Foreground.Primary },
+            text: { color: COLORTOKEN.Component.Button.Primary.Idle.Text.Color },
             background: {
-                backgroundColor: '#ff00ff',
-                strokeColor: COLORTOKEN.Foreground.Secondary,
+                backgroundColor: COLORTOKEN.Component.Button.Primary.Idle.Background.BackgroundColor,
+                strokeColor: COLORTOKEN.Component.Button.Primary.Idle.Background.StrokeColor,
                 strokeWidth: 0,
+                cornerRadius: 12,
             }
         },
         hover: {
-            text: { color: '#ff00ff' },
+            text: { color: COLORTOKEN.Component.Button.Primary.Hover.Text.Color },
             background: {
-                backgroundColor: '#ff0000',
-                strokeColor: COLORTOKEN.Foreground.Secondary,
+                backgroundColor: COLORTOKEN.Component.Button.Primary.Hover.Background.BackgroundColor,
+                strokeColor: COLORTOKEN.Component.Button.Primary.Hover.Background.StrokeColor,
                 strokeWidth: 0,
+                cornerRadius: 12,
             }
         },
         press: {
-            text: { color: '#ff0000' },
+            text: { color: COLORTOKEN.Component.Button.Primary.Press.Text.Color },
             background: {
-                backgroundColor: '#ff00ff',
-                strokeColor: COLORTOKEN.Foreground.Secondary,
+                backgroundColor: COLORTOKEN.Component.Button.Primary.Press.Background.BackgroundColor,
+                strokeColor: COLORTOKEN.Component.Button.Primary.Press.Background.StrokeColor,
                 strokeWidth: 0,
+                cornerRadius: 12,
             }
         },
+    },
+    animationDuration: {
+        hoverIn: 0,
+        hoverOut: 300,
+        pressIn: 0,
+        pressOut: 300,
     }
 };
 
@@ -88,9 +96,11 @@ export class Button extends Phaser.GameObjects.Container {
     private layout: ButtonLayoutScheme;
     private buttonText: string;
     private onClickHandler: () => void;
+    private tween?: Phaser.Tweens.Tween;
+    private currentState: keyof ButtonState = 'idle';
 
     private GO: {
-        background: Phaser.GameObjects.Rectangle | null;
+        background: Phaser.GameObjects.Shape | null;
         text: Phaser.GameObjects.Text | null;
     } = { background: null, text: null };
 
@@ -111,9 +121,9 @@ export class Button extends Phaser.GameObjects.Container {
         this.onClickHandler = onClick;
 
         this.setDepth(100);
-        
+
         this.setPosition(this.layout.x, this.layout.y);
-        
+
         scene.add.existing(this);
         this.render();
         this.setupInteractivity();
@@ -127,7 +137,7 @@ export class Button extends Phaser.GameObjects.Container {
             this.buttonText,
             {
                 ...TYPETOKEN.Secondary.Lead,
-                color: this.style.state.idle.text.color,
+                color: this.style.states.idle.text.color,
             }
         ).setOrigin(0.5);
 
@@ -136,6 +146,7 @@ export class Button extends Phaser.GameObjects.Container {
 
         const buttonWidth = Math.max(textWidth + this.style.paddings.x * 2, this.style.minWidth);
         const buttonHeight = Math.max(textHeight + this.style.paddings.y * 2, this.style.minHeight);
+        
 
         this.GO.background = new Phaser.GameObjects.Rectangle(
             this.scene,
@@ -143,13 +154,14 @@ export class Button extends Phaser.GameObjects.Container {
             0,
             buttonWidth,
             buttonHeight,
-            anyToColor(this.style.state.idle.background.backgroundColor)
+            anyToColor(this.style.states.idle.background.backgroundColor)
         )
             .setStrokeStyle(
-                this.style.state.idle.background.strokeWidth,
-                anyToColor(this.style.state.idle.background.strokeColor)
+                this.style.states.idle.background.strokeWidth,
+                anyToColor(this.style.states.idle.background.strokeColor)
             )
-            .setOrigin(0.5);
+            .setOrigin(0.5)
+            .setRounded(this.style.states.idle.background.cornerRadius)
 
         this.add(this.GO.background);
         this.add(this.GO.text);
@@ -159,110 +171,77 @@ export class Button extends Phaser.GameObjects.Container {
 
     private setupInteractivity(): void {
         this.GO.background?.setInteractive({ useHandCursor: true })
-            .on('pointerover', this.onPointerEnter, this)
-            .on('pointerout', this.onPointerOut, this)
-            .on('pointerdown', this.onPointerDown, this)
-            .on('pointerup', this.onPointerUp, this);
+            .on('pointerover', this.handlePointerEnter, this)
+            .on('pointerout', this.handlePointerOut, this)
+            .on('pointerdown', this.handlePointerDown, this)
+            .on('pointerup', this.handlePointerUp, this);
+
+            this.once(Phaser.GameObjects.Events.DESTROY, this.cleanup, this);
+    }
+     private cleanup(): void {
+        this.tween?.stop();
     }
 
-    private onPointerEnter(): void {
-        this.GO.text?.setColor(this.style.state.hover.text.color);
-        this.GO.background?.setFillStyle(anyToColor(this.style.state.hover.background.backgroundColor));
-        this.GO.background?.setStrokeStyle(this.style.state.idle.background.strokeWidth, anyToColor(this.style.state.idle.background.strokeColor));
+    private handlePointerEnter(): void {
+        this.applyState('hover', this.style.animationDuration.hoverIn);
     }
 
-    private hoverTween?: Phaser.Tweens.Tween;
+    private handlePointerOut(): void {
+        this.applyState('idle', this.style.animationDuration.hoverOut);
+    }
 
-    private onPointerOut(): void {
-        this.hoverTween?.stop();
-        const textFrom = Phaser.Display.Color.HexStringToColor(this.style.state.hover.text.color as string);
-        const textTo = Phaser.Display.Color.HexStringToColor(this.style.state.idle.text.color as string);
-        const backgroundFrom = Phaser.Display.Color.HexStringToColor(this.style.state.hover.background.backgroundColor as string);
-        const backgroundTo = Phaser.Display.Color.HexStringToColor(this.style.state.idle.background.backgroundColor as string);
-        const strokeFrom = Phaser.Display.Color.HexStringToColor(this.style.state.hover.background.strokeColor as string);
-        const strokeTo = Phaser.Display.Color.HexStringToColor(this.style.state.idle.background.strokeColor as string);
-        const tweenState = { value: 0, };
-        this.hoverTween = this.scene.tweens.add({
-            targets: tweenState,
-            value: 100,
-            duration: 300,
+    private handlePointerDown(): void {
+        this.applyState('press', this.style.animationDuration.pressIn);
+    }
+    private handlePointerUp(): void {
+        this.applyState('hover', this.style.animationDuration.pressOut);
+        this.onClickHandler();
+    }
+    
+
+    private applyState(stateName: keyof ButtonState, duration: number): void {
+        stopTweenSafely(this.tween);
+
+        const fromState = this.style.states[this.currentState];
+        const toState = this.style.states[stateName];
+        this.currentState = stateName;
+
+        if (duration === 0) {
+            this.applyColorsImmediate(toState);
+            return;
+        }
+
+        const from = {
+            text: parseColor(fromState.text.color),
+            background: parseColor(fromState.background.backgroundColor),
+            stroke: parseColor(fromState.background.strokeColor),
+            cornerRadius: fromState.background.cornerRadius,
+        };
+
+        const to = {
+            text: parseColor(toState.text.color),
+            background: parseColor(toState.background.backgroundColor),
+            stroke: parseColor(toState.background.strokeColor),
+            cornerRadius: toState.background.cornerRadius,
+        };
+
+        this.tween = createProgressTween(this.scene, {
+            duration,
             ease: 'Quint.Out',
-
-            onUpdate: () => {
-                const textColor = Phaser.Display.Color.Interpolate.ColorWithColor(
-                    textFrom,
-                    textTo,
-                    100,
-                    tweenState.value
+            onUpdate: (progress) => {
+                this.GO.text?.setColor(interpolateColorToHex(from.text, to.text, progress));
+                this.GO.background?.setFillStyle(interpolateColor(from.background, to.background, progress));
+                this.GO.background?.setStrokeStyle(
+                    this.GO.background?.lineWidth,
+                    interpolateColor(from.stroke, to.stroke, progress)
                 );
-
-                const bgColor = Phaser.Display.Color.Interpolate.ColorWithColor(
-                    backgroundFrom,
-                    backgroundTo,
-                    100,
-                    tweenState.value
-                );
-
-                const strokeColor = Phaser.Display.Color.Interpolate.ColorWithColor(
-                    strokeFrom,
-                    strokeTo,
-                    100,
-                    tweenState.value
-                );
-                this.GO.text?.setColor(Phaser.Display.Color.RGBToString(textColor.r, textColor.g, textColor.b, 255, '#'));
-                this.GO.background?.setFillStyle(Phaser.Display.Color.GetColor(bgColor.r, bgColor.g, bgColor.b));
-                this.GO.background?.setStrokeStyle(this.style.state.idle.background.strokeWidth, Phaser.Display.Color.GetColor(strokeColor.r, strokeColor.g, strokeColor.b));
-            },
+        },
         });
     }
 
-    private onPointerDown(): void {
-        this.GO.text?.setColor(this.style.state.press.text.color);
-        this.GO.background?.setFillStyle(anyToColor(this.style.state.press.background.backgroundColor));
-        this.GO.background?.setStrokeStyle(this.style.state.press.background.strokeWidth, anyToColor(this.style.state.press.background.strokeColor));
-    }
-
-    private onPointerUp(): void {
-        this.hoverTween?.stop();
-        const textFrom = Phaser.Display.Color.HexStringToColor(this.style.state.press.text.color as string);
-        const textTo = Phaser.Display.Color.HexStringToColor(this.style.state.hover.text.color as string);
-        const backgroundFrom = Phaser.Display.Color.HexStringToColor(this.style.state.press.background.backgroundColor as string);
-        const backgroundTo = Phaser.Display.Color.HexStringToColor(this.style.state.hover.background.backgroundColor as string);
-        const strokeFrom = Phaser.Display.Color.HexStringToColor(this.style.state.press.background.strokeColor as string);
-        const strokeTo = Phaser.Display.Color.HexStringToColor(this.style.state.idle.background.strokeColor as string);
-        const tweenState = { value: 0, };
-        this.hoverTween = this.scene.tweens.add({
-            targets: tweenState,
-            value: 100,
-            duration: 100,
-            ease: 'Quint.Out',
-
-            onUpdate: () => {
-                const textColor = Phaser.Display.Color.Interpolate.ColorWithColor(
-                    textFrom,
-                    textTo,
-                    100,
-                    tweenState.value
-                );
-
-                const bgColor = Phaser.Display.Color.Interpolate.ColorWithColor(
-                    backgroundFrom,
-                    backgroundTo,
-                    100,
-                    tweenState.value
-                );
-
-                const strokeColor = Phaser.Display.Color.Interpolate.ColorWithColor(
-                    strokeFrom,
-                    strokeTo,
-                    100,
-                    tweenState.value
-                );
-                this.GO.text?.setColor(Phaser.Display.Color.RGBToString(textColor.r, textColor.g, textColor.b, 255, '#'));
-                this.GO.background?.setFillStyle(Phaser.Display.Color.GetColor(bgColor.r, bgColor.g, bgColor.b));
-                this.GO.background?.setStrokeStyle(this.style.state.idle.background.strokeWidth, Phaser.Display.Color.GetColor(strokeColor.r, strokeColor.g, strokeColor.b));
-            }
-        })
-        this.onClickHandler();
+    private applyColorsImmediate(state: StateConfig): void {
+        this.GO.text?.setColor(state.text.color);
+        this.GO.background?.setFillStyle(anyToColor(state.background.backgroundColor));
+        this.GO.background?.setStrokeStyle(state.background.strokeWidth, anyToColor(state.background.strokeColor));
     }
 }

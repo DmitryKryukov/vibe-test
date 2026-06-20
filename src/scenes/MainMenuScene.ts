@@ -1,106 +1,103 @@
 import Phaser from 'phaser';
-import { UI } from '@/config/UIConfig';
+
 import { COLORTOKEN } from '@/ui/styles/ColorTokens';
 import { TYPETOKEN } from '@/ui/styles/TypeTokens';
-
 import { Background } from '@/ui/components/Background';
 import { Button } from '@/ui/components/Button';
+import { viewBounds } from '@/utils/UtilsLayout';
 
-import { screenBounds, ScreenBounds } from '@/utils/UtilsLayout';
+
+interface ButtonConfig {
+    readonly id: string;
+    readonly text: string;
+    readonly onClick: () => void;
+}
 
 export class MainMenuScene extends Phaser.Scene {
-    private MAIN_MENU_CONFIG = {
-        layout: {
-            title: {
-                x: 16,
-                y: 8,
-            },
-            mainButtonsPanel: {
-                padding: {
-                    x: 20,
-                    y: 20,
-                },
-                gap: 8,
-            }
-        }
 
+    private static readonly LAYOUT = {
+        title: { x: 16, y: 8 },
+        buttonsPanel: {
+            paddingX: 20,
+            paddingY: 20,
+            gap: 8,
+        },
     } as const;
 
-    private background!: UI.Background;
+    private static readonly BUTTON_CONFIGS: readonly ButtonConfig[] = [
+        { id: 'btn-new-run',  text: 'Новый забег', onClick: () => console.log('Новый забег') },
+        { id: 'btn-settings', text: 'Настройки',   onClick: () => console.log('Настройки') },
+    ] as const;
+
+
+    private background!: Background;
+    private readonly buttons = new Map<string, Button>();
+
+    
 
     constructor() {
         super({ key: 'MainMenuScene' });
     }
 
     public create(): void {
-        this.initialize();
-    }
-
-    private initialize(): void {
-        this.scale.off('resize', this.handleResize);
-        this.scale.on('resize', this.handleResize);
-        /*
-        this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
-        this.events.once(Phaser.Scenes.Events.DESTROY, this.cleanup, this);
-        */
+        this.bindEvents();
         this.renderScene();
     }
 
-    private renderScene(): void {
+    private bindEvents(): void {
+        this.scale.on('resize', this.handleResize);
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this);
+    }
 
+    private destroy(): void {
+        this.scale.off('resize', this.handleResize);
+        this.buttons.clear();
+    }
+
+
+    private renderScene(): void {
         this.background = new Background(this);
         this.renderTitle();
         this.renderButtons();
     }
 
     private renderTitle(): void {
-        this.add.text(this.MAIN_MENU_CONFIG.layout.title.x, this.MAIN_MENU_CONFIG.layout.title.y, 'Armory Intendant', {
+        const { x, y } = MainMenuScene.LAYOUT.title;
+
+        this.add.text(x, y, 'Armory Intendant', {
             ...TYPETOKEN.Primary.Display,
             color: COLORTOKEN.Foreground.Secondary,
-        })
+        });
     }
 
     private renderButtons(): void {
-        const screen = screenBounds(this) as ScreenBounds;
-        const buttonConfigs = [
-            {
-                text: 'Новый забег',
-                onClick: () => { alert('Новый забег') },
-            },
-            {
-                text: 'Настройки',
-                onClick: () => { alert('Настройки') },
-            },
-        ];
-
-        let nextButtonX: number = 0;
-
-        buttonConfigs.forEach((config) => {
+        MainMenuScene.BUTTON_CONFIGS.forEach((config) => {
             const button = new Button(this, config.text, config.onClick);
-            button.setPosition(screen.left + nextButtonX + this.MAIN_MENU_CONFIG.layout.mainButtonsPanel.padding.x + button.width / 2, screen.bottom - this.MAIN_MENU_CONFIG.layout.mainButtonsPanel.padding.y - button.height / 2);
-            nextButtonX = button.width + this.MAIN_MENU_CONFIG.layout.mainButtonsPanel.gap;
+            this.buttons.set(config.id, button);
         });
 
+        this.layoutButtons();
+    }
 
+    private layoutButtons(): void {
+        const view = viewBounds(this);
+        const { paddingX, paddingY, gap } = MainMenuScene.LAYOUT.buttonsPanel;
 
-        /*
-        
-    
-        buttonConfigs.forEach((config) => {
-          const button = new MenuButton(this, config);
-          this.menuButtons.set(config.id, button);
+        let offsetX = 0;
+
+        this.buttons.forEach((button) => {
+            const x = view.left + paddingX + offsetX + button.width / 2;
+            const y = view.bottom - paddingY - button.height / 2;
+
+            button.setPosition(x, y);
+            offsetX += button.width + gap;
         });
-    
-      */
     }
 
     private readonly handleResize = (): void => {
-        /*
-    this.updateBackground();
-    this.layoutButtons();
-    */
+        this.background?.updateBackground();
+        this.layoutButtons();
     };
-
 }
 /*
 import { HEROES } from '../data/heroes';
@@ -182,27 +179,6 @@ export class MainMenuScene extends Phaser.Scene {
     this.renderButtons();
   } 
 
-  private sceneInit(): void {
-    this.scale.off('resize', this.handleResize);
-    this.scale.on('resize', this.handleResize);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
-    this.events.once(Phaser.Scenes.Events.DESTROY, this.cleanup, this);
-  }
-
-  private renderBackground(): void {
-    this.background = this.add.graphics().setDepth(-100);
-    this.updateBackground();
-  }
-
-  private updateBackground(): void {
-    if (!this.background) return;
-
-    const screen = screenBounds(this);
-    this.background.clear();
-    this.background.fillGradientStyle(0x070807, 0x10140f, 0x000000, 0x000000, 1);
-    this.background.fillRect(screen.left, screen.top, screen.width, screen.height);
-  }
-
 
   private renderPanels(): void {
     this.heroPanel = new SelectorPanel(this, {
@@ -224,83 +200,6 @@ export class MainMenuScene extends Phaser.Scene {
       onSelect: (id) => this.selectSquire(id as SquireId),
       attachTooltip: (target, entity) => this.attachEntityTooltip(target, entity),
     });
-  }
-
-  private renderButtons(): void {
-    this.renderMenuButtons();
-    this.renderContentButton();
-    this.layoutButtons();
-  }
-
-  private renderMenuButtons(): void {
-    const buttonConfigs: MenuButtonConfig[] = [
-      {
-        id: 'btn-new-run',
-        x: 114,
-        y: 0,
-        height: 62,
-        label: 'Новый забег',
-        onClick: () => this.navigator.startRun(this.store.selectedHero, this.store.selectedSquire),
-        paddingX: 24,
-        paddingY: 0,
-        minWidth: 220,
-      },
-      ...(GameState.state.run?.active
-        ? [{
-          id: 'btn-continue-run',
-          x: 336,
-          y: 0,
-          height: 62,
-          label: 'Продолжить',
-          onClick: () => this.navigator.continueRun(),
-          paddingX: 24,
-          paddingY: 0,
-          minWidth: 220,
-        }]
-        : []),
-      {
-        id: 'btn-reset',
-        x: 0,
-        y: 0,
-        height: 62,
-        label: 'Сброс',
-        onClick: () => this.showModalResetProgress(),
-        paddingX: 24,
-        paddingY: 0,
-        minWidth: 160,
-      },
-    ];
-
-    buttonConfigs.forEach((config) => {
-      const button = new MenuButton(this, config);
-      this.menuButtons.set(config.id, button);
-    });
-  }
-
-  private renderContentButton(): void {
-    this.contentButton = new IconButton(
-      this,
-      0,
-      0,
-      {
-        idle: UI_ICONS.CONTENT.IDLE,
-        hover: UI_ICONS.CONTENT.HOVER,
-        press: UI_ICONS.CONTENT.PRESS,
-      },
-      MENU_LAYOUT.buttons.content.size,
-      MENU_LAYOUT.buttons.content.size,
-      () => this.navigator.openContentEditor()
-    );
-  }
-
-  private layoutButtons(): void {
-    const screen = screenBounds(this);
-    const buttonY = screen.bottom - MENU_LAYOUT.buttons.bottomOffset;
-
-    this.menuButtons.get('btn-new-run')?.setPosition(114, buttonY);
-    this.menuButtons.get('btn-continue-run')?.setPosition(336, buttonY);
-    this.menuButtons.get('btn-reset')?.setPosition(screen.right - 80, buttonY);
-    this.contentButton?.setPosition(screen.right - MENU_LAYOUT.buttons.content.rightOffset, screen.top + MENU_LAYOUT.buttons.content.topOffset);
   }
 
   private selectHero(id: HeroId): void {

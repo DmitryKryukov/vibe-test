@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
-import { fitCameraToCanvas, screenBounds, screenSpaceScale, screenToWorld, ViewBounds, viewBounds } from '@/utils/UtilsLayout';
+import { viewBounds } from '@/utils/UtilsLayout';
 
 export class Background {
     
     private scene: Phaser.Scene;
+    private graphic!: Phaser.GameObjects.Graphics
 
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
@@ -11,13 +12,19 @@ export class Background {
     }
 
     public render(): void {
-        const view = viewBounds(this.scene);
-        this.drawProceduralBackground(view);
+        this.drawProceduralBackground();
     }
 
-    private drawProceduralBackground(view: ViewBounds): void {
-        const gradient = this.scene.add.graphics();
-        gradient.fillGradientStyle(0x070807, 0x10140f, 0x000000, 0x000000, 1).fillRect(view.left, view.top, view.width, view.height);
+    private drawProceduralBackground(): void {
+        this.graphic = this.scene.add.graphics();
+        this.updateBackground();
+    }
+
+    public updateBackground(): void {
+        const view = viewBounds(this.scene);
+        this.graphic.clear();
+        this.graphic.fillGradientStyle(0x070807, 0x10140f, 0x000000, 0x000000, 1).fillRect(view.left, view.top, view.width, view.height);
+    
     }
 
 /*
