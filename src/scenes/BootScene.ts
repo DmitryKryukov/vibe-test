@@ -1,33 +1,40 @@
 import Phaser from 'phaser';
-import { UI } from '../config/UIConfig';
+import { UI } from '@/config/UIConfig';
 
-import { COLORTOKEN } from '../ui/styles/ColorTokens';
-import { TYPETOKEN } from '../ui/styles/TypeTokens';
-import { FONTTOKEN } from '../ui/styles/FontTokens';
+import { COLORTOKEN } from '@/ui/styles/ColorTokens';
+import { TYPETOKEN } from '@/ui/styles/TypeTokens';
 
-import { fitCameraToCanvas, viewBounds, ViewBounds } from '../utils/UtilsLayout';
-import { loadGameFonts } from '../utils/UtilsFont';
+import { fitCameraToCanvas, viewBounds, ViewBounds } from '@/utils/UtilsLayout';
+import { loadGameFonts } from '@/utils/UtilsFont';
+import { Background } from '@/ui/components/Background';
+import { LoadingBar, LoadingBarStyleScheme } from '@/ui/components/LoadingBar';
 
 /*
 import { SaveSystem } from '../state/SaveSystem';
 import { IMAGE_ASSETS } from '../assets/AssetMap';
 import { applyContentOverrides, contentImageAssets } from '../content/ContentSystem';
-
-import { METRICS } from '../utils/Metrics';
-import { hexStringToNumber } from '../utils/ColorUtils';
-import { PHASER_FONT_FAMILIES, loadGameFonts } from '../ui/styles/fontRegistry';
-import { LoadingBarConfig, ViewBounds } from '../entities/Types';
 */
+
 
 export class BootScene extends Phaser.Scene {
     private BOOT_SCENE_CONFIG = {
         layout: {
             textOffsetY: -40,
+            loadingBar: {
+                style: {
+                    width: 640,
+                    height: 18,
+                    paddings: 4,
+                } as LoadingBarStyleScheme,
+                offsetY: 40,
+            }
         },
         animation: {
+            loadingBarFill: {
+                duration: 850,
+            }
         }
     } as const;
-
 
     private background!: UI.Background;
     private loadingBar!: UI.LoadingBar;
@@ -39,21 +46,19 @@ export class BootScene extends Phaser.Scene {
     public preload(): void {
         this.registerAssets();
     }
+
     public async create(): Promise<void> {
         await this.initialize();
     }
 
     private async initialize(): Promise<void> {
-         await loadGameFonts();
+        await loadGameFonts();
+        fitCameraToCanvas(this);
 
-        // this.backdrop = new Backdrop(this);
         // SaveSystem.load();
-        // fitCameraToCanvas(this);
-
-        //this.buildUserInterface();
-        //this.simulateLoadingSequence();
-        this.renderMenu();
+        this.renderScene();
     }
+
     private registerAssets(): void {
         //const contentPack = applyContentOverrides();
         //const assets = { ...IMAGE_ASSETS, ...contentImageAssets(contentPack) };
@@ -64,11 +69,11 @@ export class BootScene extends Phaser.Scene {
         //  }
     };
 
-    private renderMenu(): void {
+    private renderScene(): void {
         const view = viewBounds(this) as ViewBounds;
-        //this.backdrop.render();
+        this.background = new Background(this);
         this.renderTitle(view);
-        //this.createLoadingBar(view);
+        this.renderLoadingBar(view);
     }
 
     private renderTitle(view: ViewBounds): void {
@@ -84,117 +89,18 @@ export class BootScene extends Phaser.Scene {
         ).setOrigin(.5);
     }
 
+    private renderLoadingBar(view: ViewBounds): void {
+        this.loadingBar = new LoadingBar(this, { x: view.centerX, y: view.centerY + this.BOOT_SCENE_CONFIG.layout.loadingBar.offsetY }, this.BOOT_SCENE_CONFIG.layout.loadingBar.style);
+        this.simulateLoading();
+    }
 
-    /*
-  private loadingBar!: {
-    bar: Phaser.GameObjects.Rectangle;
-    fill: Phaser.GameObjects.Rectangle;
-  };
+    private simulateLoading(): void {
+        this.loadingBar.animateFill(1, () => {
+            this.transitionToMainMenu();
+        }, this.BOOT_SCENE_CONFIG.animation.loadingBarFill.duration);
+    }
 
-  private static readonly LOADING_CONFIG: LoadingBarConfig = {
-    width: 640,
-    height: 18,
-    fillHeight: 12,
-    strokeWidth: 2,
-    innerPadding: 4,
-    backgroundColor: 0x101510,
-  };
-
-  private static readonly ANIMATION_DURATION_MS = 850;
-  private static readonly TEXT_OFFSET_Y = 40;
-  private static readonly BAR_OFFSET_Y = 48;
-
-
-
-  public preload(): void {
-    this.registerAssets();
-  }
-
-  public async create(): Promise<void> {
-    await this.initializeWhenFontsReady();
-  }
-
-  private async initializeWhenFontsReady(): Promise<void> {
-    await loadGameFonts();
-
-    this.backdrop = new Backdrop(this);
-    SaveSystem.load();
-    fitCameraToCanvas(this);
-    
-    this.buildUserInterface();
-    this.simulateLoadingSequence();
-  }
-
-  private registerAssets(): void {
-    const contentPack = applyContentOverrides();
-    const assets = { ...IMAGE_ASSETS, ...contentImageAssets(contentPack) };
-    
-    Object.entries(assets).forEach(([key, url]) => {
-      if (typeof url === 'string') {
-        this.load.image(key, url);
-      }
-    });
-  }
-
-  private buildUserInterface(): void {
-    const view = viewBounds(this) as ViewBounds;
-    
-    this.backdrop.render();
-    this.renderTitle(view);
-    this.createLoadingBar(view);
-  }
-
-  private renderTitle(view: ViewBounds): void {
-    const accentColor = METRICS.color.accent;
-    
-    const textStyle: Phaser.Types.GameObjects.Text.TextStyle = {
-      fontFamily: PHASER_FONT_FAMILIES.xprm3,
-      resolution: 2,
-      fontSize: METRICS.typography.title.size,
-      color: accentColor,
-      stroke: '#000000',
-      strokeThickness: 8,
-    };
-
-    this.add.text(
-      view.centerX, 
-      view.centerY - BootScene.TEXT_OFFSET_Y, 
-      'Arnory Intendant', 
-      textStyle
-    ).setOrigin(0.5);
-  }
-
-  private createLoadingBar(view: ViewBounds): void {
-    const { centerX, centerY } = view;
-    const { width, height, fillHeight, strokeWidth, innerPadding, backgroundColor } = BootScene.LOADING_CONFIG;
-    const accentColor = hexStringToNumber(METRICS.color.accent);
-    
-    const barY = centerY + BootScene.BAR_OFFSET_Y;
-    const halfWidth = width / 2;
-    const fillStartX = centerX - halfWidth + innerPadding;
-
-    this.loadingBar = {
-      bar: this.add.rectangle(centerX, barY, width, height, backgroundColor)
-        .setStrokeStyle(strokeWidth, accentColor),
-      fill: this.add.rectangle(fillStartX, barY, 0, fillHeight, accentColor)
-        .setOrigin(0, 0.5)
-    };
-  }
-
-  private simulateLoadingSequence(): void {
-    this.tweens.add({
-      targets: this.loadingBar.fill,
-      width: BootScene.LOADING_CONFIG.width - (BootScene.LOADING_CONFIG.innerPadding * 2),
-      duration: BootScene.ANIMATION_DURATION_MS,
-      ease: 'Sine.easeInOut',
-      onComplete: () => {
-        this.transitionToMainMenu();
-      }
-    });
-  }
-
-  private transitionToMainMenu(): void {
-    this.scene.start('MainMenuScene');
-  }
-    */
+    private transitionToMainMenu(): void {
+         this.scene.start('MainMenuScene');
+    }
 }

@@ -1,14 +1,26 @@
 import Phaser from 'phaser';
-//import { fitCameraToCanvas, screenBounds, screenSpaceScale, screenToWorld, viewBounds } from '../utils/layout';
+import { fitCameraToCanvas, screenBounds, screenSpaceScale, screenToWorld, ViewBounds, viewBounds } from '@/utils/UtilsLayout';
 
 export class Background {
-    /*
+    
     private scene: Phaser.Scene;
 
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
+        this.render();
     }
 
+    public render(): void {
+        const view = viewBounds(this.scene);
+        this.drawProceduralBackground(view);
+    }
+
+    private drawProceduralBackground(view: ViewBounds): void {
+        const gradient = this.scene.add.graphics();
+        gradient.fillGradientStyle(0x070807, 0x10140f, 0x000000, 0x000000, 1).fillRect(view.left, view.top, view.width, view.height);
+    }
+
+/*
     public render(kind: 'map' | 'battle' | 'menu' = 'map', textureOverride?: string): void {
         const view = viewBounds(this.scene);
         const textureKey = textureOverride ?? (kind === 'battle' ? 'bg-battle' : kind === 'map' ? 'bg-map' : undefined);
@@ -51,9 +63,5 @@ export class Background {
         dimmingLayer.fillRect(view.left, view.top, view.width, view.height);
     }
 
-    private drawProceduralBackground(view: any, kind: 'map' | 'battle' | 'menu'): void {
-        const g = this.scene.add.graphics();
-        g.fillGradientStyle(0x070807, 0x10140f, 0x000000, 0x000000, 1).fillRect(view.left, view.top, view.width, view.height);
-    }
 */
     }

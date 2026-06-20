@@ -20,14 +20,14 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/": [
-        "src/"
+      "@/*": [
+        "src/*"
       ],
-      "@fonts/": [
-        "src/assets/fonts/"
+      "@fonts/*": [
+        "src/assets/fonts/*"
       ],
-      "@assets/": [
-        "src/assets/"
+      "@assets/*": [
+        "src/assets/*"
       ]
     },
   },
