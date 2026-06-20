@@ -4,26 +4,24 @@ import { COLORTOKEN } from '../ui/styles/ColorTokens';
 import { SCENE } from './ScenesConfig';
 
 export const GAME_WIDTH = 1728;
-export const GAME_HEIGHT = 1117;
+export const GAME_HEIGHT = 879;
 
 export const GameConfig: Phaser.Types.Core.GameConfig = {
     type: Phaser.WEBGL,
     parent: 'gameRoot',
-    width: GAME_WIDTH,
-    height: GAME_HEIGHT,
     backgroundColor: COLORTOKEN.Background.Zeroth,
-
+    roundPixels: true,
+   
     scale: {
         mode: Phaser.Scale.RESIZE,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        autoRound: true
+        width: window.innerWidth, 
+        height: window.innerHeight,
+        zoom: 1
     },
 
     render: {
         antialias: true,
         antialiasGL: true,
-        roundPixels: true,
-        pixelArt: false,
         powerPreference: 'high-performance'
     },
 

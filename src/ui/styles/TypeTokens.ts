@@ -11,5 +11,14 @@ export namespace TYPETOKEN {
             fontSize: METRICTOKEN.Typography.Display.Size,
             color: COLORTOKEN.Foreground.Primary,
         }
-    }   
+    }
+    
+    export const Secondary: Record<string, Phaser.Types.GameObjects.Text.TextStyle> = {
+        Lead: {
+            fontFamily: FONTTOKEN.FontFamily.radiance,
+            resolution: 2,
+            fontSize: METRICTOKEN.Typography.Lead.Size,
+            color: COLORTOKEN.Foreground.Primary,
+        }
+    }
 }

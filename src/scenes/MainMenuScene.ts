@@ -4,6 +4,8 @@ import { COLORTOKEN } from '@/ui/styles/ColorTokens';
 import { TYPETOKEN } from '@/ui/styles/TypeTokens';
 
 import { Background } from '@/ui/components/Background';
+import { Button } from '@/ui/components/Button';
+
 import { screenBounds, ScreenBounds } from '@/utils/UtilsLayout';
 
 export class MainMenuScene extends Phaser.Scene {
@@ -13,6 +15,13 @@ export class MainMenuScene extends Phaser.Scene {
                 x: 16,
                 y: 8,
             },
+            mainButtonsPanel: {
+                padding: {
+                    x: 20,
+                    y: 20,
+                },
+                gap: 8,
+            }
         }
 
     } as const;
@@ -38,20 +47,51 @@ export class MainMenuScene extends Phaser.Scene {
     }
 
     private renderScene(): void {
-        const screen = screenBounds(this) as ScreenBounds;
+
         this.background = new Background(this);
         this.renderTitle();
-        /*
-        this.renderTitle(view);
-        this.renderLoadingBar(view);*/
+        this.renderButtons();
     }
 
     private renderTitle(): void {
-
         this.add.text(this.MAIN_MENU_CONFIG.layout.title.x, this.MAIN_MENU_CONFIG.layout.title.y, 'Armory Intendant', {
             ...TYPETOKEN.Primary.Display,
             color: COLORTOKEN.Foreground.Secondary,
         })
+    }
+
+    private renderButtons(): void {
+        const screen = screenBounds(this) as ScreenBounds;
+        const buttonConfigs = [
+            {
+                text: 'Новый забег',
+                onClick: () => { alert('Новый забег') },
+            },
+            {
+                text: 'Настройки',
+                onClick: () => { alert('Настройки') },
+            },
+        ];
+
+        let nextButtonX: number = 0;
+
+        buttonConfigs.forEach((config) => {
+            const button = new Button(this, config.text, config.onClick);
+            button.setPosition(screen.left + nextButtonX + this.MAIN_MENU_CONFIG.layout.mainButtonsPanel.padding.x + button.width / 2, screen.bottom - this.MAIN_MENU_CONFIG.layout.mainButtonsPanel.padding.y - button.height / 2);
+            nextButtonX = button.width + this.MAIN_MENU_CONFIG.layout.mainButtonsPanel.gap;
+        });
+
+
+
+        /*
+        
+    
+        buttonConfigs.forEach((config) => {
+          const button = new MenuButton(this, config);
+          this.menuButtons.set(config.id, button);
+        });
+    
+      */
     }
 
     private readonly handleResize = (): void => {
@@ -163,9 +203,6 @@ export class MainMenuScene extends Phaser.Scene {
     this.background.fillRect(screen.left, screen.top, screen.width, screen.height);
   }
 
-  private renderTitle(): void {
-    this.title = this.add.text(MENU_LAYOUT.title.x, MENU_LAYOUT.title.y, 'Armory Intendant', TextStyles.title());
-  }
 
   private renderPanels(): void {
     this.heroPanel = new SelectorPanel(this, {

@@ -31,7 +31,7 @@ export class BootScene extends Phaser.Scene {
         },
         animation: {
             loadingBarFill: {
-                duration: 850,
+                duration: 350,
             }
         }
     } as const;
