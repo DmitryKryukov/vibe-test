@@ -1,9 +1,10 @@
 export namespace COLORTOKEN {
-    export const background = {
-        zeroth: '#020302',
+    export const Background = {
+        Zeroth: '#020302',
     } as const;
 
-    export const text = {
-        primary: '#ffffff',
+    export const Foreground = {
+        Primary: '#ffffff',
+        Secondary: '#FFDD73',
     } as const;
 }

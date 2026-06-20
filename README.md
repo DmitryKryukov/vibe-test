@@ -10,7 +10,14 @@ npm run dev
 ## Структура проекта
 - `src/config/ScebesConfig.ts` — cписок сцен.
 - `src/config/GameConfig.ts` — конфигурация Phaser.
+- `src/ui/components/*` — здесь лежат UI-компоненты для использования в Phaser.
+
+## Токены
+В проекте используются токены для отображения пользовательского интерфейса. Все компоненты должны их использовать.
+- `src/ui/ColorTokens` — цветовые токены.
+- `src/ui/TypeTokens` — типографические токены.
+- `src/ui/MetricTokens` — размерные токены.
+
 
 ## Сцены
 - `src/scenes/BootScene.ts` — экран загрузки.
-

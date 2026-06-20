@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import './styles/global.css';
-import { GameConfig } from './config/gameConfig';
-//const game = new Phaser.Game(GameConfig);
+import { GameConfig } from './config/GameConfig';
+const game = new Phaser.Game(GameConfig);
 
-//(window as unknown as { __armoryGame?: Phaser.Game }).__armoryGame = game;
+(window as unknown as { __armoryIntendantGame?: Phaser.Game }).__armoryIntendantGame = game;

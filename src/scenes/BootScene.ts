@@ -1,10 +1,16 @@
 import Phaser from 'phaser';
+import { UI } from '../config/UIConfig';
+
+import { COLORTOKEN } from '../ui/styles/ColorTokens';
+import { TYPETOKEN } from '../ui/styles/TypeTokens';
+
+import { fitCameraToCanvas, viewBounds, ViewBounds } from '../utils/UtilsLayout';
+
 /*
 import { SaveSystem } from '../state/SaveSystem';
 import { IMAGE_ASSETS } from '../assets/AssetMap';
-import { fitCameraToCanvas, viewBounds } from '../utils/layout';
 import { applyContentOverrides, contentImageAssets } from '../content/ContentSystem';
-import { Backdrop } from '../ui/Backdrop';
+
 import { METRICS } from '../utils/Metrics';
 import { hexStringToNumber } from '../utils/ColorUtils';
 import { PHASER_FONT_FAMILIES, loadGameFonts } from '../ui/styles/fontRegistry';
@@ -12,8 +18,75 @@ import { LoadingBarConfig, ViewBounds } from '../entities/Types';
 */
 
 export class BootScene extends Phaser.Scene {
+    private background!: UI.Background;
+    private loadingBar!: UI.LoadingBar;
+
+    constructor() {
+        super({ key: 'BootScene' });
+    }
+
+    public preload(): void {
+        this.registerAssets();
+    }
+    public async create(): Promise<void> {
+        await this.initialize();
+    }
+    private async initialize(): Promise<void> {
+        // await loadGameFonts();
+
+        // this.backdrop = new Backdrop(this);
+        // SaveSystem.load();
+        // fitCameraToCanvas(this);
+
+        //this.buildUserInterface();
+        //this.simulateLoadingSequence();
+        this.renderMenu();
+    }
+    private registerAssets(): void {
+        //const contentPack = applyContentOverrides();
+        //const assets = { ...IMAGE_ASSETS, ...contentImageAssets(contentPack) };
+
+        // Object.entries(assets).forEach(([key, url]) => {
+        //  if (typeof url === 'string') {
+        //    this.load.image(key, url);
+        //  }
+    };
+
+    private renderMenu(): void {
+        const view = viewBounds(this) as ViewBounds;
+        //this.backdrop.render();
+        this.renderTitle(view);
+        //this.createLoadingBar(view);
+    }
+
+    private renderTitle(view: ViewBounds): void {
+        const accentColor = COLORTOKEN.Foreground.Secondary;
+        this.add.text(
+            view.centerX,
+            view.centerY,
+            'Armory Intendant',
+            TYPETOKEN.Primary.Display
+        ).setOrigin(.5);
+    
+   // const textStyle: Phaser.Types.GameObjects.Text.TextStyle = {
+   //   fontFamily: PHASER_FONT_FAMILIES.xprm3,
+   //   resolution: 2,
+   //   fontSize: METRICS.typography.title.size,
+   //   color: accentColor,
+   //   stroke: '#000000',
+   //   strokeThickness: 8,
+    //};
+
+    //this.add.text(
+    //  view.centerX, 
+    //  view.centerY - BootScene.TEXT_OFFSET_Y, 
+    //  'Arnory Intendant', 
+    //  textStyle
+    //).setOrigin(0.5);
+  }
+
+
     /*
-  private backdrop!: Backdrop;
   private loadingBar!: {
     bar: Phaser.GameObjects.Rectangle;
     fill: Phaser.GameObjects.Rectangle;
@@ -32,9 +105,7 @@ export class BootScene extends Phaser.Scene {
   private static readonly TEXT_OFFSET_Y = 40;
   private static readonly BAR_OFFSET_Y = 48;
 
-  constructor() {
-    super({ key: 'BootScene' });
-  }
+
 
   public preload(): void {
     this.registerAssets();

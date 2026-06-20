@@ -11,7 +11,7 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     parent: 'gameRoot',
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
-    backgroundColor: COLORTOKEN.background.zeroth,
+    backgroundColor: COLORTOKEN.Background.Zeroth,
 
     scale: {
         mode: Phaser.Scale.RESIZE,
