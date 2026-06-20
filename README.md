@@ -10,5 +10,7 @@ npm run dev
 ## Структура проекта
 - `src/config/ScebesConfig.ts` — cписок сцен.
 - `src/config/GameConfig.ts` — конфигурация Phaser.
+
+## Сцены
 - `src/scenes/BootScene.ts` — экран загрузки.
 
