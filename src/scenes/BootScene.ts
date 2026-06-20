@@ -3,8 +3,10 @@ import { UI } from '../config/UIConfig';
 
 import { COLORTOKEN } from '../ui/styles/ColorTokens';
 import { TYPETOKEN } from '../ui/styles/TypeTokens';
+import { FONTTOKEN } from '../ui/styles/FontTokens';
 
 import { fitCameraToCanvas, viewBounds, ViewBounds } from '../utils/UtilsLayout';
+import { loadGameFonts } from '../utils/UtilsFont';
 
 /*
 import { SaveSystem } from '../state/SaveSystem';
@@ -18,6 +20,15 @@ import { LoadingBarConfig, ViewBounds } from '../entities/Types';
 */
 
 export class BootScene extends Phaser.Scene {
+    private BOOT_SCENE_CONFIG = {
+        layout: {
+            textOffsetY: -40,
+        },
+        animation: {
+        }
+    } as const;
+
+
     private background!: UI.Background;
     private loadingBar!: UI.LoadingBar;
 
@@ -31,8 +42,9 @@ export class BootScene extends Phaser.Scene {
     public async create(): Promise<void> {
         await this.initialize();
     }
+
     private async initialize(): Promise<void> {
-        // await loadGameFonts();
+         await loadGameFonts();
 
         // this.backdrop = new Backdrop(this);
         // SaveSystem.load();
@@ -63,27 +75,14 @@ export class BootScene extends Phaser.Scene {
         const accentColor = COLORTOKEN.Foreground.Secondary;
         this.add.text(
             view.centerX,
-            view.centerY,
+            view.centerY + this.BOOT_SCENE_CONFIG.layout.textOffsetY,
             'Armory Intendant',
-            TYPETOKEN.Primary.Display
+            {
+                ...TYPETOKEN.Primary.Display,
+                color: COLORTOKEN.Foreground.Secondary,
+            }
         ).setOrigin(.5);
-    
-   // const textStyle: Phaser.Types.GameObjects.Text.TextStyle = {
-   //   fontFamily: PHASER_FONT_FAMILIES.xprm3,
-   //   resolution: 2,
-   //   fontSize: METRICS.typography.title.size,
-   //   color: accentColor,
-   //   stroke: '#000000',
-   //   strokeThickness: 8,
-    //};
-
-    //this.add.text(
-    //  view.centerX, 
-    //  view.centerY - BootScene.TEXT_OFFSET_Y, 
-    //  'Arnory Intendant', 
-    //  textStyle
-    //).setOrigin(0.5);
-  }
+    }
 
 
     /*

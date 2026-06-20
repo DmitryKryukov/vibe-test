@@ -3,5 +3,5 @@ export namespace METRICTOKEN {
         Display: {
             Size: '72px',
         }
-    }
+    } as const
 }
