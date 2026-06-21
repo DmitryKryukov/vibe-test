@@ -34,7 +34,7 @@ export class MainMenuScene extends Phaser.Scene {
             y: 200,
         },
         squiresPanel: {
-            x: 500,
+            x: 700,
             y: 200
         }
     } as const;

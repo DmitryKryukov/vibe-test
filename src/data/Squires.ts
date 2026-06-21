@@ -32,6 +32,21 @@ export const Squires: Record<string, SquireScheme> = {
                 description:'Лечение героя в лагере на 15% эффективнее.'
             }
     ]
+    },
+    clavridius: {
+        id: 'clavridius-squire',
+        name: 'Клавридий',
+        class: 'Клеймёный Алхимик',
+        perks: [
+            {
+                name: 'Альбедо', 
+                description:'Эликсиры действуют вдвое сильнее.'
+            },
+            {
+                name: 'Цитринитас', 
+                description:'Во время разведки в лагере получает на 10% больше золота.'
+            }
+    ]
     }
     /*
   robert: {
