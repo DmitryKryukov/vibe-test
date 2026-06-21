@@ -5,6 +5,9 @@ export namespace METRICTOKEN {
         },
         Lead: {
             Size: '24px',
+        },
+        Caption: {
+            Size: '16px',
         }
     } as const
 }

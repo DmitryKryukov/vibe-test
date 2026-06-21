@@ -19,7 +19,7 @@ export interface SquirePerk {
 
 export const Squires: Record<string, SquireScheme> = {
     robert: {
-        id: 'roberSquire',
+        id: 'robert-squire',
         name: 'Верный Роберт',
         class: 'Слуга-оруженосец',
         perks: [

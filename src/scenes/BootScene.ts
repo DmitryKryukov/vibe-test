@@ -9,6 +9,8 @@ import { loadGameFonts } from '@/utils/UtilsFont';
 import { Background } from '@/ui/components/Background';
 import { LoadingBar, LoadingBarStyleScheme } from '@/ui/components/LoadingBar';
 
+import { ImageAssets } from '@/assets/sprites/AssetsMap';
+
 /*
 import { SaveSystem } from '../state/SaveSystem';
 import { IMAGE_ASSETS } from '../assets/AssetMap';
@@ -61,13 +63,14 @@ export class BootScene extends Phaser.Scene {
 
     private registerAssets(): void {
         //const contentPack = applyContentOverrides();
-        //const assets = { ...IMAGE_ASSETS, ...contentImageAssets(contentPack) };
+        const assets = ImageAssets;
 
-        // Object.entries(assets).forEach(([key, url]) => {
-        //  if (typeof url === 'string') {
-        //    this.load.image(key, url);
-        //  }
-    };
+        Object.entries(assets).forEach(([key, url]) => {
+            if (typeof url === 'string') {
+                this.load.image(key, url);
+            }
+        })
+    }
 
     private renderScene(): void {
         const view = viewBounds(this) as ViewBounds;
@@ -101,6 +104,6 @@ export class BootScene extends Phaser.Scene {
     }
 
     private transitionToMainMenu(): void {
-         this.scene.start('MainMenuScene');
+        this.scene.start('MainMenuScene');
     }
 }

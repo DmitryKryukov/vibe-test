@@ -19,6 +19,21 @@ export namespace TYPETOKEN {
             resolution: 2,
             fontSize: METRICTOKEN.Typography.Lead.Size,
             color: COLORTOKEN.Foreground.Primary,
+        },
+        Caption: {
+            fontFamily: FONTTOKEN.FontFamily.radiance,
+            resolution: 2,
+            fontSize: METRICTOKEN.Typography.Caption.Size,
+            color: COLORTOKEN.Foreground.Tertiary,
+        }
+    }
+
+    export const Tertiary: Record<string, Phaser.Types.GameObjects.Text.TextStyle> = {
+        Lead: {
+            fontFamily: FONTTOKEN.FontFamily.reaver,
+            resolution: 2,
+            fontSize: METRICTOKEN.Typography.Lead.Size,
+            color: COLORTOKEN.Foreground.Primary,
         }
     }
 }

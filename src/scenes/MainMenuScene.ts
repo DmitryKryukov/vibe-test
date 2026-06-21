@@ -1,14 +1,15 @@
 import Phaser from 'phaser';
 
-import { Heroes } from '@/data/heroes';
-import { Squires } from '@/data/squires';
+import { Heroes } from '@/data/Heroes';
+import { Squires } from '@/data/Squires';
 
 import { COLORTOKEN } from '@/ui/styles/ColorTokens';
 import { TYPETOKEN } from '@/ui/styles/TypeTokens';
 
 import { Background } from '@/ui/components/Background';
 import { Button } from '@/ui/components/Button';
-import { SelectorPanel, SelectableEntity } from '@/ui/components/SelectorPanel';
+import { SelectorPanel } from '@/ui/components/SelectorPanel';
+import { SelectableEntity } from '@/ui/components/SelectorCard';
 
 import { viewBounds } from '@/utils/UtilsLayout';
 
@@ -28,11 +29,21 @@ export class MainMenuScene extends Phaser.Scene {
             paddingY: 20,
             gap: 8,
         },
+        heroesPanel: {
+            x: 16,
+            y: 200,
+        },
+        squiresPanel: {
+            x: 500,
+            y: 200
+        }
     } as const;
 
     private static readonly BUTTON_CONFIGS: readonly ButtonConfig[] = [
+        { id: 'btn-continue-run', text: 'Продолжить', onClick: () => console.log('Новый забег') },
         { id: 'btn-new-run', text: 'Новый забег', onClick: () => console.log('Новый забег') },
         { id: 'btn-settings', text: 'Настройки', onClick: () => console.log('Настройки') },
+        { id: 'btn-progress', text: 'Прогресс', onClick: () => console.log('Прогресс') },
     ] as const;
 
     private heroPanel?: SelectorPanel<SelectableEntity>;;
@@ -58,6 +69,8 @@ export class MainMenuScene extends Phaser.Scene {
     private destroy(): void {
         this.scale.off('resize', this.handleResize);
         this.buttons.clear();
+        this.heroPanel = undefined;
+        this.squirePanel = undefined;
     }
 
     private renderScene(): void {
@@ -101,52 +114,40 @@ export class MainMenuScene extends Phaser.Scene {
     }
 
     private renderPanels(): void {
-        console.log(Heroes);
-        console.log(Squires);
-        Object.values(Heroes).forEach( (hero) => {
-            this.add.text(15,500, hero.name, TYPETOKEN.Primary.Display);
-            
-        })
-
-        Object.values(Squires).forEach( (squire) => {
-            this.add.text(550,500, squire.name, TYPETOKEN.Primary.Display);
-        })
+        this.heroPanel = new SelectorPanel(
+            this,
+            { title: 'Герои', list: Object.values(Heroes), selectedId: "galahad-hero" },
+            MainMenuScene.LAYOUT.heroesPanel,
+            { onSelect: (id) => this.selectHero(id as string) },
+        );
+        this.squirePanel = new SelectorPanel(
+            this,
+            { title: 'Оруженосцы', list: Object.values(Squires), selectedId: "robert-squire" },
+            MainMenuScene.LAYOUT.squiresPanel,
+            { onSelect: (id) => this.selectSquire(id as string) },
+        );
     }
-/*
-        Object.values(Heroes)
-
-        Object.values(Heroes).forEach((hero) => {
-            this.add.text(25, 50, hero.name, {
-                ...TYPETOKEN.Primary.Display,
-                color: COLORTOKEN.Foreground.Secondary,
-            }
-    })
 
 
-
-        /*
-            this.heroPanel = new SelectorPanel(this, {
-              x: MENU_LAYOUT.panels.hero.x,
-              y: MENU_LAYOUT.panels.hero.y,
-              title: 'Герой',
-              items: Object.values(HEROES),
-              selectedId: this.store.selectedHero,
-              onSelect: (id) => this.selectHero(id as HeroId),
-              attachTooltip: (target, entity) => this.attachEntityTooltip(target, entity),
-            });
-        
-            this.squirePanel = new SelectorPanel(this, {
-              x: MENU_LAYOUT.panels.squire.x,
-              y: MENU_LAYOUT.panels.squire.y,
-              title: 'Оруженосец',
-              items: Object.values(SQUIRES),
-              selectedId: this.store.selectedSquire,
-              onSelect: (id) => this.selectSquire(id as SquireId),
-              attachTooltip: (target, entity) => this.attachEntityTooltip(target, entity),
-            });
-        */
-
+    private selectHero(id: string): void {
+        //this.store.selectHero(id);
+        this.heroPanel?.setSelected(id);
+    }
+    private selectSquire(id: string): void {
+        // this.store.selectSquire(id);
+        this.squirePanel?.setSelected(id);
+    }
+    /*
+        this.heroPanel = new SelectorPanel(this, {
+          attachTooltip: (target, entity) => this.attachEntityTooltip(target, entity),
+        });
     
+        this.squirePanel = new SelectorPanel(this, {
+          attachTooltip: (target, entity) => this.attachEntityTooltip(target, entity),
+        });
+    */
+
+
     private readonly handleResize = (): void => {
         this.background?.updateBackground();
         this.layoutButtons();
@@ -154,16 +155,11 @@ export class MainMenuScene extends Phaser.Scene {
 }
 /*
 
-import { HeroId, SquireId, SelectableEntity } from '../entities/Types';
 import { SceneNavigator } from '../services/SceneNavigator';
 import { GameState } from '../state/GameState';
 import { MainMenuStore } from '../stores/MainMenuStore';
 import { IconButton } from '../ui/components/IconButton';
-import { MenuButton, MenuButtonConfig } from '../ui/components/MenuButton';
-import { SelectorPanel } from '../ui/components/SelectorPanel';
-import { TextStyles } from '../ui/styles/TextStyles';
-import { UIManager } from '../ui/UIManager';
-import { UI_ICONS } from '../assets/IconMap';
+
 
 const MENU_LAYOUT = {
   title: {
@@ -207,62 +203,14 @@ export class MainMenuScene extends Phaser.Scene {
   private menuButtons = new Map<string, MenuButton>();
   private contentButton?: IconButton;
 
-  private readonly handleResize = (): void => {
-    this.updateBackground();
-    this.layoutButtons();
-  };
-
   constructor() {
     super('MainMenuScene');
   }
 
   public create(): void {
     this.navigator = new SceneNavigator(this);
-    this.ui = new UIManager(this);
-
-    this.renderPipeline();
-    this.sceneInit();
   }
 
-  private renderPipeline(): void {
-    this.renderBackground();
-    this.renderTitle();
-    this.renderPanels();
-    this.renderButtons();
-  } 
-
-
-  private renderPanels(): void {
-    this.heroPanel = new SelectorPanel(this, {
-      x: MENU_LAYOUT.panels.hero.x,
-      y: MENU_LAYOUT.panels.hero.y,
-      title: 'Герой',
-      items: Object.values(HEROES),
-      selectedId: this.store.selectedHero,
-      onSelect: (id) => this.selectHero(id as HeroId),
-      attachTooltip: (target, entity) => this.attachEntityTooltip(target, entity),
-    });
-
-    this.squirePanel = new SelectorPanel(this, {
-      x: MENU_LAYOUT.panels.squire.x,
-      y: MENU_LAYOUT.panels.squire.y,
-      title: 'Оруженосец',
-      items: Object.values(SQUIRES),
-      selectedId: this.store.selectedSquire,
-      onSelect: (id) => this.selectSquire(id as SquireId),
-      attachTooltip: (target, entity) => this.attachEntityTooltip(target, entity),
-    });
-  }
-
-  private selectHero(id: HeroId): void {
-    this.store.selectHero(id);
-    this.heroPanel?.setSelected(id);
-  }
-
-  private selectSquire(id: SquireId): void {
-    this.store.selectSquire(id);
-    this.squirePanel?.setSelected(id);
-  }
 
   private showModalResetProgress(): void {
     // Reset confirmation UI is still pending the shared modal/button refactor.

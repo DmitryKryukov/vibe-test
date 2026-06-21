@@ -1,6 +1,7 @@
 export namespace COLORTOKEN {
     export const Background = {
         Zeroth: '#020302',
+        Primary: '#1A1D1B',
         Accent: {
             Primary: '#FFDD73',
         },
@@ -9,6 +10,7 @@ export namespace COLORTOKEN {
     export const Foreground = {
         Primary: '#ffffff',
         Secondary: '#FFDD73',
+        Tertiary: '#aaaaaa',
     } as const;
 
     export const Utility = {
@@ -19,24 +21,62 @@ export namespace COLORTOKEN {
         Button: {
             Primary: {
                 Idle: {
-                    Text: { Color: Foreground.Primary},
+                    Text: { Color: Foreground.Primary },
                     Background: {
                         BackgroundColor: '#1A1D1B',
                         StrokeColor: '#1A1D1B',
                     }
                 },
                 Hover: {
-                    Text: { Color:  Foreground.Primary },
+                    Text: { Color: Foreground.Primary },
                     Background: {
                         BackgroundColor: '#101211',
                         StrokeColor: '#101211',
                     }
                 },
                 Press: {
-                    Text: { Color:  Foreground.Secondary },
+                    Text: { Color: Foreground.Secondary },
                     Background: {
                         BackgroundColor: '#050505',
                         StrokeColor: '#050505',
+                    }
+                }
+            }
+        },
+        SelectorCard: {
+            Primary: {
+                Unselected: {
+                    Idle: {
+                        Background: {
+                            BackgroundColor: '#101211',
+                        }
+                    },
+                    Hover: {
+                        Background: {
+                            BackgroundColor: '#050505',
+                        }
+                    },
+                    Press: {
+                        Background: {
+                            BackgroundColor: '#1A1D1B',
+                        }
+                    }
+                },
+                Selected: {
+                     Idle: {
+                        Background: {
+                            BackgroundColor: '#22231E',
+                        }
+                    },
+                    Hover: {
+                        Background: {
+                            BackgroundColor: '#26271F',
+                        }
+                    },
+                    Press: {
+                        Background: {
+                            BackgroundColor: '#2D2C22',
+                        }
                     }
                 }
             }
