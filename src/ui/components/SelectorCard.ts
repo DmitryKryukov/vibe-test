@@ -28,10 +28,10 @@ interface SelectorCardState {
 }
 
 export interface SelectorCardStyleScheme {
-    readonly width: number;
-    readonly height: number;
-    readonly paddings: { x: number; y: number };
-    readonly states: SelectorCardState;
+    width: number;
+    height: number;
+    paddings: { x: number; y: number };
+    states: SelectorCardState;
     readonly animationDuration: {
         readonly hoverIn: number;
         readonly hoverOut: number;
@@ -48,7 +48,7 @@ export interface SelectableEntity {
     id: string;
 }
 
-export interface ButtonInteractScheme {
+export interface SelectorCardInteractScheme {
     onClickHandler: () => {}
 }
 
@@ -59,7 +59,7 @@ const defaultStyle: SelectorCardStyleScheme = {
     states: {
         idle: {
             name: { color: COLORTOKEN.Component.Button.Primary.Idle.Text.Color },
-            class: { color: COLORTOKEN.Foreground.Tertiary },
+            class: { color: COLORTOKEN.Foreground.Quanternary },
             portraitBrightness: 1,
             background: {
                 backgroundColor: COLORTOKEN.Component.SelectorCard.Primary.Unselected.Idle.Background.BackgroundColor,
@@ -70,7 +70,7 @@ const defaultStyle: SelectorCardStyleScheme = {
         },
         hover: {
             name: { color: COLORTOKEN.Foreground.Secondary },
-            class: { color: COLORTOKEN.Foreground.Secondary },
+            class: { color: COLORTOKEN.Foreground.Tertiary },
             portraitBrightness: 1.1,
             background: {
                 backgroundColor: COLORTOKEN.Component.SelectorCard.Primary.Unselected.Hover.Background.BackgroundColor,
@@ -81,8 +81,8 @@ const defaultStyle: SelectorCardStyleScheme = {
         },
         press: {
             name: { color: COLORTOKEN.Foreground.Primary },
-            class: { color: COLORTOKEN.Foreground.Primary },
-            portraitBrightness: 1.25,
+            class: { color: COLORTOKEN.Foreground.Quanternary },
+            portraitBrightness: 1.2,
             background: {
                 backgroundColor: COLORTOKEN.Component.SelectorCard.Primary.Unselected.Press.Background.BackgroundColor,
                 strokeColor: COLORTOKEN.Component.Button.Primary.Press.Background.StrokeColor,
@@ -93,9 +93,9 @@ const defaultStyle: SelectorCardStyleScheme = {
     },
     animationDuration: {
         hoverIn: 0,
-        hoverOut: 300,
+        hoverOut: 100,
         pressIn: 0,
-        pressOut: 300,
+        pressOut: 100,
     }
 };
 
@@ -114,7 +114,13 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
         background: Phaser.GameObjects.Shape | null;
         outline: Phaser.GameObjects.Shape | null;
         portrait: Phaser.GameObjects.Image | null;
-    } = { name: null, class: null, outline: null, background: null, portrait: null };
+    } = {
+            name: null,
+            class: null,
+            background: null,
+            outline: null,
+            portrait: null
+        }
 
     private currentState: keyof SelectorCardState = 'idle';
 
@@ -124,107 +130,34 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
         this.setDepth(100);
         this.setPosition(0, 40);
         this.entity = entity;
-        this.selected = selected;
         this.onClickHandler = onClick;
-
+        this.selected = selected;
 
         this.render();
         this.setupInteractivity();
 
         scene.add.existing(this);
-       
-
         this.initFollowMask();
     }
 
     public setSelected(selected: boolean): void {
         if (this.selected === selected) return;
         this.selected = selected;
-        this.applyActiveState();
+        this.applySelectedState();
     }
 
-    private applyActiveState() {
-        if (this.selected === true) {
+    private applySelectedState() {
+        this.GO.outline?.setStrokeStyle(0, anyToColor(COLORTOKEN.Foreground.Secondary))
+        if (this.selected == true) {
             this.GO.outline?.setStrokeStyle(4, anyToColor(COLORTOKEN.Foreground.Secondary));
-            this.style.states.idle = {
-                name: { color: COLORTOKEN.Component.Button.Primary.Idle.Text.Color },
-                class: { color: COLORTOKEN.Foreground.Tertiary },
-                portraitBrightness: 1,
-                background: {
-                    backgroundColor: COLORTOKEN.Component.SelectorCard.Primary.Selected.Idle.Background.BackgroundColor,
-                    strokeColor: COLORTOKEN.Component.Button.Primary.Idle.Background.StrokeColor,
-                    strokeWidth: 0,
-                    cornerRadius: 12,
-                }
-            };
-            this.style.states.hover = {
-                name: { color: COLORTOKEN.Foreground.Secondary },
-                class: { color: COLORTOKEN.Foreground.Secondary },
-                portraitBrightness: 1.1,
-                background: {
-                    backgroundColor: COLORTOKEN.Component.SelectorCard.Primary.Selected.Hover.Background.BackgroundColor,
-                    strokeColor: COLORTOKEN.Component.Button.Primary.Idle.Background.StrokeColor,
-                    strokeWidth: 0,
-                    cornerRadius: 12,
-                }
-            };
-            this.style.states.press = {
-                name: { color: COLORTOKEN.Foreground.Primary },
-                class: { color: COLORTOKEN.Foreground.Primary },
-                portraitBrightness: 1.25,
-                background: {
-                    backgroundColor: COLORTOKEN.Component.SelectorCard.Primary.Selected.Press.Background.BackgroundColor,
-                    strokeColor: COLORTOKEN.Component.Button.Primary.Idle.Background.StrokeColor,
-                    strokeWidth: 0,
-                    cornerRadius: 12,
-                }
-            };
         }
-        else {
-            this.style.states.idle = {
-                name: { color: COLORTOKEN.Component.Button.Primary.Idle.Text.Color },
-                class: { color: COLORTOKEN.Foreground.Tertiary },
-                portraitBrightness: 1,
-                background: {
-                    backgroundColor: COLORTOKEN.Component.Button.Primary.Idle.Background.BackgroundColor,
-                    strokeColor: COLORTOKEN.Component.Button.Primary.Idle.Background.StrokeColor,
-                    strokeWidth: 0,
-                    cornerRadius: 12,
-                }
-            };
-            this.style.states.hover = {
-                name: { color: COLORTOKEN.Component.Button.Primary.Idle.Text.Color },
-                class: { color: COLORTOKEN.Foreground.Tertiary },
-                portraitBrightness: 1,
-                background: {
-                    backgroundColor: COLORTOKEN.Component.Button.Primary.Idle.Background.BackgroundColor,
-                    strokeColor: COLORTOKEN.Component.Button.Primary.Idle.Background.StrokeColor,
-                    strokeWidth: 0,
-                    cornerRadius: 12,
-                }
-            };
-            this.style.states.press = {
-                name: { color: COLORTOKEN.Component.Button.Primary.Idle.Text.Color },
-                class: { color: COLORTOKEN.Foreground.Tertiary },
-                portraitBrightness: 1,
-                background: {
-                    backgroundColor: COLORTOKEN.Component.Button.Primary.Idle.Background.BackgroundColor,
-                    strokeColor: COLORTOKEN.Component.Button.Primary.Idle.Background.StrokeColor,
-                    strokeWidth: 0,
-                    cornerRadius: 12,
-                }
-            };
-            
-        }
-
-        this.applyState('idle', 0);
     }
 
     private render() {
         this.renderBackground();
         this.renderPortrait(this.entity);
         this.renderText(this.entity);
-        this.applyActiveState();
+        this.applySelectedState();
     }
 
     private initFollowMask() {
@@ -232,7 +165,7 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
         this.maskGraphics.setVisible(false);
 
         const roundedMask = this.maskGraphics.createGeometryMask();
-        this.setMask(roundedMask);
+     //  this.setMask(roundedMask);
 
         this.scene.events.on(Phaser.Scenes.Events.PRE_RENDER, this.updateMaskPosition, this);
 
@@ -329,6 +262,7 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
     }
 
     private handlePointerEnter(): void {
+
         this.applyState('hover', this.style.animationDuration.hoverIn);
     }
 
@@ -367,7 +301,7 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
         };
 
         const to = {
-            text: parseColor(toState.name.color),
+            name: parseColor(toState.name.color),
             class: parseColor(toState.class.color),
             background: parseColor(toState.background.backgroundColor),
             stroke: parseColor(toState.background.strokeColor),
@@ -379,7 +313,7 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
             duration,
             ease: 'Quint.Out',
             onUpdate: (progress) => {
-                this.GO.name?.setColor(interpolateColorToHex(from.name, to.text, progress));
+                this.GO.name?.setColor(interpolateColorToHex(from.name, to.name, progress));
                 this.GO.class?.setColor(interpolateColorToHex(from.class, to.class, progress));
                 this.GO.background?.setFillStyle(interpolateColor(from.background, to.background, progress));
                 this.GO.background?.setStrokeStyle(

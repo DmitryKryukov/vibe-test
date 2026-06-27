@@ -10,7 +10,8 @@ export namespace COLORTOKEN {
     export const Foreground = {
         Primary: '#ffffff',
         Secondary: '#FFDD73',
-        Tertiary: '#aaaaaa',
+        Tertiary: '#998C64',
+        Quanternary: '#aaaaaa',
     } as const;
 
     export const Utility = {
@@ -48,17 +49,17 @@ export namespace COLORTOKEN {
                 Unselected: {
                     Idle: {
                         Background: {
-                            BackgroundColor: '#101211',
+                            BackgroundColor: '#1A1D1B',
                         }
                     },
                     Hover: {
                         Background: {
-                            BackgroundColor: '#050505',
+                            BackgroundColor: '#101211',
                         }
                     },
                     Press: {
                         Background: {
-                            BackgroundColor: '#1A1D1B',
+                            BackgroundColor: '#050505',
                         }
                     }
                 },

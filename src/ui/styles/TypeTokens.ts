@@ -24,7 +24,7 @@ export namespace TYPETOKEN {
             fontFamily: FONTTOKEN.FontFamily.radiance,
             resolution: 2,
             fontSize: METRICTOKEN.Typography.Caption.Size,
-            color: COLORTOKEN.Foreground.Tertiary,
+            color: COLORTOKEN.Foreground.Quanternary,
         }
     }
 

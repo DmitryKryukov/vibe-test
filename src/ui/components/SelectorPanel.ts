@@ -90,6 +90,7 @@ export class SelectorPanel<T extends SelectableEntity> extends Phaser.GameObject
                 entity.id === entity.selectedId,
                 () => {this.interaction.onSelect(entity.id)}
             )
+                card.setPosition(228 * index, 40);
                 this.GO.cards?.set(entity.id, card);
             
                 this.add(card)
@@ -97,7 +98,6 @@ export class SelectorPanel<T extends SelectableEntity> extends Phaser.GameObject
     }
 
     public setSelected(id: string): void {
-        console.log( this.GO.cards )
         this.GO.cards?.forEach((card, cardID)=> {
             card.setSelected(cardID === id);
         })
