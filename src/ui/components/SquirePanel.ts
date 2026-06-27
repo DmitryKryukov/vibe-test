@@ -2,7 +2,7 @@ import Phaser from "phaser"
 import { GameState, RunState } from "@/store/GameState";
 
 import { Squires, SquireScheme } from "@/data/Squires";
-import { screenToWorld, screenSpaceScale, screenBounds } from "@/utils/UtilsLayout";
+import { screenToWorld, screenBounds } from "@/utils/UtilsLayout";
 import { degreesToRadians, getRandomInt } from "@/utils/UtilsMath";
 import { COLORTOKEN } from "../styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
@@ -60,21 +60,18 @@ export class SquirePanel extends Phaser.GameObjects.Container {
     }
 
     private renderSlots(): void {
-        /*
-        this.hero.slots.forEach((slot, index) => {
-            const slotWidth = 72;
-            const slotHeight = 72;
-            const slotGap = 2;
-            const startPos = { x: 150, y: 10 };
+        const screen = screenBounds(this.scene);
+        const slotWidth = 72;
+        const slotHeight = 72;
+        const slotGap = 2;
+        const startPos = { x: 150, y: screen.bottom};
 
-            const col = Math.floor(index % (this.hero.slots.length / 2));
-            const row = Math.floor(index / (this.hero.slots.length / 2));
-
+        this.run.inventory.forEach((item, index) => {
+            const col = Math.floor(index % (this.run.inventory.length / 2));
+            const row = Math.floor(index / (this.run.inventory.length / 2));
             const x = startPos.x + col * (slotWidth + slotGap);
             const y = startPos.y + slotHeight / 2 + row * (slotHeight + slotGap);
-
-            const container = this.scene.add.container(x, y);
-
+            const container = this.scene.add.container(x, y - slotHeight * 2 - 8);
             const background = new Phaser.GameObjects.Graphics(this.scene);
             const radius = 8;
 
@@ -82,48 +79,22 @@ export class SquirePanel extends Phaser.GameObjects.Container {
             background.fillRoundedRect(-slotWidth / 2, -slotHeight / 2, slotWidth, slotHeight, radius);
             background.lineStyle(4, anyToColor(COLORTOKEN.Background.Zeroth));
             background.strokeRoundedRect(-slotWidth / 2, -slotHeight / 2, slotWidth, slotHeight, radius);
-
-            
-            const text = new Phaser.GameObjects.Text(this.scene, 0, 0, slot + "\n" + col + "/" + row, { align: 'center' })
-                .setOrigin(0.5).setDepth(400);
-                
-            
-            const icon = this.renderEmptySlotIcon(slot, x, y, slotWidth, slotHeight);
-
-
-            container.add([background, icon]);
-            container.setRotation(degreesToRadians(getRandomInt(4, -4)));
-            
-      const item = run.equipment[index];
-      c.add(bg);
-      if (item) {
-        c.add(this.drawItemIcon(item.itemId, x, y, 54));
-      } else {
-        c.add(this.drawEmptySlotIcon(slot, x, y));
-      }
-      this.tooltip(bg, item ? ITEMS[item.itemId].name : GameState.slotLabel(slot), item ? this.itemTooltipText(ITEMS[item.itemId]) : 'Перетащите подходящий предмет.', item ? this.comparisonForItem(item.itemId) : undefined);
-    });
-               
+            container.add([background]);
+            container.setRotation(degreesToRadians(getRandomInt(5, -5)));
         })
-    */
-
     }
 
     private render(): void {
-        this.renderPortrait();
         this.renderStats();
         this.renderGold();
         this.renderSlots();
+        this.renderPortrait();
 
     }
 }
 /*
 const run = GameState.requireRun();
     
-    const gold = this.scene.add.text(10, -84, `● ${run.gold}`, { resolution: Math.min(window.devicePixelRatio || 1, 2), fontSize: '32px', color: '#ffd45e', stroke: '#000', strokeThickness: 4 });
-    const maxWeight = SQUIRES[run.squireId].maxWeight + (GameState.state.meta.buildings.guild ?? 0) * 1.5;
-    const weight = this.scene.add.text(12, -44, `▰ ${GameState.currentWeight().toFixed(1)}/${maxWeight.toFixed(1)}`, { resolution: Math.min(window.devicePixelRatio || 1, 2), fontSize: '28px', color: '#bfc2c0', stroke: '#000', strokeThickness: 4 });
-    c.add([gold, weight]);
     run.bag.forEach((item, index) => {
       const x = 124 + Math.floor(index / 2) * 76;
       const y = 34 + (index % 2) * 76;

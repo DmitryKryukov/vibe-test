@@ -13,15 +13,18 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     roundPixels: true,
    
     scale: {
-        mode: Phaser.Scale.RESIZE,
+        mode: Phaser.Scale.FIT,
         width: window.innerWidth, 
         height: window.innerHeight,
-        zoom: 1
+        zoom: 2,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
     },
 
     render: {
         antialias: true,
         antialiasGL: true,
+        roundPixels: false,
+        pixelArt: false,
         powerPreference: 'high-performance'
     },
 

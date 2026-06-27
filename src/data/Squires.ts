@@ -18,6 +18,7 @@ export interface SquireScheme {
 
 export interface SquireStats {
     maxWeight: number;
+    slotCount: number;
 }
 
 
@@ -43,6 +44,7 @@ export const Squires: Record<string, SquireScheme> = {
     ],
     baseStats: {
       maxWeight: 25,
+      slotCount: 8,
     },
     content: {
       portraitImage: 'robert-squire-portrait',
@@ -64,6 +66,7 @@ export const Squires: Record<string, SquireScheme> = {
     ],
     baseStats: {
       maxWeight: 15,
+      slotCount: 6,
     },
     content: {
       portraitImage: 'clavridius-squire-portrait',
