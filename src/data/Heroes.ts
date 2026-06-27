@@ -98,32 +98,17 @@ export const Heroes: Record<string, HeroScheme> = {
     }
     /*
   galahad: {
-    id: 'galahad',
-    name: 'Сэр Галахад',
-    title: 'Осколок Былого Ордена',
-    slots: ['weapon', 'shield', 'armor', 'helmet', 'amulet', 'ring'],
-    baseStats: { maxHp: 135, attack: 16, defense: 8, attackSpeed: 1, critChance: 0.06, dodgeChance: 0.02 },
-    portraitTint: 0xb7a08b,
+
     abilities: [
       { id: 'strike', name: 'Удар', cooldown: 2.8, kind: 'attack', description: 'Базовая атака по текущей цели.' },
       { id: 'shield-bash', name: 'Закаленный щит', cooldown: 10, kind: 'attack', description: 'Удар щитом и оглушение.' }
     ],
   },
   beatrice: {
-    id: 'beatrice',
-    name: 'Беатриса',
-    title: 'Стальная Пленница',
-    slots: ['weapon', 'weapon', 'weapon', 'weapon', 'amulet', 'ring'],
-    baseStats: { maxHp: 118, attack: 12, defense: 5, attackSpeed: 1.22, critChance: 0.08, dodgeChance: 0.01 },
-    portraitTint: 0x8f9ca5,
     abilities: [
       { id: 'strike', name: 'Меха-удар', cooldown: 2.2, kind: 'attack', description: 'Очередная атака верхней цели.' },
       { id: 'widow-veil', name: 'Саван Изгоя', cooldown: 25.6, kind: 'utility', description: 'Ослепляет текущую цель.' }
-    ],
-    perks: [
-      'Гексаподический танец: каждое оружие ускоряет атаки на 6%.',
-      'Такт Отречения: каждая серия ударов превращается в круговой взмах.'
-    ]
+    ],]
   }
     */
 };

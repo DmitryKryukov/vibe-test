@@ -1,18 +1,22 @@
 import Phaser from 'phaser';
 import { Background } from '@/ui/components/Background';
 import { Combatant, CombatSystem } from '@/services/CombatSystem';
+import { GameState } from '@/store/GameState';
+import { Heroes } from '@/data/Heroes';
+
+import { SquirePanel } from '@/ui/components/SquirePanel';
+import { HeroPanel } from '@/ui/components/HeroPanel';
+
 import { TYPETOKEN } from '@/ui/styles/TypeTokens';
 import { COLORTOKEN } from '@/ui/styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
-import { Heroes } from '@/data/Heroes';
-import { GameState } from '@/store/GameState';
-import { HeroPanel } from '@/ui/components/HeroPanel';
 
 export class BattleSceneRenderer {
     private scene: Phaser.Scene;
     private background!: Background;
     private combatSystem: CombatSystem;
     private heroPanel!: HeroPanel;
+    private squirePanel!: SquirePanel;
 
     private heroZone!: Phaser.GameObjects.Zone;
 
@@ -33,6 +37,7 @@ export class BattleSceneRenderer {
         this.scene.input.off('drop');
         this.scene.input.off('dragend');
         this.renderBackground();
+        this.renderSquirePanel();
         this.renderHeroPanel();
         this.renderHero();
         /*
@@ -72,6 +77,10 @@ export class BattleSceneRenderer {
         this.heroPanel = new HeroPanel(this.scene);
     }
 
+    private renderSquirePanel(): void {
+        this.squirePanel = new SquirePanel(this.scene);
+    }
+
     private renderHero(): void {
         const { x, y } = this.characterSlot.Hero;
         const hero = this.combatSystem.hero;
@@ -98,11 +107,11 @@ export class BattleSceneRenderer {
             const offsetX = hero.content?.spriteOffsetX ?? 0;
             const offsetY = hero.content?.spriteOffsetY ?? -84;
             this.scene.add.image(x, y, textureKey)
-                   .setDisplaySize(width * spriteScale, height * spriteScale)
-                   .setX(x + offsetX)
-                   .setY(y + offsetY)
-                   .setDepth(10)
-                   .setOrigin(0.5, 1);
+                .setDisplaySize(width * spriteScale, height * spriteScale)
+                .setX(x + offsetX)
+                .setY(y + offsetY)
+                .setDepth(10)
+                .setOrigin(0.5, 1);
             this.heroZone = this.scene.add.zone(x + offsetX, y + offsetY, width, height).setRectangleDropZone(width, height);
         }
 
@@ -111,7 +120,7 @@ export class BattleSceneRenderer {
     private renderHPBar(target: Combatant, x: number, y: number, width: number): Phaser.GameObjects.GameObject[] {
         const graphics = this.scene.add.graphics().setDepth(40);
         const GO: Phaser.GameObjects.GameObject[] = [graphics];
-       
+
         /*
         const nameText = this.scene.add.text(x, y + 48, target.name, {
             ...TYPETOKEN.Tertiary.Lead, ...{
@@ -156,7 +165,7 @@ export class BattleSceneRenderer {
         hpText?.setText(`${Math.max(0, Math.ceil(target.hp))}/${target.maxHp}`);
 
         graphics.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
-        graphics.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.hp / target.maxHp)), 30, Math.min((width - 8) * (target.hp / target.maxHp),4));
+        graphics.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.hp / target.maxHp)), 30, Math.min((width - 8) * (target.hp / target.maxHp), 4));
 
         /*
         const hpText = this.hpTexts.get(target.uid);
@@ -283,8 +292,6 @@ export class BattleSceneRenderer {
   public spawnedRewardItems = 0;
   private statusSignatures = new Map<string, string>();
 
-  private battleBackgroundKey: string;
-
   constructor(
     scene: Phaser.Scene,
     combat: CombatSystem,
@@ -295,8 +302,7 @@ export class BattleSceneRenderer {
     this.scene = scene;
     this.combat = combat;
     this.ui = ui;
-    this.effects = effects;
-    this.battleBackgroundKey = backgroundKey;
+    this.effects = effects;\
   }
 
   // ----- Полная перерисовка всей сцены -----

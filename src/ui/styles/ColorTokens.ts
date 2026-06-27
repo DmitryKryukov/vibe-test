@@ -20,6 +20,7 @@ export namespace COLORTOKEN {
     
     export const Accent = {
         Red: '#FF472E',
+        Gold: '#F6B94D',
     }
 
     export const Component = {

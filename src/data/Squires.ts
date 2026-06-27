@@ -1,7 +1,7 @@
 export interface SquireScheme {
-  id: string;
-  name: string;
-  class: string;
+  id: string,
+  name: string,
+  class: string,
   /*
   bagSlots: number;
   bagColumns: number;
@@ -9,74 +9,95 @@ export interface SquireScheme {
   perks: string[];
   portraitTint: number;
   */
-    perks: SquirePerk[],
+ perks: SquirePerk[],
+ baseStats: SquireStats,
+  content: {
+    portraitImage: string,
+  }
 }
 
+export interface SquireStats {
+    maxWeight: number;
+}
+
+
 export interface SquirePerk {
-    name: string,
-    description: string
+  name: string,
+  description: string
 }
 
 export const Squires: Record<string, SquireScheme> = {
-    robert: {
-        id: 'robert-squire',
-        name: 'Верный Роберт',
-        class: 'Слуга-оруженосец',
-        perks: [
-            {
-                name: 'Походная Починка', 
-                description:'Предметы в инвентаре медленно чинятся.'
-            },
-            {
-                name: 'Полевая медицина', 
-                description:'Лечение героя в лагере на 15% эффективнее.'
-            }
-    ]
-    },
-    clavridius: {
-        id: 'clavridius-squire',
-        name: 'Клавридий',
-        class: 'Клеймёный Алхимик',
-        perks: [
-            {
-                name: 'Альбедо', 
-                description:'Эликсиры действуют вдвое сильнее.'
-            },
-            {
-                name: 'Цитринитас', 
-                description:'Во время разведки в лагере получает на 10% больше золота.'
-            }
-    ]
-    }
-    /*
   robert: {
-    id: 'robert',
+    id: 'robert-squire',
     name: 'Верный Роберт',
-    title: 'Слуга-оруженосец',
-    bagSlots: 8,
-    bagColumns: 4,
-    maxWeight: 22,
-    portraitTint: 0xc59b75,
+    class: 'Слуга-оруженосец',
     perks: [
-      'Походная Починка: после боя герой восстанавливает 3 HP за предмет в сумке.',
-      'Полевая медицина: лагерь лечит на 15% эффективнее.',
-      'Два сапога пара: пары одинаковых типов в сумке усиливают экипировку героя.'
-    ]
+      {
+        name: 'Походная Починка',
+        description: 'Предметы в инвентаре медленно чинятся.'
+      },
+      {
+        name: 'Полевая медицина',
+        description: 'Лечение героя в лагере на 15% эффективнее.'
+      },
+    ],
+    baseStats: {
+      maxWeight: 25,
+    },
+    content: {
+      portraitImage: 'robert-squire-portrait',
+    },
   },
   clavridius: {
-    id: 'clavridius',
+    id: 'clavridius-squire',
     name: 'Клавридий',
-    title: 'Клеймёный Алхимик',
-    bagSlots: 4,
-    bagColumns: 2,
-    maxWeight: 8,
-    portraitTint: 0xaebf7a,
+    class: 'Клеймёный Алхимик',
     perks: [
-      'Альбедо: эликсиры действуют вдвое сильнее.',
-      'Цитринитас: в лагере получает 10% текущего золота.',
-      'Рубедо: применение предмета на врага может выбить монету.'
-    ]
+      {
+        name: 'Альбедо',
+        description: 'Эликсиры действуют вдвое сильнее.'
+      },
+      {
+        name: 'Цитринитас',
+        description: 'Во время разведки в лагере получает на 10% больше золота.'
+      },
+    ],
+    baseStats: {
+      maxWeight: 15,
+    },
+    content: {
+      portraitImage: 'clavridius-squire-portrait',
+    }
   }
-    */
+  /*
+robert: {
+  id: 'robert',
+  name: 'Верный Роберт',
+  title: 'Слуга-оруженосец',
+  bagSlots: 8,
+  bagColumns: 4,
+  maxWeight: 22,
+  portraitTint: 0xc59b75,
+  perks: [
+    'Походная Починка: после боя герой восстанавливает 3 HP за предмет в сумке.',
+    'Полевая медицина: лагерь лечит на 15% эффективнее.',
+    'Два сапога пара: пары одинаковых типов в сумке усиливают экипировку героя.'
+  ]
+},
+clavridius: {
+  id: 'clavridius',
+  name: 'Клавридий',
+  title: 'Клеймёный Алхимик',
+  bagSlots: 4,
+  bagColumns: 2,
+  maxWeight: 8,
+  portraitTint: 0xaebf7a,
+  perks: [
+    'Альбедо: эликсиры действуют вдвое сильнее.',
+    'Цитринитас: в лагере получает 10% текущего золота.',
+    'Рубедо: применение предмета на врага может выбить монету.'
+  ]
+}
+  */
 };
 

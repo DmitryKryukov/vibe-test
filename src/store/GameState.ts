@@ -9,10 +9,10 @@ export interface RunState {
     squireId: string;
     hp: number;
     maxHp: number;
+    gold: number;
     //xp: number;
     //level: number;
     //trainingPoints: number;
-    //gold: number;
     //equipment: (InventoryItem | null)[];
     //bag: (InventoryItem | null)[];
     //map: MapNodeState[];
@@ -38,12 +38,11 @@ class GameStateStore {
     }
 
     startRun(heroId: string, squireId: string): void {
-        const hero = Heroes[heroId];
-        const squire = Squires[squireId];
-
-        const heroIdClean = heroId.replace('-hero','')
-        const squireIdClean = squireId.replace('-squire','')
-        console.log(hero);
+      
+      const heroIdClean = heroId.replace('-hero','')
+      const squireIdClean = squireId.replace('-squire','')
+      const hero = Heroes[heroIdClean];
+      const squire = Squires[squireIdClean];
         
         this.state.run = {
             active: true,
@@ -51,6 +50,7 @@ class GameStateStore {
             squireId: squireIdClean,
             hp: hero.baseStats.maxHp,
             maxHp: hero.baseStats.maxHp,
+            gold: 0,
             seed: Math.floor(Math.random() * 999999)
         };
     }
