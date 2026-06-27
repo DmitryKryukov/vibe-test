@@ -7,6 +7,15 @@ export interface HeroScheme {
     //baseStats: Stats;
     //abilities: AbilityDefinition[];
     perks: HeroPerk[];
+    content?: {
+        portraitImage?: string;
+        spriteImage?: string;
+        spriteWidth?: number;
+        spriteHeight?: number;
+        spriteScale?: number;
+        spriteOffsetX?: number;
+        spriteOffsetY?: number;
+    }
 }
 
 export interface HeroPerk {
@@ -39,7 +48,16 @@ export const Heroes: Record<string, HeroScheme> = {
                 description: 'В начале боя получает щит на 20% текущего здоровья.',
                 type: 'passive',
             },
-        ]
+        ],
+        content: {
+            portraitImage: 'galahad-hero-portrait',
+            spriteImage: 'galahad-hero-sprite',
+            spriteWidth: 390,
+            spriteHeight: 510,
+            spriteScale: 1,
+            spriteOffsetX: -10,
+            spriteOffsetY: 40,
+        }
     },
     beatrice: {
         id: 'beatrice-hero',
@@ -56,7 +74,7 @@ export const Heroes: Record<string, HeroScheme> = {
                 name: 'Такт Отречения',
                 description: 'каждая атака накапливает заряд. Каждый 10-й удар становится сокрушительным круговым взмахом, который наносит урон всем врагам на экране. Каждое экипированное оружие уменьшает счётчик необходимых ударов на один.',
                 type: 'passive',
-                
+
             },
             {
                 name: 'Cаван Изгоя',

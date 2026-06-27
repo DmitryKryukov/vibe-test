@@ -3,8 +3,14 @@ export namespace METRICTOKEN {
         Display: {
             Size: '72px',
         },
+        Tagline: {
+            Size: '32px',
+        },
         Lead: {
             Size: '24px',
+        },
+        Body: {
+            Size: '20px',
         },
         Caption: {
             Size: '16px',

@@ -10,14 +10,32 @@ export namespace TYPETOKEN {
             resolution: 2,
             fontSize: METRICTOKEN.Typography.Display.Size,
             color: COLORTOKEN.Foreground.Primary,
-        }
+        },
+        Tagline: {
+            fontFamily: FONTTOKEN.FontFamily.xprm3,
+            resolution: 2,
+            fontSize: METRICTOKEN.Typography.Tagline.Size,
+            color: COLORTOKEN.Foreground.Primary,
+        },
+        Lead: {
+            fontFamily: FONTTOKEN.FontFamily.xprm3,
+            resolution: 2,
+            fontSize: METRICTOKEN.Typography.Lead.Size,
+            color: COLORTOKEN.Foreground.Primary,
+        },
     }
-    
+
     export const Secondary: Record<string, Phaser.Types.GameObjects.Text.TextStyle> = {
         Lead: {
             fontFamily: FONTTOKEN.FontFamily.radiance,
             resolution: 2,
             fontSize: METRICTOKEN.Typography.Lead.Size,
+            color: COLORTOKEN.Foreground.Primary,
+        },
+        Body: {
+            fontFamily: FONTTOKEN.FontFamily.radiance,
+            resolution: 2,
+            fontSize: METRICTOKEN.Typography.Body.Size,
             color: COLORTOKEN.Foreground.Primary,
         },
         Caption: {
@@ -33,6 +51,12 @@ export namespace TYPETOKEN {
             fontFamily: FONTTOKEN.FontFamily.reaver,
             resolution: 2,
             fontSize: METRICTOKEN.Typography.Lead.Size,
+            color: COLORTOKEN.Foreground.Primary,
+        },
+        Body: {
+            fontFamily: FONTTOKEN.FontFamily.reaver,
+            resolution: 2,
+            fontSize: METRICTOKEN.Typography.Body.Size,
             color: COLORTOKEN.Foreground.Primary,
         }
     }

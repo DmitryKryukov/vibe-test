@@ -1,74 +1,54 @@
 import Phaser from 'phaser';
 import { viewBounds } from '@/utils/UtilsLayout';
+import { getRandomInt } from '@/utils/UtilsMath';
 
 export class Background {
-    
+
     private scene: Phaser.Scene;
     private graphic!: Phaser.GameObjects.Graphics
 
-    constructor(scene: Phaser.Scene) {
+    constructor(scene: Phaser.Scene, kind: 'menu' | 'map' | 'battle' = 'menu') {
         this.scene = scene;
-        this.render();
+        this.render(kind);
     }
 
-    public render(): void {
-        this.drawProceduralBackground();
+    public render(kind: 'menu' | 'map' | 'battle' = 'menu'): void {
+        const view = viewBounds(this.scene);
+        let textureKey;
+        switch (kind) {
+            case 'battle':
+                textureKey = `background-battle-${getRandomInt(1, 2)}`;
+                break;
+            case 'map':
+                textureKey = 'background-map';
+                break;
+            default:
+                textureKey = undefined;
+        }
+        if (textureKey && this.scene.textures.exists(textureKey)) {
+            this.drawTexturedBackground(textureKey);
+        } else {
+            this.drawProceduralBackground();
+        }
     }
+
 
     private drawProceduralBackground(): void {
         this.graphic = this.scene.add.graphics();
         this.updateBackground();
     }
 
-    public updateBackground(): void {
+    private drawTexturedBackground(textureKey: string): void {
         const view = viewBounds(this.scene);
-        this.graphic.clear();
-        this.graphic.fillGradientStyle(0x070807, 0x10140f, 0x000000, 0x000000, 1).fillRect(view.left, view.top, view.width, view.height);
-    
-    }
-
-/*
-    public render(kind: 'map' | 'battle' | 'menu' = 'map', textureOverride?: string): void {
-        const view = viewBounds(this.scene);
-        const textureKey = textureOverride ?? (kind === 'battle' ? 'bg-battle' : kind === 'map' ? 'bg-map' : undefined);
-        fitCameraToCanvas(this.scene);
-
-        if (textureKey && this.scene.textures.exists(textureKey)) {
-            this.drawTexturedBackground(view, textureKey, kind);
-        } else {
-            this.drawProceduralBackground(view, kind);
-        }
-
-        // if (textureKey && this.scene.textures.exists(textureKey)) {
-        //   this.scene.add.image(view.left, view.top, textureKey)
-        //     .setOrigin(0)
-        //     .setDisplaySize(view.width, view.height)
-        //     .setDepth(-100);
-        //   const overlay = this.scene.add.graphics().setDepth(-90);
-        //   overlay.fillStyle(0x000000, kind === 'battle' ? 0.14 : 0.28);
-        //   overlay.fillRect(view.left, view.top, view.width, view.height);
-        //   overlay.fillStyle(0x000000, 0.58);
-        //   overlay.fillRect(view.left, view.top, view.width, 115);
-        //   overlay.fillRect(view.left, view.bottom - 190, 540, 190);
-        //   overlay.lineStyle(44, 0x000000, 0.42);
-        //   overlay.strokeRect(view.left + 12, view.top + 12, view.width - 24, view.height - 24);
-        //   return;
-        // }
-
-        this.drawProceduralBackground(view, kind);
-    }
-
-    private drawTexturedBackground(view: any, textureKey: string, kind: 'map' | 'battle' | 'menu'): void {
         this.scene.add.image(view.left, view.top, textureKey)
             .setOrigin(0)
             .setDisplaySize(view.width, view.height)
             .setDepth(-100);
-
-        const dimmingAlpha = kind === 'battle' ? 0.14 : 0.28;
-        const dimmingLayer = this.scene.add.graphics().setDepth(-95);
-        dimmingLayer.fillStyle(0x000000, dimmingAlpha);
-        dimmingLayer.fillRect(view.left, view.top, view.width, view.height);
     }
 
-*/
+    public updateBackground(): void {
+        const view = viewBounds(this.scene);
+        this.graphic.clear();
+        this.graphic.fillGradientStyle(0x070807, 0x10140f, 0x000000, 0x000000, 1).fillRect(view.left, view.top, view.width, view.height);
     }
+}

@@ -12,6 +12,7 @@ import { SelectorPanel } from '@/ui/components/SelectorPanel';
 import { SelectableEntity } from '@/ui/components/SelectorCard';
 
 import { viewBounds } from '@/utils/UtilsLayout';
+import { SceneNavigator } from '@/services/SceneNavigator';
 
 
 interface ButtonConfig {
@@ -39,24 +40,29 @@ export class MainMenuScene extends Phaser.Scene {
         }
     } as const;
 
-    private static readonly BUTTON_CONFIGS: readonly ButtonConfig[] = [
-        { id: 'btn-continue-run', text: 'Продолжить', onClick: () => console.log('Новый забег') },
-        { id: 'btn-new-run', text: 'Новый забег', onClick: () => console.log('Новый забег') },
-        { id: 'btn-settings', text: 'Настройки', onClick: () => console.log('Настройки') },
-        { id: 'btn-progress', text: 'Прогресс', onClick: () => console.log('Прогресс') },
-    ] as const;
-
     private heroPanel?: SelectorPanel<SelectableEntity>;;
     private squirePanel?: SelectorPanel<SelectableEntity>;;
     private background!: Background;
     private readonly buttons = new Map<string, Button>();
+    private sceneNavigator: SceneNavigator = new SceneNavigator(this);
+
+    public selectedHero: string = 'galahad-hero';
+    public selectedSquire: string = 'robert-squire';
+
+    private readonly ButtonConfig: readonly ButtonConfig[] = [
+        { id: 'btn-continue-run', text: 'Продолжить', onClick: () => this.sceneNavigator.continueRun() },
+        { id: 'btn-new-run', text: 'Новый забег', onClick: () => this.sceneNavigator.startRun(this.selectedHero, this.selectedSquire), },
+        { id: 'btn-settings', text: 'Настройки', onClick: () => console.log('Настройки') },
+        { id: 'btn-progress', text: 'Прогресс', onClick: () => console.log('Прогресс') },
+    ] as const;
+
 
 
     constructor() {
         super({ key: 'MainMenuScene' });
     }
 
-    public create(): void {
+    public create(): void {;
         this.bindEvents();
         this.renderScene();
     }
@@ -90,7 +96,7 @@ export class MainMenuScene extends Phaser.Scene {
     }
 
     private renderButtons(): void {
-        MainMenuScene.BUTTON_CONFIGS.forEach((config) => {
+        this.ButtonConfig.forEach((config) => {
             const button = new Button(this, config.text, config.onClick);
             this.buttons.set(config.id, button);
         });
@@ -130,11 +136,11 @@ export class MainMenuScene extends Phaser.Scene {
 
 
     private selectHero(id: string): void {
-        //this.store.selectHero(id);
+        this.selectedHero = id;
         this.heroPanel?.setSelected(id);
     }
     private selectSquire(id: string): void {
-        // this.store.selectSquire(id);
+        this.selectedSquire = id;
         this.squirePanel?.setSelected(id);
     }
     /*
@@ -153,80 +159,3 @@ export class MainMenuScene extends Phaser.Scene {
         this.layoutButtons();
     };
 }
-/*
-
-import { SceneNavigator } from '../services/SceneNavigator';
-import { GameState } from '../state/GameState';
-import { MainMenuStore } from '../stores/MainMenuStore';
-import { IconButton } from '../ui/components/IconButton';
-
-
-const MENU_LAYOUT = {
-  title: {
-    x: 16,
-    y: 8,
-  },
-
-  panels: {
-    hero: {
-      x: 20,
-      y: 250,
-    },
-
-    squire: {
-      x: 720,
-      y: 250,
-    },
-  },
-
-  buttons: {
-    bottomOffset: 31,
-
-    content: {
-      topOffset: 20,
-      rightOffset: 20,
-      size: 20,
-    },
-  },
-} as const;
-
-export class MainMenuScene extends Phaser.Scene {
-  private readonly store = new MainMenuStore();
-  private navigator!: SceneNavigator;
-  private ui!: UIManager;
-
-  private background!: Phaser.GameObjects.Graphics;
-  private title?: Phaser.GameObjects.Text;
-
-  private heroPanel?: SelectorPanel<SelectableEntity>;
-  private squirePanel?: SelectorPanel<SelectableEntity>;
-  private menuButtons = new Map<string, MenuButton>();
-  private contentButton?: IconButton;
-
-  constructor() {
-    super('MainMenuScene');
-  }
-
-  public create(): void {
-    this.navigator = new SceneNavigator(this);
-  }
-
-
-  private showModalResetProgress(): void {
-    // Reset confirmation UI is still pending the shared modal/button refactor.
-  }
-
-  private attachEntityTooltip(target: Phaser.GameObjects.GameObject, entity: SelectableEntity): void {
-    this.ui.tooltip(target, entity.name, `${entity.title}\n${entity.perks.join('\n')}`);
-  }
-
-  private cleanup(): void {
-    this.scale.off('resize', this.handleResize);
-    this.menuButtons.clear();
-    this.contentButton = undefined;
-    this.heroPanel = undefined;
-    this.squirePanel = undefined;
-    this.title = undefined;
-  }
-}
-*/

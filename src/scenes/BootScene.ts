@@ -10,6 +10,7 @@ import { Background } from '@/ui/components/Background';
 import { LoadingBar, LoadingBarStyleScheme } from '@/ui/components/LoadingBar';
 
 import { ImageAssets } from '@/assets/sprites/AssetsMap';
+import { GameState } from '@/store/GameState';
 
 /*
 import { SaveSystem } from '../state/SaveSystem';
@@ -99,11 +100,18 @@ export class BootScene extends Phaser.Scene {
 
     private simulateLoading(): void {
         this.loadingBar.animateFill(1, () => {
-            this.transitionToMainMenu();
+            this.transitionToMainMenu(true);
         }, this.BOOT_SCENE_CONFIG.animation.loadingBarFill.duration);
     }
 
-    private transitionToMainMenu(): void {
-        this.scene.start('MainMenuScene');
+    private transitionToMainMenu(test: boolean): void {
+        if (test) {
+            GameState.startRun('galahad-hero', 'robert-squire');
+            this.scene.start('BattleScene');
+            return
+        }
+        else {
+            this.scene.start('MainMenuScene');
+        }
     }
 }

@@ -17,6 +17,10 @@ export namespace COLORTOKEN {
     export const Utility = {
         Transparent: '#00000000',
     }
+    
+    export const Accent = {
+        Red: '#FF472E',
+    }
 
     export const Component = {
         Button: {
