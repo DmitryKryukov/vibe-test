@@ -1,3 +1,5 @@
+import { ActiveAbilityScheme } from "./Abilities";
+
 export interface HeroScheme {
     id: string;
     name: string;
@@ -5,7 +7,7 @@ export interface HeroScheme {
     lore: string;
     slots: SlotType[];
     baseStats: HeroStats;
-    //abilities: AbilityDefinition[];
+    activeAbilities: ActiveAbilityScheme[];
     perks: HeroPerk[];
     content?: {
         portraitImage?: string;
@@ -57,7 +59,11 @@ export const Heroes: Record<string, HeroScheme> = {
             },
         ],
         slots: ['weapon', 'helmet', 'amulet', 'shield', 'armor', 'ring'],
-        baseStats: { maxHp: 135, baseDamage: 16, baseAttackSpeed: 1},
+        baseStats: { maxHp: 135, baseDamage: 16, baseAttackSpeed: 1 },
+        activeAbilities: [
+            {id: 'strike', name: 'Удар', kind: 'baseAttack', description: 'Базовая атака по текущей цели.', cooldown: 2.8},
+            //{ id: 'shield-bash', name: 'Закаленный щит', cooldown: 10, kind: 'attack', description: 'Удар щитом и оглушение.' }
+        ],
         content: {
             portraitImage: 'galahad-hero-portrait',
             spriteImage: 'galahad-hero-sprite',
@@ -91,24 +97,13 @@ export const Heroes: Record<string, HeroScheme> = {
                 type: 'active',
                 cooldown: 25.6
             },
-            
+
+        ],
+        activeAbilities: [
+            {id: 'strike', name: 'Удар', kind: 'baseAttack', description: 'Базовая атака по текущей цели.', cooldown: 2.8},
+               //  { id: 'widow-veil', name: 'Саван Изгоя', cooldown: 25.6, kind: 'utility', description: 'Ослепляет текущую цель.' }
         ],
         slots: ['weapon', 'weapon', 'weapon', 'weapon', 'amulet', 'ring'],
-        baseStats: { maxHp: 90, baseDamage: 8, baseAttackSpeed: 0.8},
+        baseStats: { maxHp: 90, baseDamage: 8, baseAttackSpeed: 0.8 },
     }
-    /*
-  galahad: {
-
-    abilities: [
-      { id: 'strike', name: 'Удар', cooldown: 2.8, kind: 'attack', description: 'Базовая атака по текущей цели.' },
-      { id: 'shield-bash', name: 'Закаленный щит', cooldown: 10, kind: 'attack', description: 'Удар щитом и оглушение.' }
-    ],
-  },
-  beatrice: {
-    abilities: [
-      { id: 'strike', name: 'Меха-удар', cooldown: 2.2, kind: 'attack', description: 'Очередная атака верхней цели.' },
-      { id: 'widow-veil', name: 'Саван Изгоя', cooldown: 25.6, kind: 'utility', description: 'Ослепляет текущую цель.' }
-    ],]
-  }
-    */
 };

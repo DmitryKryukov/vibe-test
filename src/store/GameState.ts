@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Heroes } from '@/data/Heroes';
 import { Squires } from '@/data/Squires';
+import { EncounterPool } from '@/data/Enemies';
 
 export interface InventoryItem {
   id: string;

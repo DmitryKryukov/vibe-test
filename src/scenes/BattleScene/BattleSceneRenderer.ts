@@ -10,6 +10,8 @@ import { HeroPanel } from '@/ui/components/HeroPanel';
 import { TYPETOKEN } from '@/ui/styles/TypeTokens';
 import { COLORTOKEN } from '@/ui/styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
+import { Enemies, EnemyScheme } from '@/data/Enemies';
+import { screenBounds } from '@/utils/UtilsLayout';
 
 export class BattleSceneRenderer {
     private scene: Phaser.Scene;
@@ -19,6 +21,13 @@ export class BattleSceneRenderer {
     private squirePanel!: SquirePanel;
 
     private heroZone!: Phaser.GameObjects.Zone;
+    private enemyZones = new Map<string, Phaser.GameObjects.Zone>();
+
+    private hpBarCollection = new Map<string, Phaser.GameObjects.Graphics>();
+    private hpTextCollection = new Map<string, Phaser.GameObjects.Text>();
+
+    private enemiesCollection = new Set<string>();
+    private enemiesObject = new Map<string, Phaser.GameObjects.GameObject[]>();
 
     private characterSlot = {
         Hero: {
@@ -36,39 +45,38 @@ export class BattleSceneRenderer {
         this.scene.children.removeAll();
         this.scene.input.off('drop');
         this.scene.input.off('dragend');
+
+        this.hpBarCollection.clear();
+        this.hpTextCollection.clear();
+        this.enemyZones.clear();
+
+        this.enemiesCollection.clear();
+        this.enemiesObject.clear();
+
         this.renderBackground();
         this.renderSquirePanel();
         this.renderHeroPanel();
         this.renderHero();
+        this.renderEnemies();
         /*
-    this.bars.clear();
-    this.hpTexts.clear();
     this.statusContainers.clear();
-    this.enemyZones.clear();
     this.bodyObjects.clear();
-    this.enemyObjects.clear();
     this.enemyPositions.clear();
     this.combatantPositions.clear();
     this.removedEnemies.clear();
-    this.drawnEnemies.clear();
     this.lootItems = [];
     this.bagSlotZones = [];
     this.equipZones = [];
     this.slotHighlights = [];
     this.statusSignatures.clear();
 
-    this.ui.drawBackdrop('battle', this.battleBackgroundKey);
-    this.ui.drawHeroPanel();
-    this.ui.drawBagPanel();
-
-    this.drawHero();
-    this.drawEnemies();
+    
     this.drawInventoryInteractives();
     this.drawTopControls();
     this.drawFieldLoot();
-    this.ui.drawHeroEmptySlotIconOverlay();
     */
     }
+
     private renderBackground(): void {
         this.background = new Background(this.scene, 'battle');
     }
@@ -86,7 +94,7 @@ export class BattleSceneRenderer {
         const hero = this.combatSystem.hero;
 
         this.renderHeroSprite(x, y);
-        this.renderHPBar(hero, x, y, 248);
+        this.renderHPBar("hero", hero, x, y, 248);
 
         /*
        this.bodyObjects.set(hero.uid, [g, name]);
@@ -94,6 +102,107 @@ export class BattleSceneRenderer {
        this.statusContainers.set(hero.uid, this.scene.add.container(x, y - 292).setDepth(95));
      }
        */
+    }
+
+    private renderEnemies(): void {
+        const screen = screenBounds(this.scene);
+        const enemies = this.combatSystem.enemies;
+        let slots = [{ x: 0, y: 0 }];
+        if (enemies.length == 5) {
+            slots = [
+                { x: screen.right - 300, y: screen.centerY - 15 },
+                { x: screen.right - 425, y: screen.centerY - 180 },
+                { x: screen.right - 450, y: screen.centerY + 180 },
+                { x: screen.right - 650, y: screen.centerY - 300 },
+                { x: screen.right - 700, y: screen.centerY + 300 },
+            ];
+            
+        } else if (enemies.length == 4) {
+            slots = [
+                { x: screen.right - 350, y: screen.centerY + 120 },
+                { x: screen.right - 300, y: screen.centerY - 120 },
+                { x: screen.right - 650, y: screen.centerY + 220 },
+                { x: screen.right - 600, y: screen.centerY - 220 },
+            ];
+        } else if (enemies.length == 3) {
+            slots = [
+                { x: screen.right - 300, y: screen.centerY - 15 },
+                { x: screen.right - 550, y: screen.centerY - 220 },
+                { x: screen.right - 600, y: screen.centerY + 220 },
+            ];
+        }
+        else if (enemies.length == 2) {
+            slots = [
+                { x: screen.right - 450, y: screen.centerY + 160 },
+                { x: screen.right - 450, y: screen.centerY - 160 },
+            ];
+        }
+        else {
+            slots = [
+                 { x: screen.right - 500, y: screen.centerY - 15 },
+            ]
+        }
+
+
+        this.combatSystem.enemies.forEach((enemy, index) => {
+            const position = slots[index] ?? slots[0];
+            this.renderEnemy(enemy, position.x, position.y);
+        })
+    }
+
+    private renderEnemy(enemy: Combatant, x: number, y: number): void {
+        if (!enemy.alive || this.enemiesCollection.has(enemy.id)) return;
+        const enemyDefinition = Enemies[enemy.definitionId];
+
+        const graphics = this.renderEnemySprite(enemy, x, y);
+
+        this.enemiesCollection.add(enemy.id);
+
+        const enemyHpBar = this.renderHPBar("enemy", enemy, x, y + enemyDefinition.content.spriteHeight / 2 - 20, 162);
+
+        let currentData = this.enemiesObject.get(enemy.id);
+        if (currentData) {
+            let updatedData = [...currentData, graphics, ...enemyHpBar];
+            this.enemiesObject.set(enemy.id, updatedData);
+        }
+        /*
+        this.bodyObjects.set(enemy.uid, [g, name]);
+        this.enemyPositions.set(enemy.uid, { x, y });
+        this.combatantPositions.set(enemy.uid, { x, y });
+        this.statusContainers.set(enemy.uid, this.scene.add.container(x, y - 178).setDepth(95));
+        */
+    }
+
+    private renderEnemySprite(enemy: Combatant, x: number, y: number): Phaser.GameObjects.GameObject {
+        const enemyObj = Enemies[enemy.definitionId];
+        let textureKey = enemyObj.content?.spriteImage;
+
+        if (!textureKey || !this.scene.textures.exists(textureKey)) {
+            textureKey = 'default_texture_key';
+        }
+
+        const width = enemyObj.content?.spriteWidth ?? 390;
+        const height = enemyObj.content?.spriteHeight ?? 390;
+        const spriteScale = enemyObj.content?.spriteScale ?? 1;
+        const offsetX = enemyObj.content?.spriteOffsetX ?? 0;
+        const offsetY = enemyObj.content?.spriteOffsetY ?? -84;
+
+        const sprite = this.scene.add.image(0, 0, textureKey);
+
+        sprite.setDisplaySize(width * spriteScale, height * spriteScale)
+            .setX(x + offsetX)
+            .setY(y + offsetY + height / 2 - 20)
+            .setDepth(10)
+            .setOrigin(0.5, 1);
+
+        const zone = this.scene.add.zone(x + offsetX, y + offsetY + height / 2 - 20, width, height)
+            .setRectangleDropZone(width, height);
+
+        this.enemyZones.set(enemy.id, zone);
+        this.enemiesObject.set(enemy.id, [zone]);
+        console.log(this.enemiesObject)
+
+        return sprite;
     }
 
     private renderHeroSprite(x: number, y: number): void {
@@ -114,58 +223,66 @@ export class BattleSceneRenderer {
                 .setOrigin(0.5, 1);
             this.heroZone = this.scene.add.zone(x + offsetX, y + offsetY, width, height).setRectangleDropZone(width, height);
         }
-
     }
 
-    private renderHPBar(target: Combatant, x: number, y: number, width: number): Phaser.GameObjects.GameObject[] {
+    private renderHPBar(type: "hero" | "enemy", target: Combatant, x: number, y: number, width: number): Phaser.GameObjects.GameObject[] {
         const graphics = this.scene.add.graphics().setDepth(40);
         const GO: Phaser.GameObjects.GameObject[] = [graphics];
-
-        /*
-        const nameText = this.scene.add.text(x, y + 48, target.name, {
-            ...TYPETOKEN.Tertiary.Lead, ...{
-                stroke: '#000000',
-                strokeThickness: 8,
-            }
-        }).setOrigin(0.5).setDepth(110).setLetterSpacing(2);
-        
-        GO.push(nameText);
-        */
+        const height: number = type === "hero" ? 38 : 20;
+        const cornerRadius: number = type === "hero" ? 8 : 4;
 
         graphics.setData('target', target);
         graphics.setData('x', x);
         graphics.setData('y', y);
-        graphics.setData('w', width);
-
-        const hpTextStroke = this.scene.add.text(x, y + 20, '', {
-            ...TYPETOKEN.Primary.Tagline, ...{
-                color: COLORTOKEN.Background.Zeroth,
-                stroke: COLORTOKEN.Background.Zeroth,
-                strokeThickness: 10,
-            }
-        }).setOrigin(0.5).setDepth(0);
-
-        const hpText = this.scene.add.text(x, y + 20, '', {
-            ...TYPETOKEN.Primary.Tagline, ...{
-                color: COLORTOKEN.Background.Zeroth,
-                stroke: COLORTOKEN.Accent.Red,
-                strokeThickness: 4,
-            }
-        }).setOrigin(0.5).setDepth(75);
-
-
-        //this.hpTexts.set(target.uid, hpText);
-        GO.push(hpText);
+        graphics.setData('width', width);
+        graphics.setData('height', height);
+        graphics.setData('cornerRadius', cornerRadius);
+        this.hpBarCollection.set(target.id, graphics);
 
         graphics.clear();
         graphics.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
-        graphics.fillRoundedRect(x - width / 2, y, width, 38, 8);
+        graphics.fillRoundedRect(x - width / 2, y, width, height, cornerRadius);
 
-        hpTextStroke?.setText(`${Math.max(0, Math.ceil(target.hp))}/${target.maxHp}`);
-        hpText?.setText(`${Math.max(0, Math.ceil(target.hp))}/${target.maxHp}`);
+        if (type == "hero") {
+            const hpTextStroke = this.scene.add.text(x, y + 20, '', {
+                ...TYPETOKEN.Primary.Tagline, ...{
+                    color: COLORTOKEN.Background.Zeroth,
+                    stroke: COLORTOKEN.Background.Zeroth,
+                    strokeThickness: 10,
+                }
+            }).setOrigin(0.5).setDepth(0);
 
+            const hpText = this.scene.add.text(x, y + 20, '', {
+                ...TYPETOKEN.Primary.Tagline, ...{
+                    color: COLORTOKEN.Background.Zeroth,
+                    stroke: COLORTOKEN.Accent.Red,
+                    strokeThickness: 4,
+                }
+            }).setOrigin(0.5).setDepth(75);
+
+            graphics.setData('hpTextStroke', hpTextStroke);
+            graphics.setData('hpText', hpText);
+
+            GO.push(hpText);
+
+            hpTextStroke?.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
+            hpText?.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
+        }
         graphics.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
-        graphics.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.hp / target.maxHp)), 30, Math.min((width - 8) * (target.hp / target.maxHp), 4));
+        graphics.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.stats.hp / target.stats.maxHp)), height - 8, Math.min((width - 8) * (target.stats.hp / target.stats.maxHp), cornerRadius - 4));
+
+        if (type == "enemy") {
+            const factionIconKey = `icon-faction-${target.faction}`;
+            const factionIcon = this.scene.textures.exists(factionIconKey)
+                ? this.scene.add.image(x - 5 - width / 2, y + 40, factionIconKey).setDisplaySize(40, 40).setOrigin(0, 0.5).setDepth(500)
+                : this.scene.add.circle(x - width / 2, y + 40, 15, anyToColor(COLORTOKEN.Background.Zeroth)).setStrokeStyle(2, anyToColor(COLORTOKEN.Accent.Red)).setOrigin(0, 0.5);
+
+            GO.push(factionIcon);
+
+            //this.ui.tooltip(factionIcon.setInteractive({ useHandCursor: false }), 'Фракция', `Тип врага: ${target.faction}`);
+        }
+
+        this.updateBar(graphics)
 
         /*
         const hpText = this.hpTexts.get(target.uid);
@@ -182,39 +299,40 @@ export class BattleSceneRenderer {
         if (target.shield > 0) {
             g.lineStyle(4, 0x5cc7ff, 0.9);
             g.strokeRoundedRect(x + 2, y + 2, w - 4, 28, 5);
+        }*/
+
+        return GO;
+    }
+
+    private updateBar(bar: Phaser.GameObjects.Graphics) {
+        const target = bar.getData('target') as Combatant;
+        const x = bar.getData('x') as number;
+        const y = bar.getData('y') as number;
+        const width = bar.getData('width') as number;
+        const height = bar.getData('height') as number;
+        const cornerRadius = bar.getData('cornerRadius');
+        const hpTextStroke = bar.getData('hpTextStroke');
+        const hpText = bar.getData('hpText');
+
+        bar.clear();
+        bar.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
+        bar.fillRoundedRect(x - width / 2, y, width, height, cornerRadius);
+        if (hpText && hpTextStroke) {
+            hpTextStroke.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
+            hpText.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
         }
 
+        bar.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
+        bar.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.stats.hp / target.stats.maxHp)), height - 8, Math.min((width - 8) * (target.stats.hp / target.stats.maxHp), cornerRadius - 4));
+    }
 
-*/
-        return GO;
+    public updateBars(): void {
+        this.hpBarCollection.forEach((bar) => this.updateBar(bar));
     }
 
     /*
 const g = this.scene.add.graphics().setDepth(40);
 const objects: Phaser.GameObjects.GameObject[] = [g];
-g.setData('target', target);
-g.setData('x', x);
-g.setData('y', y);
-g.setData('w', width);
-this.bars.set(target.uid, g);
-
-const hpText = this.scene.add.text(x + width / 2, y + 16, '', {
-  resolution: Math.min(window.devicePixelRatio || 1, 2),
-  fontSize: '16px',
-  color: '#ffe4cf',
-  stroke: '#000',
-  strokeThickness: 3,
-}).setOrigin(0.5).setDepth(75);
-this.hpTexts.set(target.uid, hpText);
-objects.push(hpText);
-
-if (target.faction) {
-  const factionKey = `icon-faction-${target.faction}`;
-  const factionIcon = this.scene.textures.exists(factionKey)
-    ? this.scene.add.image(x + 30, y + 58, factionKey).setDisplaySize(46, 46).setDepth(76)
-    : this.scene.add.circle(x + 30, y + 58, 19, 0x1b1515, 0.92).setStrokeStyle(2, 0xb44737).setDepth(76);
-  objects.push(factionIcon);
-  this.ui.tooltip(factionIcon.setInteractive({ useHandCursor: false }), 'Фракция', `Тип врага: ${target.faction}`);
 }
 
 target.abilities.forEach((ability, index) => {
@@ -241,14 +359,8 @@ target.abilities.forEach((ability, index) => {
 /*
 // BattleSceneRenderer.ts
 import Phaser from 'phaser';
-import { ENEMIES } from '../data/Enemies';
 import { ITEMS } from '../data/items';
-import { HEROES } from '../data/heroes';
-import { SQUIRES } from '../data/squires';
 import { CombatantState, InventoryItem } from '../entities/Types';
-import { GameState } from '../state/GameState';
-import { UIManager } from '../ui/UIManager';
-import { screenBounds, screenSpaceScale, screenToWorld } from '../utils/layout';
 import { EnemyContentDefinition, HeroContentDefinition, loadContentPack } from '../content/ContentSystem';
 import { BattleEffects } from './BattleEffects';
 import { STATUS_INFO, ENEMY_SLOTS } from './constants';
@@ -260,23 +372,11 @@ export interface FieldLoot {
   y: number;
 }
 
-/**
- * Класс отвечает за отрисовку всех визуальных элементов сцены боя.
- * Хранит ссылки на все созданные объекты, предоставляет методы для их обновления.
- */
-/*
 export class BattleSceneRenderer {
-  private scene: Phaser.Scene;
-  private combat: CombatSystem;
-  private ui: UIManager;
   private effects: BattleEffects;
 
   // Карты и коллекции объектов
-  private bars = new Map<string, Phaser.GameObjects.Graphics>();
-  private hpTexts = new Map<string, Phaser.GameObjects.Text>();
   private statusContainers = new Map<string, Phaser.GameObjects.Container>();
-  private enemyZones = new Map<string, Phaser.GameObjects.Zone>();
-  private heroZone!: Phaser.GameObjects.Zone;
   private bagZone!: Phaser.GameObjects.Zone;
   private bagSlotZones: Phaser.GameObjects.Zone[] = [];
   private equipZones: Phaser.GameObjects.Zone[] = [];
@@ -299,9 +399,6 @@ export class BattleSceneRenderer {
     effects: BattleEffects,
     backgroundKey: string
   ) {
-    this.scene = scene;
-    this.combat = combat;
-    this.ui = ui;
     this.effects = effects;\
   }
 
@@ -311,10 +408,7 @@ export class BattleSceneRenderer {
     this.scene.input.off('drop');
     this.scene.input.off('dragend');
 
-    this.bars.clear();
-    this.hpTexts.clear();
     this.statusContainers.clear();
-    this.enemyZones.clear();
     this.bodyObjects.clear();
     this.enemyObjects.clear();
     this.enemyPositions.clear();
@@ -327,12 +421,7 @@ export class BattleSceneRenderer {
     this.slotHighlights = [];
     this.statusSignatures.clear();
 
-    this.ui.drawBackdrop('battle', this.battleBackgroundKey);
-    this.ui.drawHeroPanel();
-    this.ui.drawBagPanel();
 
-    this.drawHero();
-    this.drawEnemies();
     this.drawInventoryInteractives();
     this.drawTopControls();
     this.drawFieldLoot();
@@ -340,185 +429,7 @@ export class BattleSceneRenderer {
   }
 
   // ----- Отрисовка героя -----
-  private drawHero(): void {
-    const hero = this.combat.hero;
-    const x = 405;
-    const y = 430;
-    const g = this.createHeroVisual(x, y);
-    const name = this.scene.add.text(x, y + 78, hero.name, {
-      resolution: Math.min(window.devicePixelRatio || 1, 2),
-      fontSize: '24px',
-      color: '#e8dfc5',
-      stroke: '#000000',
-      strokeThickness: 4,
-    }).setOrigin(0.5).setDepth(110);
-    this.bodyObjects.set(hero.uid, [g, name]);
-    this.combatantPositions.set(hero.uid, { x, y: y - 70 });
-    this.statusContainers.set(hero.uid, this.scene.add.container(x, y - 292).setDepth(95));
-    this.heroZone = this.scene.add.zone(x, y - 70, 260, 360).setRectangleDropZone(260, 360);
-    this.drawHpBar(hero, x - 170, y + 112, 285);
-  }
-
-  private createHeroVisual(x: number, y: number): Phaser.GameObjects.GameObject {
-    const hero = HEROES[GameState.requireRun().heroId] as HeroContentDefinition;
-    const key = `sprite-hero-${GameState.requireRun().heroId}`;
-    if (this.scene.textures.exists(key)) {
-      const width = hero.spriteWidth ?? (GameState.requireRun().heroId === 'beatrice' ? 305 : 285);
-      const height = hero.spriteHeight ?? 360;
-      const spriteScale = hero.spriteScale ?? 1;
-      const offsetY = hero.spriteOffsetY ?? -84;
-      return this.scene.add.image(x, y - 84, key)
-        .setY(y + offsetY)
-        .setDisplaySize(width * spriteScale, height * spriteScale)
-        .setDepth(10);
-    }
-    const g = this.scene.add.graphics();
-    g.fillStyle(HEROES[GameState.requireRun().heroId].portraitTint, 1);
-    g.fillEllipse(x, y - 155, 92, 120);
-    g.fillStyle(0x2d251f, 1);
-    g.fillRoundedRect(x - 45, y - 105, 90, 160, 18);
-    g.lineStyle(18, 0x5d2620, 1);
-    g.lineBetween(x - 20, y - 118, x + 152, y - 210);
-    g.setDepth(10);
-    return g;
-  }
-
-  // ----- Отрисовка врагов -----
-  private drawEnemies(): void {
-    this.combat.enemies.forEach((enemy, index) => {
-      const pos = ENEMY_SLOTS[index] ?? ENEMY_SLOTS[0];
-      this.drawEnemy(enemy, pos.x, pos.y);
-    });
-  }
-
-  private drawEnemy(enemy: CombatantState, x: number, y: number): void {
-    if (!enemy.alive || this.drawnEnemies.has(enemy.uid)) return;
-    const def = ENEMIES[enemy.definitionId];
-    const g = this.createEnemyVisual(enemy, x, y, def.scale);
-    const name = this.scene.add.text(x, y + 78, enemy.name, {
-      resolution: Math.min(window.devicePixelRatio || 1, 2),
-      fontSize: '19px',
-      color: '#e8dfc5',
-      stroke: '#000000',
-      strokeThickness: 4,
-      wordWrap: { width: 230 },
-      align: 'center',
-    }).setOrigin(0.5).setDepth(110);
-    const zone = this.scene.add.zone(x, y - 28, 250, 240).setRectangleDropZone(250, 240);
-    this.enemyZones.set(enemy.uid, zone);
-    const barObjects = this.drawHpBar(enemy, x - 95, y + 108, 210);
-    this.enemyObjects.set(enemy.uid, [g, name, zone, ...barObjects]);
-    this.bodyObjects.set(enemy.uid, [g, name]);
-    this.enemyPositions.set(enemy.uid, { x, y });
-    this.combatantPositions.set(enemy.uid, { x, y });
-    this.statusContainers.set(enemy.uid, this.scene.add.container(x, y - 178).setDepth(95));
-    this.drawnEnemies.add(enemy.uid);
-  }
-
-  private createEnemyVisual(enemy: CombatantState, x: number, y: number, scale: number): Phaser.GameObjects.GameObject {
-    const key = `sprite-enemy-${enemy.definitionId}`;
-    if (this.scene.textures.exists(key)) {
-      const beast = enemy.faction === 'beast';
-      const def = ENEMIES[enemy.definitionId] as EnemyContentDefinition;
-      const width = def.spriteWidth ?? (beast ? 250 : 188) * scale;
-      const height = def.spriteHeight ?? (beast ? 170 : 250) * scale;
-      const spriteScale = def.spriteScale ?? 1;
-      const offsetY = def.spriteOffsetY ?? (beast ? -18 : -62);
-      return this.scene.add.image(x, y + (beast ? -18 : -62), key)
-        .setY(y + offsetY)
-        .setDisplaySize(width * spriteScale, height * spriteScale)
-        .setDepth(10);
-    }
-    const def = ENEMIES[enemy.definitionId];
-    const g = this.scene.add.graphics();
-    g.fillStyle(def.tint, 0.95);
-    g.fillRoundedRect(x - 54 * scale, y - 106 * scale, 108 * scale, 150 * scale, 18);
-    g.fillEllipse(x, y - 130 * scale, 70 * scale, 72 * scale);
-    g.setDepth(10);
-    return g;
-  }
-
-  // ----- Полоски HP и способности -----
-  private drawHpBar(target: CombatantState, x: number, y: number, width: number): Phaser.GameObjects.GameObject[] {
-    const g = this.scene.add.graphics().setDepth(40);
-    const objects: Phaser.GameObjects.GameObject[] = [g];
-    g.setData('target', target);
-    g.setData('x', x);
-    g.setData('y', y);
-    g.setData('w', width);
-    this.bars.set(target.uid, g);
-
-    const hpText = this.scene.add.text(x + width / 2, y + 16, '', {
-      resolution: Math.min(window.devicePixelRatio || 1, 2),
-      fontSize: '16px',
-      color: '#ffe4cf',
-      stroke: '#000',
-      strokeThickness: 3,
-    }).setOrigin(0.5).setDepth(75);
-    this.hpTexts.set(target.uid, hpText);
-    objects.push(hpText);
-
-    if (target.faction) {
-      const factionKey = `icon-faction-${target.faction}`;
-      const factionIcon = this.scene.textures.exists(factionKey)
-        ? this.scene.add.image(x + 30, y + 58, factionKey).setDisplaySize(46, 46).setDepth(76)
-        : this.scene.add.circle(x + 30, y + 58, 19, 0x1b1515, 0.92).setStrokeStyle(2, 0xb44737).setDepth(76);
-      objects.push(factionIcon);
-      this.ui.tooltip(factionIcon.setInteractive({ useHandCursor: false }), 'Фракция', `Тип врага: ${target.faction}`);
-    }
-
-    target.abilities.forEach((ability, index) => {
-      const cx = x - 24 + index * 42;
-      const cy = y + 16;
-      const zone = this.scene.add.circle(cx, cy, 18, 0x000000, 0.001).setDepth(70);
-      zone.setInteractive({ useHandCursor: true });
-      objects.push(zone);
-      this.ui.tooltip(
-        zone,
-        ability.name,
-        [
-          ability.description,
-          `Таймер: ${ability.cooldown} сек.`,
-          'Когда круг заполняется, действие срабатывает автоматически и таймер сбрасывается.',
-        ].join('\n')
-      );
-    });
-    return objects;
-  }
-
-  public updateBars(): void {
-    this.bars.forEach((bar) => this.updateOneBar(bar));
-  }
-
-  private updateOneBar(g: Phaser.GameObjects.Graphics): void {
-    const target = g.getData('target') as CombatantState;
-    const x = g.getData('x') as number;
-    const y = g.getData('y') as number;
-    const w = g.getData('w') as number;
-    g.clear();
-    g.fillStyle(0x060606, 0.95);
-    g.fillRoundedRect(x, y, w, 32, 5);
-    g.fillStyle(0xff1f16, target.alive ? 1 : 0.25);
-    g.fillRoundedRect(x + 6, y + 6, Math.max(0, (w - 12) * (target.hp / target.maxHp)), 20, 4);
-    const hpText = this.hpTexts.get(target.uid);
-    hpText?.setText(`${Math.max(0, Math.ceil(target.hp))}/${target.maxHp}`);
-    g.lineStyle(2, 0x000000, 0.8);
-    for (let i = 0; i < target.abilities.length; i += 1) {
-      const a = target.abilities[i];
-      const cx = x - 24 + i * 42;
-      const cy = y + 16;
-      g.fillStyle(0x090909, 0.95);
-      g.fillCircle(cx, cy, 17);
-      g.slice(cx, cy, 15, Phaser.Math.DegToRad(-90), Phaser.Math.DegToRad(-90 + 360 * Math.min(1, a.progress / a.cooldown)), false);
-      g.fillStyle(a.kind === 'utility' ? 0x38c978 : 0xff5522, 1);
-      g.fillPath();
-    }
-    if (target.shield > 0) {
-      g.lineStyle(4, 0x5cc7ff, 0.9);
-      g.strokeRoundedRect(x + 2, y + 2, w - 4, 28, 5);
-    }
-  }
-
+  
   // ----- Инвентарь (только визуальная часть, без drag-обработчиков) -----
   private drawInventoryInteractives(): void {
     const run = GameState.requireRun();
