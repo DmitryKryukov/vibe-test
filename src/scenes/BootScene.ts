@@ -106,7 +106,7 @@ export class BootScene extends Phaser.Scene {
 
     private transitionToMainMenu(test: boolean): void {
         if (test) {
-            GameState.startRun('galahad-hero', 'robert-squire');
+            GameState.startRun('galahad', 'robert');
             this.scene.start('BattleScene');
             return
         }

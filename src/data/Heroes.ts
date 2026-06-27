@@ -3,8 +3,8 @@ export interface HeroScheme {
     name: string;
     class: string;
     lore: string;
-    //slots: EquipmentSlot[];
-    //baseStats: Stats;
+    slots: SlotType[];
+    baseStats: HeroStats;
     //abilities: AbilityDefinition[];
     perks: HeroPerk[];
     content?: {
@@ -17,6 +17,13 @@ export interface HeroScheme {
         spriteOffsetY?: number;
     }
 }
+export interface HeroStats {
+    maxHp: number;
+    baseDamage: number;
+    baseAttackSpeed: number;
+}
+
+export type SlotType = 'weapon' | 'shield' | 'armor' | 'helmet' | 'amulet' | 'ring';
 
 export interface HeroPerk {
     name: string,
@@ -49,6 +56,8 @@ export const Heroes: Record<string, HeroScheme> = {
                 type: 'passive',
             },
         ],
+        slots: ['weapon', 'helmet', 'amulet', 'shield', 'armor', 'ring'],
+        baseStats: { maxHp: 135, baseDamage: 16, baseAttackSpeed: 1},
         content: {
             portraitImage: 'galahad-hero-portrait',
             spriteImage: 'galahad-hero-sprite',
@@ -82,7 +91,10 @@ export const Heroes: Record<string, HeroScheme> = {
                 type: 'active',
                 cooldown: 25.6
             },
-        ]
+            
+        ],
+        slots: ['weapon', 'weapon', 'weapon', 'weapon', 'amulet', 'ring'],
+        baseStats: { maxHp: 90, baseDamage: 8, baseAttackSpeed: 0.8},
     }
     /*
   galahad: {

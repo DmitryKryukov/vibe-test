@@ -43,13 +43,14 @@ class GameStateStore {
 
         const heroIdClean = heroId.replace('-hero','')
         const squireIdClean = squireId.replace('-squire','')
+        console.log(hero);
         
         this.state.run = {
             active: true,
             heroId: heroIdClean,
             squireId: squireIdClean,
-            hp: 100,
-            maxHp: 100,
+            hp: hero.baseStats.maxHp,
+            maxHp: hero.baseStats.maxHp,
             seed: Math.floor(Math.random() * 999999)
         };
     }

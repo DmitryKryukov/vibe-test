@@ -6,11 +6,15 @@ import { COLORTOKEN } from '@/ui/styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
 import { Heroes } from '@/data/Heroes';
 import { GameState } from '@/store/GameState';
+import { HeroPanel } from '@/ui/components/HeroPanel';
 
 export class BattleSceneRenderer {
     private scene: Phaser.Scene;
     private background!: Background;
     private combatSystem: CombatSystem;
+    private heroPanel!: HeroPanel;
+
+    private heroZone!: Phaser.GameObjects.Zone;
 
     private characterSlot = {
         Hero: {
@@ -29,6 +33,7 @@ export class BattleSceneRenderer {
         this.scene.input.off('drop');
         this.scene.input.off('dragend');
         this.renderBackground();
+        this.renderHeroPanel();
         this.renderHero();
         /*
     this.bars.clear();
@@ -63,6 +68,10 @@ export class BattleSceneRenderer {
         this.background = new Background(this.scene, 'battle');
     }
 
+    private renderHeroPanel(): void {
+        this.heroPanel = new HeroPanel(this.scene);
+    }
+
     private renderHero(): void {
         const { x, y } = this.characterSlot.Hero;
         const hero = this.combatSystem.hero;
@@ -70,9 +79,7 @@ export class BattleSceneRenderer {
         this.renderHeroSprite(x, y);
         this.renderHPBar(hero, x, y, 248);
 
-
         /*
-       this.heroZone = this.scene.add.zone(x, y - 70, 260, 360).setRectangleDropZone(260, 360);
        this.bodyObjects.set(hero.uid, [g, name]);
        this.combatantPositions.set(hero.uid, { x, y: y - 70 });
        this.statusContainers.set(hero.uid, this.scene.add.container(x, y - 292).setDepth(95));
@@ -96,7 +103,9 @@ export class BattleSceneRenderer {
                    .setY(y + offsetY)
                    .setDepth(10)
                    .setOrigin(0.5, 1);
+            this.heroZone = this.scene.add.zone(x + offsetX, y + offsetY, width, height).setRectangleDropZone(width, height);
         }
+
     }
 
     private renderHPBar(target: Combatant, x: number, y: number, width: number): Phaser.GameObjects.GameObject[] {
@@ -147,7 +156,7 @@ export class BattleSceneRenderer {
         hpText?.setText(`${Math.max(0, Math.ceil(target.hp))}/${target.maxHp}`);
 
         graphics.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
-        graphics.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.hp / target.maxHp)), 30, 4);
+        graphics.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.hp / target.maxHp)), 30, Math.min((width - 8) * (target.hp / target.maxHp),4));
 
         /*
         const hpText = this.hpTexts.get(target.uid);
