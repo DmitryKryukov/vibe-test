@@ -163,8 +163,7 @@ export class BattleEffects {
   // ----- Анимация движения атакующего (рывок вперёд) -----
   private playAttackWindup(event: Extract<CombatVisualEvent, { type: 'attack' }>): void {
     //this.playWindupFlash(event.sourceUid);
-  
-    this.scene.time.delayedCall(250, () => this.playAttackMotion(event));
+    this.playAttackMotion(event)
   }
 
   private playHitImpact(targetId: string): void {

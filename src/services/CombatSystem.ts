@@ -137,7 +137,7 @@ export class CombatSystem {
     
     if (id === 'strike') {
       this.hero.attackCounter += 1;
-      this.scene.time.delayedCall(450, () => {
+      this.scene.time.delayedCall(45, () => {
         this.damageTarget(target, this.hero, damage);
       })
     }
