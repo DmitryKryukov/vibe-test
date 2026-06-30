@@ -1,4 +1,4 @@
-import { ActiveAbilityScheme } from "./Abilities";
+import { ActiveAbilityScheme, Abilities } from "./Abilities";
 
 export interface HeroScheme {
     id: string;
@@ -7,6 +7,7 @@ export interface HeroScheme {
     lore: string;
     slots: SlotType[];
     baseStats: HeroStats;
+    basicAttacks: ActiveAbilityScheme[];
     activeAbilities: ActiveAbilityScheme[];
     perks: HeroPerk[];
     content?: {
@@ -19,6 +20,7 @@ export interface HeroScheme {
         spriteOffsetY?: number;
     }
 }
+
 export interface HeroStats {
     maxHp: number;
     baseDamage: number;
@@ -60,8 +62,10 @@ export const Heroes: Record<string, HeroScheme> = {
         ],
         slots: ['weapon', 'helmet', 'amulet', 'shield', 'armor', 'ring'],
         baseStats: { maxHp: 135, baseDamage: 16, baseAttackSpeed: 1 },
+        basicAttacks: [
+            Abilities.strikeAbility as ActiveAbilityScheme,
+        ],
         activeAbilities: [
-            {id: 'strike', name: 'Удар', kind: 'baseAttack', description: 'Базовая атака по текущей цели.', cooldown: 2.8},
             //{ id: 'shield-bash', name: 'Закаленный щит', cooldown: 10, kind: 'attack', description: 'Удар щитом и оглушение.' }
         ],
         content: {
@@ -99,8 +103,10 @@ export const Heroes: Record<string, HeroScheme> = {
             },
 
         ],
+        basicAttacks: [
+            Abilities.mechaStrikeAbility as ActiveAbilityScheme,
+        ],
         activeAbilities: [
-            {id: 'strike', name: 'Удар', kind: 'baseAttack', description: 'Базовая атака по текущей цели.', cooldown: 2.8},
                //  { id: 'widow-veil', name: 'Саван Изгоя', cooldown: 25.6, kind: 'utility', description: 'Ослепляет текущую цель.' }
         ],
         slots: ['weapon', 'weapon', 'weapon', 'weapon', 'amulet', 'ring'],

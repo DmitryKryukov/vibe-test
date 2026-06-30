@@ -1,4 +1,4 @@
-import { ActiveAbilityScheme } from "./Abilities";
+import { ActiveAbilityScheme, Abilities } from "./Abilities";
 export type Faction = 'beast';
 
 export interface EnemyStats {
@@ -20,6 +20,7 @@ export interface EnemyScheme {
     spriteOffsetX: number,
     spriteOffsetY: number,
   },
+  basicAttacks: ActiveAbilityScheme[];
   activeAbilities: ActiveAbilityScheme[];
   //defense: number;
   //xp: number;
@@ -46,8 +47,10 @@ export const Enemies: Record<string, EnemyScheme> = {
       baseDamage: 5,
       baseAttackSpeed: 1,
     },
+    basicAttacks: [
+      Abilities.rottenBiteAbility as ActiveAbilityScheme,
+    ],
     activeAbilities: [
-      { id: 'rotten-bite', name: 'Гнилой укус', kind: 'attack', description: 'Наносит слабый урон и 25 стаков яда.', cooldown: 4 },
     ],
     content: {
       spriteImage: 'enemy-plague-rodent',

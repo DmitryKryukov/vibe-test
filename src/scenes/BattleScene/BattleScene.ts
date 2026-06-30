@@ -5,6 +5,7 @@ import { GameState } from '@/store/GameState';
 import { BattleSceneRenderer } from './BattleSceneRenderer';
 import { CombatSystem } from '@/services/CombatSystem';
 import { EncounterPool } from '@/data/Enemies';
+import { BattleEffects } from './BatteEffects';
 //import { ENEMIES } from '../data/Enemies';
 //import { ITEMS } from '../data/items';
 //import { CombatantState, EncounterType, InventoryItem, StatusId } from '../entities/Types';
@@ -31,6 +32,7 @@ interface FieldLoot {
 export class BattleScene extends Phaser.Scene {
   private nodeId = '';
   private sceneRenderer!: BattleSceneRenderer;
+  private battleEffects!: BattleEffects;
   private combatSystem!: CombatSystem;
   private ended = false;
 
@@ -40,14 +42,15 @@ export class BattleScene extends Phaser.Scene {
 
   init(data: BattleData): void {
     this.nodeId = data.nodeId;
-    this.combatSystem = new CombatSystem(EncounterPool.battle.encounter1);
+    this.combatSystem = new CombatSystem(this, EncounterPool.battle.encounter1);
   }
   create(): void {
     //this.scale.off('resize', this.handleResize);
     //this.scale.on('resize', this.handleResize);
     //this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off('resize', this.handleResize));
-
+    
     this.sceneRenderer = new BattleSceneRenderer(this, this.combatSystem);
+    this.battleEffects = new BattleEffects(this, this.combatSystem, this.sceneRenderer);
     this.sceneRenderer.renderStatic();
   }
 
@@ -55,8 +58,8 @@ export class BattleScene extends Phaser.Scene {
     if (this.ended) return;
     this.combatSystem.update(delta);
     this.sceneRenderer.updateBars();
+    this.battleEffects.processVisualEvents();
     /*
-    this.effects.processVisualEvents();
     this.renderer.syncEnemyViews();
     this.renderer.spawnPendingCombatLoot();
     this.renderer.updateStatusBadges();
@@ -67,4 +70,11 @@ export class BattleScene extends Phaser.Scene {
     }
       */
   }
+
+  //public override destroy(fromScene?: boolean): void {
+    //this.sceneRenderer?.destroy();
+    //this.dragManager?.destroy();
+    //this.effects?.destroy();
+    //super.destroy(fromScene);
+  //}
 }

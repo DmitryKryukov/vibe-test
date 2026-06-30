@@ -29,6 +29,10 @@ export class BattleSceneRenderer {
     private enemiesCollection = new Set<string>();
     private enemiesObject = new Map<string, Phaser.GameObjects.GameObject[]>();
 
+
+    private combatantPositions = new Map<string, { x: number; y: number }>();
+    private spriteObjects = new Map<string, Phaser.GameObjects.GameObject[]> ;
+
     private characterSlot = {
         Hero: {
             x: 450,
@@ -52,17 +56,18 @@ export class BattleSceneRenderer {
 
         this.enemiesCollection.clear();
         this.enemiesObject.clear();
+        this.combatantPositions.clear();
+        this.spriteObjects.clear();
 
         this.renderBackground();
         this.renderSquirePanel();
         this.renderHeroPanel();
         this.renderHero();
         this.renderEnemies();
+
         /*
     this.statusContainers.clear();
-    this.bodyObjects.clear();
     this.enemyPositions.clear();
-    this.combatantPositions.clear();
     this.removedEnemies.clear();
     this.lootItems = [];
     this.bagSlotZones = [];
@@ -95,13 +100,34 @@ export class BattleSceneRenderer {
 
         this.renderHeroSprite(x, y);
         this.renderHPBar("hero", hero, x, y, 248);
-
         /*
-       this.bodyObjects.set(hero.uid, [g, name]);
-       this.combatantPositions.set(hero.uid, { x, y: y - 70 });
-       this.statusContainers.set(hero.uid, this.scene.add.container(x, y - 292).setDepth(95));
-     }
-       */
+        this.statusContainers.set(hero.uid, this.scene.add.container(x, y - 292).setDepth(95));
+        }
+        */
+    }
+    
+    private renderHeroSprite(x: number, y: number): void {
+        const hero = Heroes[GameState.requireRun().heroId];
+        const textureKey = hero.content?.spriteImage;
+        
+        if (textureKey && this.scene.textures.exists(textureKey)) {
+            const width = hero.content?.spriteWidth ?? 390;
+            const height = hero.content?.spriteHeight ?? 510;
+            const spriteScale = hero.content?.spriteScale ?? 1;
+            const offsetX = hero.content?.spriteOffsetX ?? 0;
+            const offsetY = hero.content?.spriteOffsetY ?? -84;
+            const sprite = this.scene.add.image(x, y, textureKey)
+            .setDisplaySize(width * spriteScale, height * spriteScale)
+            .setX(x + offsetX)
+            .setY(y + offsetY)
+            .setDepth(10)
+            .setOrigin(0.5, 1);
+            this.heroZone = this.scene.add.zone(x + offsetX, y + offsetY, width, height).setRectangleDropZone(width, height);
+            
+            this.combatantPositions.set(hero.id, { x: x + offsetX, y: y + offsetY });
+            this.spriteObjects.set(hero.id, [sprite]);
+        }
+        
     }
 
     private renderEnemies(): void {
@@ -116,7 +142,7 @@ export class BattleSceneRenderer {
                 { x: screen.right - 650, y: screen.centerY - 300 },
                 { x: screen.right - 700, y: screen.centerY + 300 },
             ];
-            
+
         } else if (enemies.length == 4) {
             slots = [
                 { x: screen.right - 350, y: screen.centerY + 120 },
@@ -139,7 +165,7 @@ export class BattleSceneRenderer {
         }
         else {
             slots = [
-                 { x: screen.right - 500, y: screen.centerY - 15 },
+                { x: screen.right - 500, y: screen.centerY - 15 },
             ]
         }
 
@@ -149,6 +175,7 @@ export class BattleSceneRenderer {
             this.renderEnemy(enemy, position.x, position.y);
         })
     }
+
 
     private renderEnemy(enemy: Combatant, x: number, y: number): void {
         if (!enemy.alive || this.enemiesCollection.has(enemy.id)) return;
@@ -166,64 +193,45 @@ export class BattleSceneRenderer {
             this.enemiesObject.set(enemy.id, updatedData);
         }
         /*
-        this.bodyObjects.set(enemy.uid, [g, name]);
         this.enemyPositions.set(enemy.uid, { x, y });
-        this.combatantPositions.set(enemy.uid, { x, y });
         this.statusContainers.set(enemy.uid, this.scene.add.container(x, y - 178).setDepth(95));
         */
     }
-
+    
     private renderEnemySprite(enemy: Combatant, x: number, y: number): Phaser.GameObjects.GameObject {
         const enemyObj = Enemies[enemy.definitionId];
         let textureKey = enemyObj.content?.spriteImage;
-
+        
         if (!textureKey || !this.scene.textures.exists(textureKey)) {
             textureKey = 'default_texture_key';
         }
-
+        
         const width = enemyObj.content?.spriteWidth ?? 390;
         const height = enemyObj.content?.spriteHeight ?? 390;
         const spriteScale = enemyObj.content?.spriteScale ?? 1;
         const offsetX = enemyObj.content?.spriteOffsetX ?? 0;
         const offsetY = enemyObj.content?.spriteOffsetY ?? -84;
-
+        
         const sprite = this.scene.add.image(0, 0, textureKey);
-
+        
         sprite.setDisplaySize(width * spriteScale, height * spriteScale)
-            .setX(x + offsetX)
-            .setY(y + offsetY + height / 2 - 20)
-            .setDepth(10)
-            .setOrigin(0.5, 1);
-
+        .setX(x + offsetX)
+        .setY(y + offsetY + height / 2 - 20)
+        .setDepth(10)
+        .setOrigin(0.5, 1);
+        
         const zone = this.scene.add.zone(x + offsetX, y + offsetY + height / 2 - 20, width, height)
-            .setRectangleDropZone(width, height);
-
+        .setRectangleDropZone(width, height);
+        
         this.enemyZones.set(enemy.id, zone);
         this.enemiesObject.set(enemy.id, [zone]);
-        console.log(this.enemiesObject)
+        
+        this.combatantPositions.set(enemy.id, { x: x + offsetX, y: y + offsetY + height / 2 - 20 });
+        this.spriteObjects.set(enemy.id, [sprite]);
 
         return sprite;
     }
 
-    private renderHeroSprite(x: number, y: number): void {
-        const hero = Heroes[GameState.requireRun().heroId];
-        const textureKey = hero.content?.spriteImage;
-
-        if (textureKey && this.scene.textures.exists(textureKey)) {
-            const width = hero.content?.spriteWidth ?? 390;
-            const height = hero.content?.spriteHeight ?? 510;
-            const spriteScale = hero.content?.spriteScale ?? 1;
-            const offsetX = hero.content?.spriteOffsetX ?? 0;
-            const offsetY = hero.content?.spriteOffsetY ?? -84;
-            this.scene.add.image(x, y, textureKey)
-                .setDisplaySize(width * spriteScale, height * spriteScale)
-                .setX(x + offsetX)
-                .setY(y + offsetY)
-                .setDepth(10)
-                .setOrigin(0.5, 1);
-            this.heroZone = this.scene.add.zone(x + offsetX, y + offsetY, width, height).setRectangleDropZone(width, height);
-        }
-    }
 
     private renderHPBar(type: "hero" | "enemy", target: Combatant, x: number, y: number, width: number): Phaser.GameObjects.GameObject[] {
         const graphics = this.scene.add.graphics().setDepth(40);
@@ -232,6 +240,7 @@ export class BattleSceneRenderer {
         const cornerRadius: number = type === "hero" ? 8 : 4;
 
         graphics.setData('target', target);
+        graphics.setData('type', type);
         graphics.setData('x', x);
         graphics.setData('y', y);
         graphics.setData('width', width);
@@ -284,22 +293,35 @@ export class BattleSceneRenderer {
 
         this.updateBar(graphics)
 
-        /*
-        const hpText = this.hpTexts.get(target.uid);
-        for (let i = 0; i < target.abilities.length; i += 1) {
-            const a = target.abilities[i];
-            const cx = x - 24 + i * 42;
-            const cy = y + 16;
-            g.fillStyle(0x090909, 0.95);
-            g.fillCircle(cx, cy, 17);
-            g.slice(cx, cy, 15, Phaser.Math.DegToRad(-90), Phaser.Math.DegToRad(-90 + 360 * Math.min(1, a.progress / a.cooldown)), false);
-            g.fillStyle(a.kind === 'utility' ? 0x38c978 : 0xff5522, 1);
-            g.fillPath();
-        }
-        if (target.shield > 0) {
-            g.lineStyle(4, 0x5cc7ff, 0.9);
-            g.strokeRoundedRect(x + 2, y + 2, w - 4, 28, 5);
-        }*/
+        target.basicAttacks.forEach((attack, index) => {
+            const attackIconScheme = type === "hero"
+                ? {
+                    posX: x - width / 2 - 4 - index * 45,
+                    posY: y - 2,
+                    radius: 21,
+                }
+                : {
+                    posX: x - width / 2 - 4 - index * 28,
+                    posY: y - 3,
+                    radius: 13,
+                }
+            const zone = this.scene.add.circle(attackIconScheme.posX, attackIconScheme.posY, attackIconScheme.radius, anyToColor(COLORTOKEN.Background.Zeroth));
+            zone.setOrigin(1, 0);
+            zone.setInteractive({ useHandCursor: true });
+            /*
+            this.ui.tooltip(
+                zone,
+                ability.name,
+                [
+                    ability.description,
+                    `Таймер: ${ability.cooldown} сек.`,
+                    'Когда круг заполняется, действие срабатывает автоматически и таймер сбрасывается.'
+                ].join('\n')
+            );
+        });
+        return objects;*/
+            GO.push(zone);
+        })
 
         return GO;
     }
@@ -313,6 +335,7 @@ export class BattleSceneRenderer {
         const cornerRadius = bar.getData('cornerRadius');
         const hpTextStroke = bar.getData('hpTextStroke');
         const hpText = bar.getData('hpText');
+        const type = bar.getData('type');
 
         bar.clear();
         bar.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
@@ -324,10 +347,41 @@ export class BattleSceneRenderer {
 
         bar.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
         bar.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.stats.hp / target.stats.maxHp)), height - 8, Math.min((width - 8) * (target.stats.hp / target.stats.maxHp), cornerRadius - 4));
+
+        target.basicAttacks.forEach((attack, index) => {
+            const attackIconScheme = type === "hero"
+                ? {
+                    posX: x - width / 2 - 4 - index * 45,
+                    posY: y - 2,
+                    radius: 21,
+                    radiusOffset: 4,
+                }
+                : {
+                    posX: x - width / 2 - 4 - index * 28,
+                    posY: y - 3,
+                    radius: 13,
+                    radiusOffset: 3,
+                }
+
+            bar.fillStyle(0x090909, 0.95);
+            bar.fillCircle(attackIconScheme.posX - attackIconScheme.radius, attackIconScheme.posY + attackIconScheme.radius, attackIconScheme.radius);
+            bar.slice(attackIconScheme.posX - attackIconScheme.radius, attackIconScheme.posY + attackIconScheme.radius, attackIconScheme.radius - attackIconScheme.radiusOffset, Phaser.Math.DegToRad(-90), Phaser.Math.DegToRad(-90 + 360 * Math.min(1, attack.progress / attack.cooldown)), false);
+            bar.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
+            bar.fillPath();
+
+        })
     }
 
     public updateBars(): void {
         this.hpBarCollection.forEach((bar) => this.updateBar(bar));
+    }
+
+    public getCombatantPositions(): Map<string, { x: number; y: number }> {
+        return this.combatantPositions;
+    }
+    
+    public getSpriteObjects(): Map<string, Phaser.GameObjects.GameObject[]> {
+        return this.spriteObjects;
     }
 
     /*
@@ -335,23 +389,6 @@ const g = this.scene.add.graphics().setDepth(40);
 const objects: Phaser.GameObjects.GameObject[] = [g];
 }
 
-target.abilities.forEach((ability, index) => {
-  const cx = x - 24 + index * 42;
-  const cy = y + 16;
-  const zone = this.scene.add.circle(cx, cy, 18, 0x000000, 0.001).setDepth(70);
-  zone.setInteractive({ useHandCursor: true });
-  objects.push(zone);
-  this.ui.tooltip(
-    zone,
-    ability.name,
-    [
-      ability.description,
-      `Таймер: ${ability.cooldown} сек.`,
-      'Когда круг заполняется, действие срабатывает автоматически и таймер сбрасывается.',
-    ].join('\n')
-  );
-});
-}
 */
 
 }
@@ -383,12 +420,10 @@ export class BattleSceneRenderer {
   private lootItems: Phaser.GameObjects.Container[] = [];
   private slotHighlights: Phaser.GameObjects.Rectangle[] = [];
   public fieldLoot: FieldLoot[] = [];
-  private bodyObjects = new Map<string, Phaser.GameObjects.GameObject[]>();
   private enemyObjects = new Map<string, Phaser.GameObjects.GameObject[]>();
   private enemyPositions = new Map<string, { x: number; y: number }>();
   private combatantPositions = new Map<string, { x: number; y: number }>();
   private removedEnemies = new Set<string>();
-  private drawnEnemies = new Set<string>();
   public spawnedRewardItems = 0;
   private statusSignatures = new Map<string, string>();
 
@@ -409,10 +444,8 @@ export class BattleSceneRenderer {
     this.scene.input.off('dragend');
 
     this.statusContainers.clear();
-    this.bodyObjects.clear();
     this.enemyObjects.clear();
     this.enemyPositions.clear();
-    this.combatantPositions.clear();
     this.removedEnemies.clear();
     this.drawnEnemies.clear();
     this.lootItems = [];
@@ -775,13 +808,6 @@ export class BattleSceneRenderer {
     return this.fieldLoot;
   }
 
-  public getCombatantPositions(): Map<string, { x: number; y: number }> {
-    return this.combatantPositions;
-  }
-
-  public getBodyObjects(): Map<string, Phaser.GameObjects.GameObject[]> {
-    return this.bodyObjects;
-  }
 
   public getEnemyPositions(): Map<string, { x: number; y: number }> {
     return this.enemyPositions;

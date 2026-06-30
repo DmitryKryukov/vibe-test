@@ -5,171 +5,278 @@ import { ActiveAbilityScheme } from "@/data/Abilities";
 import { GameState } from "@/store/GameState";
 
 export interface ActiveAbilityBattle extends ActiveAbilityScheme {
-    progress: number;
-    windupQueued?: boolean;
+  progress: number;
+  windupQueued?: boolean;
 }
 
 export interface Combatant {
-    id: string;
-    definitionId: string;
-    name: string;
-    faction?: Faction;
-    stats: {
-        hp: number;
-        maxHp: number;
-        damage: number;
-        attackSpeed: number;
-    }
-    activeAbilities: ActiveAbilityBattle[];
-    //statuses: StatusEffect[];
-    alive: boolean;
-    //shield: number;
-    //attackCounter: number;
+  id: string;
+  definitionId: string;
+  name: string;
+  faction?: Faction;
+  stats: {
+    hp: number;
+    maxHp: number;
+    damage: number;
+    attackSpeed: number;
+  }
+  basicAttacks: ActiveAbilityBattle[];
+  activeAbilities: ActiveAbilityBattle[];
+  //statuses: StatusEffect[];
+  alive: boolean;
+  //shield: number;
+  attackCounter: number;
 }
 
+
+export type CombatVisualEvent =
+  | { type: 'windup'; sourceUid: string }
+  | { type: 'attack'; sourceUid: string; targetUid: string }
+  | { type: 'damage'; targetUid: string; amount: number }
+  | { type: 'heal'; targetUid: string; amount: number }
+  | { type: 'miss'; targetUid: string };
+
 export class CombatSystem {
-    hero: Combatant;
-    enemies: Combatant[];
-    ended: 'victory' | 'defeat' | null = null;
+  private scene: Phaser.Scene;
+  hero: Combatant;
+  enemies: Combatant[];
+  ended: 'victory' | 'defeat' | null = null;
+  visualEvents: CombatVisualEvent[] = [];
 
-    constructor(enemyIds: string[]) {
-        const run = GameState.requireRun();
-        const hero = Heroes[run.heroId.replace("-hero", "")];
-        this.hero = {
-            id: 'hero',
-            definitionId: hero.id,
-            name: hero.name,
-            stats: {
-                hp: run.hp,
-                maxHp: run.maxHp,
-                damage: hero.baseStats.baseDamage,
-                attackSpeed: hero.baseStats.baseDamage
-            },
-            alive: true,
-            //stats: { ...heroDef.baseStats, maxHp: run.maxHp, attack: heroDef.baseStats.attack + (GameState.state.meta.buildings.forge ?? 0) * 2 },
-            activeAbilities: hero.activeAbilities.map((ability) => ({ ...ability, progress: 0 })),
-            //statuses: [],
-            //shield: heroDef.id === 'galahad' ? run.hp * 0.2 : 0,
-            //attackCounter: 0
-        };
-        this.enemies = enemyIds.map((id, index) => this.makeEnemy(Enemies[id], index));
-    }
 
-    makeEnemy(enemy: EnemyScheme, index: number): Combatant {
-        return {
-            id: `enemy-${index}-${enemy.id}`,
-            definitionId: enemy.id,
-            name: enemy.name,
-            faction: enemy.faction,
-            stats: {
-                hp: enemy.enemyStats.maxHp,
-                maxHp: enemy.enemyStats.maxHp,
-                damage: enemy.enemyStats.baseDamage,
-                attackSpeed: enemy.enemyStats.baseAttackSpeed
-            },
-            activeAbilities: enemy.activeAbilities.map((ability) => ({ ...ability, progress: 0 })),
-            alive: true,
-        };
+  constructor(scene: Phaser.Scene, enemyIds: string[]) {
+    this.scene = scene;
+    const run = GameState.requireRun();
+    const hero = Heroes[run.heroId.replace("-hero", "")];
+    this.hero = {
+      id: 'hero',
+      definitionId: hero.id,
+      name: hero.name,
+      stats: {
+        hp: run.hp,
+        maxHp: run.maxHp,
+        damage: hero.baseStats.baseDamage,
+        attackSpeed: hero.baseStats.baseDamage
+      },
+      alive: true,
+      //stats: { ...heroDef.baseStats, maxHp: run.maxHp, attack: heroDef.baseStats.attack + (GameState.state.meta.buildings.forge ?? 0) * 2 },
+      basicAttacks: hero.basicAttacks.map((attack) => ({ ...attack, progress: 0 })),
+      activeAbilities: hero.activeAbilities.map((ability) => ({ ...ability, progress: 0 })),
+      //statuses: [],
+      //shield: heroDef.id === 'galahad' ? run.hp * 0.2 : 0,
+      attackCounter: 0
+    };
+    this.enemies = enemyIds.map((id, index) => this.makeEnemy(Enemies[id], index));
+  }
 
-    }
+  makeEnemy(enemy: EnemyScheme, index: number): Combatant {
+    return {
+      id: `enemy-${index}-${enemy.id}`,
+      definitionId: enemy.id,
+      name: enemy.name,
+      faction: enemy.faction,
+      stats: {
+        hp: enemy.enemyStats.maxHp,
+        maxHp: enemy.enemyStats.maxHp,
+        damage: enemy.enemyStats.baseDamage,
+        attackSpeed: enemy.enemyStats.baseAttackSpeed
+      },
+      basicAttacks: enemy.basicAttacks.map((attack) => ({ ...attack, progress: 0 })),
+      activeAbilities: enemy.activeAbilities.map((ability) => ({ ...ability, progress: 0 })),
+      alive: true,
+      attackCounter: 0
+    };
 
-    private tickHero(dt: number): void {
-        if (this.hero.alive ) {
-            this.tickStatuses(this.hero, dt);
-            this.hero.activeAbilities.forEach((ability) => {
-                const previousProgress = ability.progress;
-                //this.queueWindupFlash(this.hero.uid, ability, ability.cooldown, previousProgress);
-                ability.progress += dt;
-                if (ability.progress >= ability.cooldown) {
-                    ability.progress = 0;
-                    ability.windupQueued = false;
-                  //  this.resolveHeroAbility(ability.id);
-                }
-            });
+  }
+
+  private tickHero(dt: number): void {
+    if (this.hero.alive) {
+      this.tickStatuses(this.hero, dt);
+      this.hero.basicAttacks.forEach((attack) => {
+        const previousProgress = attack.progress;
+        this.queueAttack(this.hero.id, attack, attack.cooldown, previousProgress);
+        attack.progress += dt;
+        if (attack.progress >= attack.cooldown) {
+          attack.progress = 0;
+          attack.windupQueued = false;
+          this.resolveHeroAttack(attack.id);
         }
+      });
     }
+  }
 
-    private tickEnemies(dt: number): void {
-        this.enemies.forEach((enemy) => {
-            this.tickStatuses(enemy, dt);
-            /*
-            const enemyObj = Enemies[enemy.definitionId];
-            if (enemy.alive && def.aura === 'cursed-resonance' && this.remains.count > 0) {
-                this.enemies.forEach((target) => {
-                    if (target.alive && target.faction === 'distorted') target.hp = Math.min(target.maxHp, target.hp + target.maxHp * (0.02 + this.remains.count * 0.02) * dt);
-                });
-            }
-            */
-        });
-    }
-
-    update(deltaMs: number): void {
-        if (this.ended) return;
-        const dt = deltaMs / 1000;
-
-        this.tickHero(dt);
-        this.tickEnemies(dt);
-        /*
-       if && !this.hasStatus(this.hero, 'stun')
-          const slow = this.hasStatus(this.hero, 'slow') ? 0.85 : 1;
-          const madness = this.hasStatus(this.hero, 'madness') ? 1.4 : 1;
-          this.hero.abilities.forEach((ability) => {
-            const previousProgress = ability.progress;
-            ability.progress += dt * this.hero.stats.attackSpeed * slow * madness;
-            this.queueWindupFlash(this.hero.uid, ability, ability.cooldown, previousProgress);
-            if (ability.progress >= ability.cooldown) {
-              ability.progress = 0;
-              ability.windupQueued = false;
-              this.resolveHeroAbility(ability.id);
-            }
-          });
+  private tickEnemies(dt: number): void {
+    this.enemies.forEach((enemy) => {
+      this.tickStatuses(enemy, dt);
+      enemy.basicAttacks.forEach((attack) => {
+        const previousProgress = attack.progress;
+        //this.queueWindupFlash(this.hero.uid, ability, ability.cooldown, previousProgress);
+        attack.progress += dt;
+        if (attack.progress >= attack.cooldown) {
+          attack.progress = 0;
+          attack.windupQueued = false;
+          // this.resolveHeroAttack(ability.id);
         }
-        this.enemies.forEach((enemy) => {
-          if (!enemy.alive || this.hasStatus(enemy, 'stun')) return;
-          const alpha = this.enemies.some((ally) => ally.alive && ENEMIES[ally.definitionId].aura === 'beast-alpha') && enemy.faction === 'beast' ? 1.2 : 1;
-          enemy.abilities.forEach((ability) => {
-            const cooldown = ability.id === 'tombstone-smash' ? Math.max(7, ability.cooldown - this.remains.count) : ability.cooldown;
-            const previousProgress = ability.progress;
-            ability.progress += dt * enemy.stats.attackSpeed * alpha;
-            this.queueWindupFlash(enemy.uid, ability, cooldown, previousProgress);
-            if (ability.progress >= cooldown) {
-              ability.progress = 0;
-              ability.windupQueued = false;
-              this.resolveEnemyAbility(enemy, ability.id);
-            }
+      });
+      /*
+      const enemyObj = Enemies[enemy.definitionId];
+      if (enemy.alive && def.aura === 'cursed-resonance' && this.remains.count > 0) {
+          this.enemies.forEach((target) => {
+              if (target.alive && target.faction === 'distorted') target.hp = Math.min(target.maxHp, target.hp + target.maxHp * (0.02 + this.remains.count * 0.02) * dt);
           });
-        });
-        this.enemies.forEach((enemy) => {
-          if (enemy.alive && enemy.hp <= 0) this.killEnemy(enemy);
-        });
-        this.hero.alive = this.hero.hp > 0;
-        if (!this.hero.alive) this.ended = 'defeat';
-        if (this.enemies.every((enemy) => !enemy.alive)) this.ended = 'victory';
-        */
-    }
-
-    tickStatuses(target: Combatant, dt: number): void {
-        /*
-        target.statuses.forEach((status) => {
-          status.duration -= dt;
-          if (status.tickEvery) {
-            status.tickTimer = (status.tickTimer ?? status.tickEvery) - dt;
-            if (status.tickTimer <= 0) {
-              status.tickTimer += status.tickEvery;
-              if (status.id === 'poison') {
-                const effectCount = Math.floor(status.stacks / 100);
-                const damagePerEffect = target.uid === 'hero' && GameState.requireRun().equipment.some((item) => item?.itemId === 'herbalist_hood') ? 1.5 : 3;
-                target.hp -= damagePerEffect * effectCount;
-              }
-              if (status.id === 'bleed') target.hp -= 3 * Math.max(1, status.stacks);
-              if (status.id === 'burn') target.hp -= 5;
-            }
-          }
-        });
-        target.statuses = target.statuses.filter((status) => status.duration > 0);
       }
-    */
+      */
+    });
+  }
+
+  resolveHeroAttack(id: string): void {
+    const target = this.enemies.find((enemy) => enemy.alive);
+    if (!target) return;
+    let damage = this.hero.stats.damage;
+
+    
+    if (id === 'strike') {
+      this.hero.attackCounter += 1;
+      this.scene.time.delayedCall(450, () => {
+        this.damageTarget(target, this.hero, damage);
+      })
     }
+    this.visualEvents.push({ type: 'attack', sourceUid: this.hero.definitionId, targetUid: target.id });
+    /*
+    if (id === 'widow-veil') {
+      this.visualEvents.push({ type: 'attack', sourceUid: this.hero.uid, targetUid: target.uid });
+      target.statuses.push({ id: 'blind', label: 'Ослепление', duration: 4, stacks: 1 });
+      this.logPush('Саван Изгоя ослепил цель.');
+      return;
+    }
+    let damage = this.hero.stats.attack;
+    if (id === 'shield-bash') {
+      damage *= GameState.requireRun().equipment.some((item) => item && ITEMS[item.itemId].slot === 'shield') ? 1 : 0.45;
+      target.statuses.push({ id: 'stun', label: 'Оглушение', duration: 1.5, stacks: 1 });
+    }
+    this.hero.attackCounter += 1;
+    const run = GameState.requireRun();
+    if (run.equipment.some((item) => item?.itemId === 'jagged_spear') && this.hero.attackCounter % 3 === 0) {
+      target.statuses.push({ id: 'bleed', label: 'Кровотечение', duration: 7, stacks: 1, tickEvery: 1, tickTimer: 1 });
+    }
+    if (run.equipment.some((item) => item?.itemId === 'old_torch')) {
+      target.statuses.push({ id: 'burn', label: 'Поджог', duration: 4, stacks: 1, tickEvery: 1, tickTimer: 1 });
+    }
+    if (run.equipment.some((item) => item?.itemId === 'alba_ring')) {
+      target.statuses.push({ id: 'chill', label: 'Окоченение', duration: 6, stacks: 5 });
+    }
+    this.visualEvents.push({ type: 'attack', sourceUid: this.hero.uid, targetUid: target.uid });
+    this.damage(target, damage, this.hero);
+    if (run.equipment.some((item) => item?.itemId === 'bloodthirsty_blade')) this.healHero(3);
+    if (run.equipment.some((item) => item?.itemId === 'beast_heart')) this.healHero(Math.max(1, damage * 0.01));
+    if (run.heroId === 'beatrice') {
+      const weapons = run.equipment.filter((item) => item && ITEMS[item.itemId].slot === 'weapon').length;
+      const threshold = Math.max(6, 10 - weapons);
+      if (this.hero.attackCounter % threshold === 0) this.enemies.forEach((enemy) => { if (enemy.alive) this.damage(enemy, this.hero.stats.attack * 0.8, this.hero); });
+      if (weapons >= 4) {
+        const neighbor = this.enemies.find((enemy) => enemy.alive && enemy.uid !== target.uid);
+        if (neighbor) this.damage(neighbor, damage * 0.16, this.hero);
+      }
+    }
+      */
+  }
+
+  update(deltaMs: number): void {
+    if (this.ended) return;
+    const dt = deltaMs / 1000;
+
+    this.tickHero(dt);
+    this.tickEnemies(dt);
+    /*
+   if && !this.hasStatus(this.hero, 'stun')
+      const slow = this.hasStatus(this.hero, 'slow') ? 0.85 : 1;
+      const madness = this.hasStatus(this.hero, 'madness') ? 1.4 : 1;
+          this.resolveHeroAbility(ability.id);
+        }
+      });
+    }
+    this.enemies.forEach((enemy) => {
+      if (!enemy.alive || this.hasStatus(enemy, 'stun')) return;
+      const alpha = this.enemies.some((ally) => ally.alive && ENEMIES[ally.definitionId].aura === 'beast-alpha') && enemy.faction === 'beast' ? 1.2 : 1;
+      enemy.abilities.forEach((ability) => {
+        const cooldown = ability.id === 'tombstone-smash' ? Math.max(7, ability.cooldown - this.remains.count) : ability.cooldown;
+        const previousProgress = ability.progress;
+        ability.progress += dt * enemy.stats.attackSpeed * alpha;
+        this.queueWindupFlash(enemy.uid, ability, cooldown, previousProgress);
+        if (ability.progress >= cooldown) {
+          ability.progress = 0;
+          ability.windupQueued = false;
+          this.resolveEnemyAbility(enemy, ability.id);
+        }
+      });
+    });
+    this.enemies.forEach((enemy) => {
+      if (enemy.alive && enemy.hp <= 0) this.killEnemy(enemy);
+    });
+    this.hero.alive = this.hero.hp > 0;
+    if (!this.hero.alive) this.ended = 'defeat';
+    if (this.enemies.every((enemy) => !enemy.alive)) this.ended = 'victory';
+    */
+  }
+
+  tickStatuses(target: Combatant, dt: number): void {
+    /*
+    target.statuses.forEach((status) => {
+      status.duration -= dt;
+      if (status.tickEvery) {
+        status.tickTimer = (status.tickTimer ?? status.tickEvery) - dt;
+        if (status.tickTimer <= 0) {
+          status.tickTimer += status.tickEvery;
+          if (status.id === 'poison') {
+            const effectCount = Math.floor(status.stacks / 100);
+            const damagePerEffect = target.uid === 'hero' && GameState.requireRun().equipment.some((item) => item?.itemId === 'herbalist_hood') ? 1.5 : 3;
+            target.hp -= damagePerEffect * effectCount;
+          }
+          if (status.id === 'bleed') target.hp -= 3 * Math.max(1, status.stacks);
+          if (status.id === 'burn') target.hp -= 5;
+        }
+      }
+    });
+    target.statuses = target.statuses.filter((status) => status.duration > 0);
+  }
+*/
+  }
+
+  damageTarget(target: Combatant, source: Combatant, amount: number): void {
+    console.log(target.name + " получит урон " + amount)
+    let final = amount;
+    target.stats.hp -= final;
+    if (target.stats.hp < 0) target.stats.hp = 0;
+    this.visualEvents.push({ type: 'damage', targetUid: target.id, amount: Math.round(final) });
+    /*
+    if (Math.random() < target.stats.dodgeChance) {
+    if (this.hasStatus(target, 'invulnerable')) return;
+      this.visualEvents.push({ type: 'miss', targetUid: target.uid });
+      return;
+    }
+    const defense = this.hasStatus(source, 'madness') ? 0 : target.stats.defense;
+    let final = Math.max(1, amount - defense * 0.35);
+    if (this.hasStatus(target, 'hex')) final *= 1.25;
+    if (target.shield > 0) {
+      const blocked = Math.min(target.shield, final);
+      target.shield -= blocked;
+      final -= blocked;
+    }
+    target.hp -= final;
+    if (target.uid === 'hero' && target.hp <= 0) this.trySacrificeRing(target);
+  }
+    */
+  }
+
+  queueAttack(sourceUid: string, attack: Combatant['basicAttacks'][number], cooldown: number, previousProgress: number): void {
+    const PRE_ATTACK_FLASH_SECONDS = 0.25;
+    const threshold = Math.max(0, cooldown - PRE_ATTACK_FLASH_SECONDS);
+    if (!attack.windupQueued && previousProgress < threshold && attack.progress >= threshold) {
+      alert();
+      attack.windupQueued = true;
+      this.visualEvents.push({ type: 'windup', sourceUid });
+    }
+  }
 }
 /*
 import Phaser from 'phaser';
@@ -199,7 +306,6 @@ export class CombatSystem {
   remains = { count: 0 };
   ended: 'victory' | 'defeat' | null = null;
   log: string[] = [];
-  visualEvents: CombatVisualEvent[] = [];
 
   constructor(enemyIds: string[]) {
     const run = GameState.requireRun();
