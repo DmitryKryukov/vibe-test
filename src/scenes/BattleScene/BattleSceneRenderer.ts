@@ -11,397 +11,661 @@ import { TYPETOKEN } from '@/ui/styles/TypeTokens';
 import { COLORTOKEN } from '@/ui/styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
 import { Enemies, EnemyScheme } from '@/data/Enemies';
-import { screenBounds } from '@/utils/UtilsLayout';
+import { screenBounds, screenToWorld, screenSpaceScale } from '@/utils/UtilsLayout';
+import { getEnemySlots, getHeroSlots } from './BattleLayout';
+
+const StatusInfo: Record<string, { name: string; description: string }> = {
+  poison: { name: 'Яд', description: 'Копится стаками. Каждые 100 стаков дают одну порцию периодического урона.' },
+  bleed: { name: 'Кровотечение', description: 'Периодически наносит физический урон. Чем больше стаков, тем сильнее тик.' },
+  burn: { name: 'Поджог', description: 'Периодически наносит огненный урон.' },
+  chill: { name: 'Окоченение', description: 'Холодный эффект. Используется предметами и способностями для замедляющего давления.' },
+  stun: { name: 'Оглушение', description: 'Цель временно не может выполнять свои действия.' },
+  blind: { name: 'Ослепление', description: 'Цель с высокой вероятностью промахивается атакой.' },
+  dizzy: { name: 'Головокружение', description: 'Делает цель уязвимой к некоторым атакам врагов.' },
+  hex: { name: 'Сглаз', description: 'Цель получает больше входящего урона.' },
+  madness: { name: 'Безумие', description: 'Ускоряет действия, но мешает нормально учитывать защиту.' },
+  antiheal: { name: 'Запрет лечения', description: 'Цель не может восстанавливать здоровье.' },
+  shield: { name: 'Щит', description: 'Поглощает часть входящего урона.' },
+  slow: { name: 'Замедление', description: 'Замедляет заполнение таймеров действий.' },
+  invulnerable: { name: 'Неуязвимость', description: 'Цель временно не получает урон.' }
+};
 
 export class BattleSceneRenderer {
-    private scene: Phaser.Scene;
-    private background!: Background;
-    private combatSystem: CombatSystem;
-    private heroPanel!: HeroPanel;
-    private squirePanel!: SquirePanel;
+  private scene: Phaser.Scene;
+  private background!: Background;
+  private combatSystem: CombatSystem;
+  private heroPanel!: HeroPanel;
+  private squirePanel!: SquirePanel;
 
-    private heroZone!: Phaser.GameObjects.Zone;
-    private enemyZones = new Map<string, Phaser.GameObjects.Zone>();
+  private heroZone!: Phaser.GameObjects.Zone;
+  private enemyZones = new Map<string, Phaser.GameObjects.Zone>();
 
-    private hpBarCollection = new Map<string, Phaser.GameObjects.Graphics>();
-    private hpTextCollection = new Map<string, Phaser.GameObjects.Text>();
+  private hpBarCollection = new Map<string, Phaser.GameObjects.Graphics>();
+  private hpTextCollection = new Map<string, Phaser.GameObjects.Text>();
+  private statusContainers = new Map<string, Phaser.GameObjects.Container>();
+  private statusSignatures = new Map<string, string>();
 
-    private enemiesCollection = new Set<string>();
-    private enemiesObject = new Map<string, Phaser.GameObjects.GameObject[]>();
+  private heroObjects = new Map<string, Phaser.GameObjects.GameObject[]>();
+  private enemiesCollection = new Set<string>();
+  private enemiesObjects = new Map<string, Phaser.GameObjects.GameObject[]>();
+  private removedEnemies = new Set<string>();
 
+  private combatantPositions = new Map<string, { x: number; y: number }>();
+  private spriteObjects = new Map<string, Phaser.GameObjects.GameObject[]>;
 
-    private combatantPositions = new Map<string, { x: number; y: number }>();
-    private spriteObjects = new Map<string, Phaser.GameObjects.GameObject[]> ;
+  constructor(scene: Phaser.Scene, combatSystem: CombatSystem) {
+    this.scene = scene;
+    this.combatSystem = combatSystem;
+  }
 
-    private characterSlot = {
-        Hero: {
-            x: 450,
-            y: 600,
-        }
-    }
+  public renderStatic(): void {
+    this.scene.children.removeAll();
+    this.scene.input.off('drop');
+    this.scene.input.off('dragend');
 
-    constructor(scene: Phaser.Scene, combatSystem: CombatSystem) {
-        this.scene = scene;
-        this.combatSystem = combatSystem;
-    }
-
-    public renderStatic(): void {
-        this.scene.children.removeAll();
-        this.scene.input.off('drop');
-        this.scene.input.off('dragend');
-
-        this.hpBarCollection.clear();
-        this.hpTextCollection.clear();
-        this.enemyZones.clear();
-
-        this.enemiesCollection.clear();
-        this.enemiesObject.clear();
-        this.combatantPositions.clear();
-        this.spriteObjects.clear();
-
-        this.renderBackground();
-        this.renderSquirePanel();
-        this.renderHeroPanel();
-        this.renderHero();
-        this.renderEnemies();
-
-        /*
+    this.hpBarCollection.clear();
+    this.hpTextCollection.clear();
     this.statusContainers.clear();
-    this.enemyPositions.clear();
-    this.removedEnemies.clear();
-    this.lootItems = [];
-    this.bagSlotZones = [];
-    this.equipZones = [];
-    this.slotHighlights = [];
     this.statusSignatures.clear();
 
-    
-    this.drawInventoryInteractives();
-    this.drawTopControls();
-    this.drawFieldLoot();
-    */
-    }
+    this.heroObjects.clear();
+    this.enemiesCollection.clear();
+    this.enemiesObjects.clear();
+    this.enemyZones.clear();
+    this.removedEnemies.clear();
 
-    private renderBackground(): void {
-        this.background = new Background(this.scene, 'battle');
-    }
+    this.combatantPositions.clear();
+    this.spriteObjects.clear();
 
-    private renderHeroPanel(): void {
-        this.heroPanel = new HeroPanel(this.scene);
-    }
-
-    private renderSquirePanel(): void {
-        this.squirePanel = new SquirePanel(this.scene);
-    }
-
-    private renderHero(): void {
-        const { x, y } = this.characterSlot.Hero;
-        const hero = this.combatSystem.hero;
-
-        this.renderHeroSprite(x, y);
-        this.renderHPBar("hero", hero, x, y, 248);
-        /*
-        this.statusContainers.set(hero.uid, this.scene.add.container(x, y - 292).setDepth(95));
-        }
-        */
-    }
-    
-    private renderHeroSprite(x: number, y: number): void {
-        const hero = Heroes[GameState.requireRun().heroId];
-        const textureKey = hero.content?.spriteImage;
-        
-        if (textureKey && this.scene.textures.exists(textureKey)) {
-            const width = hero.content?.spriteWidth ?? 390;
-            const height = hero.content?.spriteHeight ?? 510;
-            const spriteScale = hero.content?.spriteScale ?? 1;
-            const offsetX = hero.content?.spriteOffsetX ?? 0;
-            const offsetY = hero.content?.spriteOffsetY ?? -84;
-            const sprite = this.scene.add.image(x, y, textureKey)
-            .setDisplaySize(width * spriteScale, height * spriteScale)
-            .setX(x + offsetX)
-            .setY(y + offsetY)
-            .setDepth(10)
-            .setOrigin(0.5, 1);
-            this.heroZone = this.scene.add.zone(x + offsetX, y + offsetY, width, height).setRectangleDropZone(width, height);
-            
-            this.combatantPositions.set(hero.id, { x: x + offsetX, y: y + offsetY });
-            this.spriteObjects.set(hero.id, [sprite]);
-        }
-        
-    }
-
-    private renderEnemies(): void {
-        const screen = screenBounds(this.scene);
-        const enemies = this.combatSystem.enemies;
-        let slots = [{ x: 0, y: 0 }];
-        if (enemies.length == 5) {
-            slots = [
-                { x: screen.right - 300, y: screen.centerY - 15 },
-                { x: screen.right - 425, y: screen.centerY - 180 },
-                { x: screen.right - 450, y: screen.centerY + 180 },
-                { x: screen.right - 650, y: screen.centerY - 300 },
-                { x: screen.right - 700, y: screen.centerY + 300 },
-            ];
-
-        } else if (enemies.length == 4) {
-            slots = [
-                { x: screen.right - 350, y: screen.centerY + 120 },
-                { x: screen.right - 300, y: screen.centerY - 120 },
-                { x: screen.right - 650, y: screen.centerY + 220 },
-                { x: screen.right - 600, y: screen.centerY - 220 },
-            ];
-        } else if (enemies.length == 3) {
-            slots = [
-                { x: screen.right - 300, y: screen.centerY - 15 },
-                { x: screen.right - 550, y: screen.centerY - 220 },
-                { x: screen.right - 600, y: screen.centerY + 220 },
-            ];
-        }
-        else if (enemies.length == 2) {
-            slots = [
-                { x: screen.right - 450, y: screen.centerY + 160 },
-                { x: screen.right - 450, y: screen.centerY - 160 },
-            ];
-        }
-        else {
-            slots = [
-                { x: screen.right - 500, y: screen.centerY - 15 },
-            ]
-        }
-
-
-        this.combatSystem.enemies.forEach((enemy, index) => {
-            const position = slots[index] ?? slots[0];
-            this.renderEnemy(enemy, position.x, position.y);
-        })
-    }
-
-
-    private renderEnemy(enemy: Combatant, x: number, y: number): void {
-        if (!enemy.alive || this.enemiesCollection.has(enemy.id)) return;
-        const enemyDefinition = Enemies[enemy.definitionId];
-
-        const graphics = this.renderEnemySprite(enemy, x, y);
-
-        this.enemiesCollection.add(enemy.id);
-
-        const enemyHpBar = this.renderHPBar("enemy", enemy, x, y + enemyDefinition.content.spriteHeight / 2 - 20, 162);
-
-        let currentData = this.enemiesObject.get(enemy.id);
-        if (currentData) {
-            let updatedData = [...currentData, graphics, ...enemyHpBar];
-            this.enemiesObject.set(enemy.id, updatedData);
-        }
-        /*
-        this.enemyPositions.set(enemy.uid, { x, y });
-        this.statusContainers.set(enemy.uid, this.scene.add.container(x, y - 178).setDepth(95));
-        */
-    }
-    
-    private renderEnemySprite(enemy: Combatant, x: number, y: number): Phaser.GameObjects.GameObject {
-        const enemyObj = Enemies[enemy.definitionId];
-        let textureKey = enemyObj.content?.spriteImage;
-        
-        if (!textureKey || !this.scene.textures.exists(textureKey)) {
-            textureKey = 'default_texture_key';
-        }
-        
-        const width = enemyObj.content?.spriteWidth ?? 390;
-        const height = enemyObj.content?.spriteHeight ?? 390;
-        const spriteScale = enemyObj.content?.spriteScale ?? 1;
-        const offsetX = enemyObj.content?.spriteOffsetX ?? 0;
-        const offsetY = enemyObj.content?.spriteOffsetY ?? -84;
-        
-        const sprite = this.scene.add.image(0, 0, textureKey);
-        
-        sprite.setDisplaySize(width * spriteScale, height * spriteScale)
-        .setX(x + offsetX)
-        .setY(y + offsetY + height / 2 - 20)
-        .setDepth(10)
-        .setOrigin(0.5, 1);
-        
-        const zone = this.scene.add.zone(x + offsetX, y + offsetY + height / 2 - 20, width, height)
-        .setRectangleDropZone(width, height);
-        
-        this.enemyZones.set(enemy.id, zone);
-        this.enemiesObject.set(enemy.id, [zone]);
-        
-        this.combatantPositions.set(enemy.id, { x: x + offsetX, y: y + offsetY + height / 2 - 20 });
-        this.spriteObjects.set(enemy.id, [sprite]);
-
-        return sprite;
-    }
-
-
-    private renderHPBar(type: "hero" | "enemy", target: Combatant, x: number, y: number, width: number): Phaser.GameObjects.GameObject[] {
-        const graphics = this.scene.add.graphics().setDepth(40);
-        const GO: Phaser.GameObjects.GameObject[] = [graphics];
-        const height: number = type === "hero" ? 38 : 20;
-        const cornerRadius: number = type === "hero" ? 8 : 4;
-
-        graphics.setData('target', target);
-        graphics.setData('type', type);
-        graphics.setData('x', x);
-        graphics.setData('y', y);
-        graphics.setData('width', width);
-        graphics.setData('height', height);
-        graphics.setData('cornerRadius', cornerRadius);
-        this.hpBarCollection.set(target.id, graphics);
-
-        graphics.clear();
-        graphics.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
-        graphics.fillRoundedRect(x - width / 2, y, width, height, cornerRadius);
-
-        if (type == "hero") {
-            const hpTextStroke = this.scene.add.text(x, y + 20, '', {
-                ...TYPETOKEN.Primary.Tagline, ...{
-                    color: COLORTOKEN.Background.Zeroth,
-                    stroke: COLORTOKEN.Background.Zeroth,
-                    strokeThickness: 10,
-                }
-            }).setOrigin(0.5).setDepth(0);
-
-            const hpText = this.scene.add.text(x, y + 20, '', {
-                ...TYPETOKEN.Primary.Tagline, ...{
-                    color: COLORTOKEN.Background.Zeroth,
-                    stroke: COLORTOKEN.Accent.Red,
-                    strokeThickness: 4,
-                }
-            }).setOrigin(0.5).setDepth(75);
-
-            graphics.setData('hpTextStroke', hpTextStroke);
-            graphics.setData('hpText', hpText);
-
-            GO.push(hpText);
-
-            hpTextStroke?.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
-            hpText?.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
-        }
-        graphics.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
-        graphics.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.stats.hp / target.stats.maxHp)), height - 8, Math.min((width - 8) * (target.stats.hp / target.stats.maxHp), cornerRadius - 4));
-
-        if (type == "enemy") {
-            const factionIconKey = `icon-faction-${target.faction}`;
-            const factionIcon = this.scene.textures.exists(factionIconKey)
-                ? this.scene.add.image(x - 5 - width / 2, y + 40, factionIconKey).setDisplaySize(40, 40).setOrigin(0, 0.5).setDepth(500)
-                : this.scene.add.circle(x - width / 2, y + 40, 15, anyToColor(COLORTOKEN.Background.Zeroth)).setStrokeStyle(2, anyToColor(COLORTOKEN.Accent.Red)).setOrigin(0, 0.5);
-
-            GO.push(factionIcon);
-
-            //this.ui.tooltip(factionIcon.setInteractive({ useHandCursor: false }), 'Фракция', `Тип врага: ${target.faction}`);
-        }
-
-        this.updateBar(graphics)
-
-        target.basicAttacks.forEach((attack, index) => {
-            const attackIconScheme = type === "hero"
-                ? {
-                    posX: x - width / 2 - 4 - index * 45,
-                    posY: y - 2,
-                    radius: 21,
-                }
-                : {
-                    posX: x - width / 2 - 4 - index * 28,
-                    posY: y - 3,
-                    radius: 13,
-                }
-            const zone = this.scene.add.circle(attackIconScheme.posX, attackIconScheme.posY, attackIconScheme.radius, anyToColor(COLORTOKEN.Background.Zeroth));
-            zone.setOrigin(1, 0);
-            zone.setInteractive({ useHandCursor: true });
-            /*
-            this.ui.tooltip(
-                zone,
-                ability.name,
-                [
-                    ability.description,
-                    `Таймер: ${ability.cooldown} сек.`,
-                    'Когда круг заполняется, действие срабатывает автоматически и таймер сбрасывается.'
-                ].join('\n')
-            );
-        });
-        return objects;*/
-            GO.push(zone);
-        })
-
-        return GO;
-    }
-
-    private updateBar(bar: Phaser.GameObjects.Graphics) {
-        const target = bar.getData('target') as Combatant;
-        const x = bar.getData('x') as number;
-        const y = bar.getData('y') as number;
-        const width = bar.getData('width') as number;
-        const height = bar.getData('height') as number;
-        const cornerRadius = bar.getData('cornerRadius');
-        const hpTextStroke = bar.getData('hpTextStroke');
-        const hpText = bar.getData('hpText');
-        const type = bar.getData('type');
-
-        bar.clear();
-        bar.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
-        bar.fillRoundedRect(x - width / 2, y, width, height, cornerRadius);
-        if (hpText && hpTextStroke) {
-            hpTextStroke.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
-            hpText.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
-        }
-
-        bar.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
-        bar.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.stats.hp / target.stats.maxHp)), height - 8, Math.min((width - 8) * (target.stats.hp / target.stats.maxHp), cornerRadius - 4));
-
-        target.basicAttacks.forEach((attack, index) => {
-            const attackIconScheme = type === "hero"
-                ? {
-                    posX: x - width / 2 - 4 - index * 45,
-                    posY: y - 2,
-                    radius: 21,
-                    radiusOffset: 4,
-                }
-                : {
-                    posX: x - width / 2 - 4 - index * 28,
-                    posY: y - 3,
-                    radius: 13,
-                    radiusOffset: 3,
-                }
-
-            bar.fillStyle(0x090909, 0.95);
-            bar.fillCircle(attackIconScheme.posX - attackIconScheme.radius, attackIconScheme.posY + attackIconScheme.radius, attackIconScheme.radius);
-            bar.slice(attackIconScheme.posX - attackIconScheme.radius, attackIconScheme.posY + attackIconScheme.radius, attackIconScheme.radius - attackIconScheme.radiusOffset, Phaser.Math.DegToRad(-90), Phaser.Math.DegToRad(-90 + 360 * Math.min(1, attack.progress / attack.cooldown)), false);
-            bar.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
-            bar.fillPath();
-
-        })
-    }
-
-    public updateBars(): void {
-        this.hpBarCollection.forEach((bar) => this.updateBar(bar));
-    }
-
-    public getCombatantPositions(): Map<string, { x: number; y: number }> {
-        return this.combatantPositions;
-    }
-    
-    public getSpriteObjects(): Map<string, Phaser.GameObjects.GameObject[]> {
-        return this.spriteObjects;
-    }
+    this.renderBackground();
+    this.renderSquirePanel();
+    this.renderHeroPanel();
+    this.renderHero();
+    this.renderEnemies();
 
     /*
-const g = this.scene.add.graphics().setDepth(40);
-const objects: Phaser.GameObjects.GameObject[] = [g];
+this.enemyPositions.clear();
+this.lootItems = [];
+this.bagSlotZones = [];
+this.equipZones = [];
+this.slotHighlights = [];
+
+ 
+this.drawInventoryInteractives();
+this.drawTopControls();
+this.drawFieldLoot();
+*/
+  }
+
+  private renderBackground(): void {
+    this.background = new Background(this.scene, 'battle');
+  }
+
+  private renderHeroPanel(): void {
+    this.heroPanel = new HeroPanel(this.scene);
+  }
+
+  private renderSquirePanel(): void {
+    this.squirePanel = new SquirePanel(this.scene);
+  }
+
+  private renderHero(): void {
+    const { x, y } = getHeroSlots();
+    const hero = this.combatSystem.hero;
+
+    const graphics = this.renderHeroSprite(x, y);
+    const hpBar = this.renderHPBar("hero", hero, x, y, 248);
+
+    const Data = [graphics, ...hpBar];
+    this.heroObjects.set(hero.id, Data);
+    this.statusContainers.set(hero.id, this.scene.add.container(x, y - 292).setDepth(95));
+  }
+
+  private renderHeroSprite(x: number, y: number): Phaser.GameObjects.GameObject {
+    const hero = Heroes[GameState.requireRun().heroId];
+    const textureKey = hero.content?.spriteImage;
+
+    const width = hero.content?.spriteWidth ?? 390;
+    const height = hero.content?.spriteHeight ?? 510;
+    const spriteScale = hero.content?.spriteScale ?? 1;
+    const offsetX = hero.content?.spriteOffsetX ?? 0;
+    const offsetY = hero.content?.spriteOffsetY ?? -84;
+    const sprite = this.scene.add.image(x, y, textureKey ?? "__White")
+      .setDisplaySize(width * spriteScale, height * spriteScale)
+      .setX(x + offsetX)
+      .setY(y + offsetY)
+      .setDepth(10)
+      .setOrigin(0.5, 1);
+    this.heroZone = this.scene.add.zone(x + offsetX, y + offsetY, width, height).setRectangleDropZone(width, height);
+
+    this.combatantPositions.set(hero.id, { x: x + offsetX, y: y - height / 2 + offsetY });
+    this.spriteObjects.set(hero.id, [sprite]);
+    return sprite as Phaser.GameObjects.GameObject;
+  }
+
+  private renderEnemies(): void {
+    const screen = screenBounds(this.scene);
+    const enemies = this.combatSystem.enemies;
+    const slots = getEnemySlots(enemies.length, screen)
+
+    this.combatSystem.enemies.forEach((enemy, index) => {
+      const position = slots[index] ?? slots[0];
+      this.renderEnemy(enemy, position.x, position.y);
+    })
+  }
+
+  private renderEnemy(enemy: Combatant, x: number, y: number): void {
+    if (!enemy.alive || this.enemiesCollection.has(enemy.id)) return;
+    const enemyDefinition = Enemies[enemy.definitionId];
+
+    const graphics = this.renderEnemySprite(enemy, x, y);
+
+    this.enemiesCollection.add(enemy.id);
+
+    const enemyHpBar = this.renderHPBar("enemy", enemy, x, y + enemyDefinition.content.spriteHeight / 2 - 20, 162);
+
+    let currentData = this.enemiesObjects.get(enemy.id);
+    if (currentData) {
+      let updatedData = [...currentData, graphics, ...enemyHpBar];
+      this.enemiesObjects.set(enemy.id, updatedData);
+    }
+    this.statusContainers.set(enemy.id, this.scene.add.container(x, y - 178).setDepth(95));
+    /*
+    this.enemyPositions.set(enemy.uid, { x, y });
+    */
+  }
+
+  private renderEnemySprite(enemy: Combatant, x: number, y: number): Phaser.GameObjects.GameObject {
+    const enemyObj = Enemies[enemy.definitionId];
+    let textureKey = enemyObj.content?.spriteImage;
+
+    if (!textureKey || !this.scene.textures.exists(textureKey)) {
+      textureKey = 'default_texture_key';
+    }
+
+    const width = enemyObj.content?.spriteWidth ?? 390;
+    const height = enemyObj.content?.spriteHeight ?? 390;
+    const spriteScale = enemyObj.content?.spriteScale ?? 1;
+    const offsetX = enemyObj.content?.spriteOffsetX ?? 0;
+    const offsetY = enemyObj.content?.spriteOffsetY ?? -84;
+
+    const sprite = this.scene.add.image(0, 0, textureKey);
+
+    sprite.setDisplaySize(width * spriteScale, height * spriteScale)
+      .setX(x + offsetX)
+      .setY(y + offsetY - height / 2)
+      .setDepth(10)
+      .setOrigin(0.5, 0.5);
+
+    const zone = this.scene.add.zone(x + offsetX, y + offsetY - height / 2, width, height)
+      .setRectangleDropZone(width, height);
+
+    this.enemyZones.set(enemy.id, zone);
+    this.enemiesObjects.set(enemy.id, [zone]);
+
+    this.combatantPositions.set(enemy.id, { x: x + offsetX, y: y + offsetY - height / 2 });
+    this.spriteObjects.set(enemy.id, [sprite]);
+
+    return sprite;
+  }
+
+  private renderCombatantSprite(
+  combatant: Combatant,
+  definition: { content: any }, // или интерфейс
+  x: number,
+  y: number,
+  isHero: boolean = false
+): { sprite: Phaser.GameObjects.Image; zone: Phaser.GameObjects.Zone } {
+  const { spriteImage, spriteWidth, spriteHeight, spriteScale, spriteOffsetX, spriteOffsetY } = definition.content;
+  const textureKey = spriteImage ?? '__White';
+  
+  const sprite = this.scene.add.image(0, 0, textureKey)
+    .setDisplaySize(spriteWidth * spriteScale, spriteHeight * spriteScale)
+    .setPosition(x + spriteOffsetX, y + spriteOffsetY - (isHero ? 0 : spriteHeight / 2))
+    .setDepth(10)
+    .setOrigin(0.5, isHero ? 1 : 0.5);
+
+  const zone = this.scene.add.zone(sprite.x, sprite.y, spriteWidth, spriteHeight)
+    .setRectangleDropZone(spriteWidth, spriteHeight);
+
+  this.combatantPositions.set(combatant.id, { x: sprite.x, y: sprite.y });
+  this.spriteObjects.set(combatant.id, [sprite]);
+
+  return { sprite, zone };
 }
 
-*/
+
+  private renderHPBar(type: "hero" | "enemy", target: Combatant, x: number, y: number, width: number): Phaser.GameObjects.GameObject[] {
+    const graphics = this.scene.add.graphics().setDepth(40);
+    const GO: Phaser.GameObjects.GameObject[] = [graphics];
+    const height: number = type === "hero" ? 38 : 20;
+    const cornerRadius: number = type === "hero" ? 8 : 4;
+
+    graphics.setData('target', target);
+    graphics.setData('type', type);
+    graphics.setData('x', x);
+    graphics.setData('y', y);
+    graphics.setData('width', width);
+    graphics.setData('height', height);
+    graphics.setData('cornerRadius', cornerRadius);
+    this.hpBarCollection.set(target.id, graphics);
+
+    graphics.clear();
+    graphics.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
+    graphics.fillRoundedRect(x - width / 2, y, width, height, cornerRadius);
+
+    if (type == "hero") {
+      const hpTextStroke = this.scene.add.text(x, y + 20, '', {
+        ...TYPETOKEN.Primary.Tagline, ...{
+          color: COLORTOKEN.Background.Zeroth,
+          stroke: COLORTOKEN.Background.Zeroth,
+          strokeThickness: 10,
+        }
+      }).setOrigin(0.5).setDepth(0);
+
+      const hpText = this.scene.add.text(x, y + 20, '', {
+        ...TYPETOKEN.Primary.Tagline, ...{
+          color: COLORTOKEN.Background.Zeroth,
+          stroke: COLORTOKEN.Accent.Red,
+          strokeThickness: 4,
+        }
+      }).setOrigin(0.5).setDepth(75);
+
+      graphics.setData('hpTextStroke', hpTextStroke);
+      graphics.setData('hpText', hpText);
+
+      GO.push(hpTextStroke);
+      GO.push(hpText);
+
+      hpTextStroke?.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
+      hpText?.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
+    }
+    graphics.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
+    graphics.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.stats.hp / target.stats.maxHp)), height - 8, Math.min((width - 8) * (target.stats.hp / target.stats.maxHp), cornerRadius - 4));
+
+    if (type == "enemy") {
+      const factionIconKey = `icon-faction-${target.faction}`;
+      const factionIcon = this.scene.textures.exists(factionIconKey)
+        ? this.scene.add.image(x - 5 - width / 2, y + 40, factionIconKey).setDisplaySize(40, 40).setOrigin(0, 0.5).setDepth(500)
+        : this.scene.add.circle(x - width / 2, y + 40, 15, anyToColor(COLORTOKEN.Background.Zeroth)).setStrokeStyle(2, anyToColor(COLORTOKEN.Accent.Red)).setOrigin(0, 0.5);
+
+      GO.push(factionIcon);
+
+      //this.ui.tooltip(factionIcon.setInteractive({ useHandCursor: false }), 'Фракция', `Тип врага: ${target.faction}`);
+    }
+
+    this.updateBar(graphics)
+
+    target.basicAttacks.forEach((attack, index) => {
+      const attackIconScheme = type === "hero"
+        ? {
+          posX: x - width / 2 - 4 - index * 45,
+          posY: y - 2,
+          radius: 21,
+        }
+        : {
+          posX: x - width / 2 - 4 - index * 28,
+          posY: y - 3,
+          radius: 13,
+        }
+      const zone = this.scene.add.circle(attackIconScheme.posX, attackIconScheme.posY, attackIconScheme.radius, anyToColor(COLORTOKEN.Background.Zeroth));
+      zone.setOrigin(1, 0);
+      zone.setInteractive({ useHandCursor: true });
+      /*
+      this.ui.tooltip(
+          zone,
+          ability.name,
+          [
+              ability.description,
+              `Таймер: ${ability.cooldown} сек.`,
+              'Когда круг заполняется, действие срабатывает автоматически и таймер сбрасывается.'
+          ].join('\n')
+      );
+  });
+  return objects;*/
+      GO.push(zone);
+    })
+
+    return GO;
+  }
+
+  private updateBar(bar: Phaser.GameObjects.Graphics) {
+    const target = bar.getData('target') as Combatant;
+    const x = bar.getData('x') as number;
+    const y = bar.getData('y') as number;
+    const width = bar.getData('width') as number;
+    const height = bar.getData('height') as number;
+    const cornerRadius = bar.getData('cornerRadius');
+    const hpTextStroke = bar.getData('hpTextStroke');
+    const hpText = bar.getData('hpText');
+    const type = bar.getData('type');
+
+    bar.clear();
+    bar.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
+    bar.fillRoundedRect(x - width / 2, y, width, height, cornerRadius);
+    if (hpText && hpTextStroke) {
+      hpTextStroke.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
+      hpText.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
+    }
+
+    bar.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
+    bar.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.stats.hp / target.stats.maxHp)), height - 8, Math.min((width - 8) * (target.stats.hp / target.stats.maxHp), cornerRadius - 4));
+
+    target.basicAttacks.forEach((attack, index) => {
+      const attackIconScheme = type === "hero"
+        ? {
+          posX: x - width / 2 - 4 - index * 45,
+          posY: y - 2,
+          radius: 21,
+          radiusOffset: 4,
+        }
+        : {
+          posX: x - width / 2 - 4 - index * 28,
+          posY: y - 3,
+          radius: 13,
+          radiusOffset: 3,
+        }
+
+      bar.fillStyle(0x090909, 0.95);
+      bar.fillCircle(attackIconScheme.posX - attackIconScheme.radius, attackIconScheme.posY + attackIconScheme.radius, attackIconScheme.radius);
+      bar.slice(attackIconScheme.posX - attackIconScheme.radius, attackIconScheme.posY + attackIconScheme.radius, attackIconScheme.radius - attackIconScheme.radiusOffset, Phaser.Math.DegToRad(-90), Phaser.Math.DegToRad(-90 + 360 * Math.min(1, attack.progress / attack.cooldown)), false);
+      bar.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
+      bar.fillPath();
+
+    })
+  }
+
+  public updateBars(): void {
+    this.hpBarCollection.forEach((bar) => this.updateBar(bar));
+  }
+
+  public getCombatantPositions(): Map<string, { x: number; y: number }> {
+    return this.combatantPositions;
+  }
+
+  public getSpriteObjects(): Map<string, Phaser.GameObjects.GameObject[]> {
+    return this.spriteObjects;
+  }
+  public syncHeroViews(): void {
+    const hero = this.combatSystem.hero;
+    if (!hero.alive) {
+      this.removeHero(hero.id);
+    }
+    /*
+  if (enemy.alive && !this.drawnEnemies.has(enemy.uid)) {
+    const pos = ENEMY_SLOTS[index] ?? ENEMY_SLOTS[ENEMY_SLOTS.length - 1];
+    this.drawEnemy(enemy, pos.x, pos.y);
+  }
+    */
+  };
+
+  public syncEnemyViews(): void {
+    this.combatSystem.enemies.forEach((enemy, index) => {
+      if (!enemy.alive && !this.removedEnemies.has(enemy.id)) {
+        this.removeEnemy(enemy.id);
+      }
+      /*
+    if (enemy.alive && !this.drawnEnemies.has(enemy.uid)) {
+      const pos = ENEMY_SLOTS[index] ?? ENEMY_SLOTS[ENEMY_SLOTS.length - 1];
+      this.drawEnemy(enemy, pos.x, pos.y);
+    }
+      */
+    });
+
+  }
+  private removeHero(id: string): void {
+    const sprites = this.spriteObjects.get(id) ?? [];
+    sprites.forEach((sprite) => {
+      const position = (sprite as Phaser.GameObjects.GameObject & { x: number, y: number });
+      this.scene.tweens.add({
+        targets: sprite,
+        alpha: 0,
+        x: position.x - 50,
+        y: position.y,
+        duration: 460,
+        ease: 'Quint.easeOut',
+        onComplete: () => sprite.destroy(),
+      });
+
+      const objects = this.heroObjects.get(id) ?? [];
+      objects
+        .filter((obj) => !sprites.includes(obj))
+        .forEach((obj) => obj.destroy());
+      this.enemiesObjects.delete(id);
+      this.spriteObjects.delete(id);
+      this.hpBarCollection.delete(id);
+      this.statusContainers.get(id)?.destroy();
+      this.statusContainers.delete(id);
+    })
+  }
+
+  private removeEnemy(id: string): void {
+    this.removedEnemies.add(id);
+    this.enemyZones.delete(id);
+    const sprites = this.spriteObjects.get(id) ?? [];
+
+    sprites.forEach((sprite) => {
+      const position = (sprite as Phaser.GameObjects.GameObject & { x?: number, y?: number });
+      this.scene.tweens.add({
+        targets: sprite,
+        alpha: 0,
+        scaleX: 0,
+        scaleY: 0,
+        x: position.x,
+        y: position.y,
+        duration: 460,
+        ease: 'Quint.easeOut',
+        onComplete: () => sprite.destroy(),
+      });
+    });
+    const objects = this.enemiesObjects.get(id) ?? [];
+    objects
+      .filter((obj) => !sprites.includes(obj))
+      .forEach((obj) => obj.destroy());
+    this.enemiesObjects.delete(id);
+    this.spriteObjects.delete(id);
+    this.hpBarCollection.delete(id);
+    this.statusContainers.get(id)?.destroy();
+    this.statusContainers.delete(id);
+
+  }
+
+  public updateStatusBadges(): void {
+    const targets = [this.combatSystem.hero, ...this.combatSystem.enemies.filter((enemy) => enemy.alive)];
+    targets.forEach((target) => {
+      const container = this.statusContainers.get(target.id);
+      const compact = new Map<string, { id: string; label: string; stacks: number }>();
+      if (!container) return;
+
+      target.statuses.forEach((status) => {
+        const prev = compact.get(status.id);
+        compact.set(status.id, {
+          id: status.id,
+          label: status.label,
+          stacks: Math.max(status.stacks, prev?.stacks ?? 0),
+        });
+      });
+
+      const signature = [...compact.values()].map((s) => `${s.id}:${s.stacks}`).join('|');
+      if (this.statusSignatures.get(target.id) === signature) return;
+
+      container.removeAll(true);
+      [...compact.values()].slice(0, 5).forEach((status, index) => {
+        const info = StatusInfo[status.id as keyof typeof StatusInfo];
+        const width = Phaser.Math.Clamp(74 + info.name.length * 8 + (status.stacks > 1 ? 30 : 0), 118, 184);
+        const x = (index - Math.min(4, compact.size - 1) / 2) * 148;
+        const bg = this.scene.add.rectangle(x, 0, width, 30, 0x141414, 0.9).setStrokeStyle(1, 0xb44737, 0.9);
+        const iconKey = `icon-status-${status.id}`;
+        const icon = this.scene.textures.exists(iconKey)
+          ? this.scene.add.image(x - width / 2 + 18, 0, iconKey).setDisplaySize(24, 24)
+          : this.scene.add.circle(x - width / 2 + 18, 0, 9, 0xb44737);
+        const stackText = status.stacks > 1 ? ` ${status.stacks}` : '';
+        const label = this.scene.add.text(x - width / 2 + 36, 0, `${info.name}${stackText}`, {
+          resolution: Math.min(window.devicePixelRatio || 1, 2),
+          fontSize: '12px',
+          color: '#ffd0c6',
+        }).setOrigin(0, 0.5);
+        const hit = this.scene.add.zone(x, 0, width, 30);
+        /*
+        this.ui.tooltip(
+          hit.setInteractive({ useHandCursor: false }),
+          info.name,
+          [info.description, status.stacks > 1 ? `Стаков: ${status.stacks}` : undefined]
+            .filter(Boolean)
+            .join('\n')
+        );
+        */
+        container.add([bg, icon, label, hit]);
+      });
+    })
+  }
+
+
+  //public drawVictoryExit(victorySummary: string[], nodeType: string, onPickUpAll: () => void, onContinue: () => void): void {
+
+  public renderVictoryPanel(): void {
+    const screen = screenBounds(this.scene);
+
+    const dimmer = this.scene.add.rectangle(0, 0, screen.width, screen.height, anyToColor(COLORTOKEN.Background.Zeroth), 0.62).setOrigin(0).setDepth(5000);
+
+    const title = 'Выпало в бою';
+    const panelSize = {
+      width: 640,
+      height: screen.height - 64
+    };
+    const panelPosition = screenToWorld(this.scene, screen.centerX, screen.centerY);
+
+    const panel = this.scene.add.container(panelPosition.x, panelPosition.y)
+      .setScale(screenSpaceScale(this.scene))
+      .setDepth(8000);
+
+    const background = this.scene.add.rectangle(0, 0, panelSize.width, panelSize.height, anyToColor(COLORTOKEN.Background.Zeroth), 0.9).setStrokeStyle(2, anyToColor(COLORTOKEN.Foreground.Tertiary));
+    const heading = this.scene.add.text(0, -panelSize.height / 2 + 30, title, { ...TYPETOKEN.Secondary.Tagline, color: COLORTOKEN.Foreground.Secondary }).setOrigin(0.5);
+    panel.add([background, heading]);
+    /*
+    const arrowPos = screenToWorld(this.scene, screen.right - 74, screen.centerY);
+    const arrow = this.scene.add.container(arrowPos.x, arrowPos.y)
+      .setScale(screenSpaceScale(this.scene))
+      .setDepth(1900);
+    const button = this.scene.add.circle(0, 0, 44, 0x151b16, 0.92).setStrokeStyle(3, 0xf2cf69);
+    const icon = this.scene.add.text(2, -2, '›', {
+      resolution: Math.min(window.devicePixelRatio || 1, 2),
+      fontSize: '72px',
+      color: '#ffdf83',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+    arrow.add([button, icon]);
+    button.setInteractive({ useHandCursor: true })
+    const body = this.scene.add.text(0, 15, victorySummary.join('   '), {
+      resolution: Math.min(window.devicePixelRatio || 1, 2),
+      fontSize: '18px',
+      color: '#e5dcc2',
+      align: 'center',
+      wordWrap: { width: 520 },
+    }).setOrigin(0.5);
+ 
+    // Стрелка для продолжения
+      .on('pointerover', () => {
+        button.setFillStyle(0x263021);
+        arrow.setScale(1.08);
+      })
+      .on('pointerout', () => {
+        button.setFillStyle(0x151b16);
+        arrow.setScale(1);
+      })
+      .on('pointerdown', () => onContinue());
+    this.ui.tooltip(button, 'Покинуть бой', 'Можно сначала подобрать артефакты с поля. Нажмите стрелку, когда готовы вернуться на карту.');
+    const arrowTweenX = screenToWorld(this.scene, screen.right - 86, screen.centerY).x;
+    this.scene.tweens.add({
+      targets: arrow,
+      x: arrowTweenX,
+      yoyo: true,
+      repeat: -1,
+      duration: 820,
+      ease: 'Sine.easeInOut',
+    });
+ 
+    // Кнопка "Подобрать всё"
+    this.ui.button(screen.right - 116, screen.centerY + 82, 170, 42, 'Подобрать всё', () => onPickUpAll());
+    */
+
+  }
+
+  public renderDefeatPanel(): void {
+    const screen = screenBounds(this.scene);
+
+    const dimmer = this.scene.add.rectangle(0, 0, screen.width, screen.height, anyToColor(COLORTOKEN.Background.Zeroth), 0.62).setOrigin(0).setDepth(5000);
+
+    const title = 'Поражение';
+    const panelSize = {
+      width: 640,
+      height: screen.height - 64
+    };
+    const panelPosition = screenToWorld(this.scene, screen.centerX, screen.centerY);
+
+    const panel = this.scene.add.container(panelPosition.x, panelPosition.y)
+      .setScale(screenSpaceScale(this.scene))
+      .setDepth(8000);
+
+    const background = this.scene.add.rectangle(0, 0, panelSize.width, panelSize.height, anyToColor(COLORTOKEN.Background.Zeroth), 0.9).setStrokeStyle(2, anyToColor(COLORTOKEN.Foreground.Tertiary));
+    const heading = this.scene.add.text(0, -panelSize.height / 2 + 30, title, { ...TYPETOKEN.Secondary.Tagline, color: COLORTOKEN.Foreground.Secondary }).setOrigin(0.5);
+    panel.add([background, heading]);
+    /*
+    const arrowPos = screenToWorld(this.scene, screen.right - 74, screen.centerY);
+    const arrow = this.scene.add.container(arrowPos.x, arrowPos.y)
+      .setScale(screenSpaceScale(this.scene))
+      .setDepth(1900);
+    const button = this.scene.add.circle(0, 0, 44, 0x151b16, 0.92).setStrokeStyle(3, 0xf2cf69);
+    const icon = this.scene.add.text(2, -2, '›', {
+      resolution: Math.min(window.devicePixelRatio || 1, 2),
+      fontSize: '72px',
+      color: '#ffdf83',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+    arrow.add([button, icon]);
+    button.setInteractive({ useHandCursor: true })
+    const body = this.scene.add.text(0, 15, victorySummary.join('   '), {
+      resolution: Math.min(window.devicePixelRatio || 1, 2),
+      fontSize: '18px',
+      color: '#e5dcc2',
+      align: 'center',
+      wordWrap: { width: 520 },
+    }).setOrigin(0.5);
+ 
+    // Стрелка для продолжения
+      .on('pointerover', () => {
+        button.setFillStyle(0x263021);
+        arrow.setScale(1.08);
+      })
+      .on('pointerout', () => {
+        button.setFillStyle(0x151b16);
+        arrow.setScale(1);
+      })
+      .on('pointerdown', () => onContinue());
+    this.ui.tooltip(button, 'Покинуть бой', 'Можно сначала подобрать артефакты с поля. Нажмите стрелку, когда готовы вернуться на карту.');
+    const arrowTweenX = screenToWorld(this.scene, screen.right - 86, screen.centerY).x;
+    this.scene.tweens.add({
+      targets: arrow,
+      x: arrowTweenX,
+      yoyo: true,
+      repeat: -1,
+      duration: 820,
+      ease: 'Sine.easeInOut',
+    });
+ 
+    // Кнопка "Подобрать всё"
+    this.ui.button(screen.right - 116, screen.centerY + 82, 170, 42, 'Подобрать всё', () => onPickUpAll());
+    */
+  }
 
 }
 
 /*
-// BattleSceneRenderer.ts
 import Phaser from 'phaser';
 import { ITEMS } from '../data/items';
 import { CombatantState, InventoryItem } from '../entities/Types';
 import { EnemyContentDefinition, HeroContentDefinition, loadContentPack } from '../content/ContentSystem';
-import { BattleEffects } from './BattleEffects';
 import { STATUS_INFO, ENEMY_SLOTS } from './constants';
-import { CombatSystem } from '../systems/CombatSystem';
 
 export interface FieldLoot {
   item: InventoryItem;
@@ -413,7 +677,6 @@ export class BattleSceneRenderer {
   private effects: BattleEffects;
 
   // Карты и коллекции объектов
-  private statusContainers = new Map<string, Phaser.GameObjects.Container>();
   private bagZone!: Phaser.GameObjects.Zone;
   private bagSlotZones: Phaser.GameObjects.Zone[] = [];
   private equipZones: Phaser.GameObjects.Zone[] = [];
@@ -595,95 +858,9 @@ export class BattleSceneRenderer {
   }
 
   // ----- Статусы -----
-  public updateStatusBadges(): void {
-    const targets = [this.combat.hero, ...this.combat.enemies.filter((e) => e.alive)];
-    targets.forEach((target) => {
-      const container = this.statusContainers.get(target.uid);
-      if (!container) return;
-      const compact = new Map<string, { id: string; label: string; stacks: number }>();
-      target.statuses.forEach((status) => {
-        const prev = compact.get(status.id);
-        compact.set(status.id, {
-          id: status.id,
-          label: status.label,
-          stacks: Math.max(status.stacks, prev?.stacks ?? 0),
-        });
-      });
-      const signature = [...compact.values()].map((s) => `${s.id}:${s.stacks}`).join('|');
-      if (this.statusSignatures.get(target.uid) === signature) return;
-      this.statusSignatures.set(target.uid, signature);
-      container.removeAll(true);
-      [...compact.values()].slice(0, 5).forEach((status, index) => {
-        const info = STATUS_INFO[status.id as keyof typeof STATUS_INFO];
-        const width = Phaser.Math.Clamp(74 + info.name.length * 8 + (status.stacks > 1 ? 30 : 0), 118, 184);
-        const x = (index - Math.min(4, compact.size - 1) / 2) * 148;
-        const bg = this.scene.add.rectangle(x, 0, width, 30, 0x141414, 0.9).setStrokeStyle(1, 0xb44737, 0.9);
-        const iconKey = `icon-status-${status.id}`;
-        const icon = this.scene.textures.exists(iconKey)
-          ? this.scene.add.image(x - width / 2 + 18, 0, iconKey).setDisplaySize(24, 24)
-          : this.scene.add.circle(x - width / 2 + 18, 0, 9, 0xb44737);
-        const stackText = status.stacks > 1 ? ` ${status.stacks}` : '';
-        const label = this.scene.add.text(x - width / 2 + 36, 0, `${info.name}${stackText}`, {
-          resolution: Math.min(window.devicePixelRatio || 1, 2),
-          fontSize: '12px',
-          color: '#ffd0c6',
-        }).setOrigin(0, 0.5);
-        const hit = this.scene.add.zone(x, 0, width, 30);
-        this.ui.tooltip(
-          hit.setInteractive({ useHandCursor: false }),
-          info.name,
-          [info.description, status.stacks > 1 ? `Стаков: ${status.stacks}` : undefined]
-            .filter(Boolean)
-            .join('\n')
-        );
-        container.add([bg, icon, label, hit]);
-      });
-    });
-  }
-
   // ----- Синхронизация врагов (появление/исчезновение) -----
-  public syncEnemyViews(): void {
-    this.combat.enemies.forEach((enemy, index) => {
-      if (enemy.alive && !this.drawnEnemies.has(enemy.uid)) {
-        const pos = ENEMY_SLOTS[index] ?? ENEMY_SLOTS[ENEMY_SLOTS.length - 1];
-        this.drawEnemy(enemy, pos.x, pos.y);
-      }
-      if (!enemy.alive && !this.removedEnemies.has(enemy.uid)) {
-        this.removeEnemyView(enemy.uid);
-      }
-    });
-  }
+  
 
-  private removeEnemyView(uid: string): void {
-    this.removedEnemies.add(uid);
-    this.enemyZones.delete(uid);
-    const body = this.bodyObjects.get(uid) ?? [];
-    body.forEach((object) => {
-      const startY = (object as Phaser.GameObjects.GameObject & { y?: number }).y;
-      this.scene.tweens.add({
-        targets: object,
-        alpha: 0,
-        scaleX: 0.55,
-        scaleY: 0.55,
-        y: typeof startY === 'number' ? startY + 48 : undefined,
-        angle: 8,
-        duration: 460,
-        ease: 'Cubic.easeIn',
-        onComplete: () => object.destroy(),
-      });
-    });
-    const objects = this.enemyObjects.get(uid) ?? [];
-    objects
-      .filter((obj) => !body.includes(obj))
-      .forEach((obj) => obj.destroy());
-    this.enemyObjects.delete(uid);
-    this.bodyObjects.delete(uid);
-    this.bars.delete(uid);
-    this.hpTexts.get(uid)?.destroy();
-    this.hpTexts.delete(uid);
-    this.statusContainers.get(uid)?.destroy();
-    this.statusContainers.delete(uid);
-  }
 
   // ----- Выпадающий лут из боёв -----
   public spawnPendingCombatLoot(): void {
@@ -718,67 +895,6 @@ export class BattleSceneRenderer {
   public openPause?: () => void;
 
   // ----- Победа (экран завершения) -----
-  public drawVictoryExit(victorySummary: string[], nodeType: string, onPickUpAll: () => void, onContinue: () => void): void {
-    const screen = screenBounds(this.scene);
-    const title = nodeType === 'boss' ? 'Супербосс повержен' : 'Победа';
-    const panelPos = screenToWorld(this.scene, screen.centerX, screen.top + 108);
-    const panel = this.scene.add.container(panelPos.x, panelPos.y)
-      .setScale(screenSpaceScale(this.scene))
-      .setDepth(1800);
-    const bg = this.scene.add.rectangle(0, 0, 560, 86, 0x070807, 0.84).setStrokeStyle(2, 0xb7a25f);
-    const heading = this.scene.add.text(0, -26, title, {
-      resolution: Math.min(window.devicePixelRatio || 1, 2),
-      fontSize: '26px',
-      color: '#ffdf83',
-      align: 'center',
-    }).setOrigin(0.5);
-    const body = this.scene.add.text(0, 15, victorySummary.join('   '), {
-      resolution: Math.min(window.devicePixelRatio || 1, 2),
-      fontSize: '18px',
-      color: '#e5dcc2',
-      align: 'center',
-      wordWrap: { width: 520 },
-    }).setOrigin(0.5);
-    panel.add([bg, heading, body]);
-
-    // Стрелка для продолжения
-    const arrowPos = screenToWorld(this.scene, screen.right - 74, screen.centerY);
-    const arrow = this.scene.add.container(arrowPos.x, arrowPos.y)
-      .setScale(screenSpaceScale(this.scene))
-      .setDepth(1900);
-    const button = this.scene.add.circle(0, 0, 44, 0x151b16, 0.92).setStrokeStyle(3, 0xf2cf69);
-    const icon = this.scene.add.text(2, -2, '›', {
-      resolution: Math.min(window.devicePixelRatio || 1, 2),
-      fontSize: '72px',
-      color: '#ffdf83',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-    arrow.add([button, icon]);
-    button.setInteractive({ useHandCursor: true })
-      .on('pointerover', () => {
-        button.setFillStyle(0x263021);
-        arrow.setScale(1.08);
-      })
-      .on('pointerout', () => {
-        button.setFillStyle(0x151b16);
-        arrow.setScale(1);
-      })
-      .on('pointerdown', () => onContinue());
-    this.ui.tooltip(button, 'Покинуть бой', 'Можно сначала подобрать артефакты с поля. Нажмите стрелку, когда готовы вернуться на карту.');
-    const arrowTweenX = screenToWorld(this.scene, screen.right - 86, screen.centerY).x;
-    this.scene.tweens.add({
-      targets: arrow,
-      x: arrowTweenX,
-      yoyo: true,
-      repeat: -1,
-      duration: 820,
-      ease: 'Sine.easeInOut',
-    });
-
-    // Кнопка "Подобрать всё"
-    this.ui.button(screen.right - 116, screen.centerY + 82, 170, 42, 'Подобрать всё', () => onPickUpAll());
-  }
-
   // ----- Геттеры для доступа к зонам и объектам (для DragManager) -----
   public getHeroZone(): Phaser.GameObjects.Zone {
     return this.heroZone;

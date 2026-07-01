@@ -23,7 +23,6 @@ export class BattleEffects {
 
     events.forEach((event) => {
       if (event.type === 'windup') {
-        alert();
         this.playWindupFlash(event.sourceUid);
       }
 
@@ -56,10 +55,11 @@ export class BattleEffects {
   private renderFloatMessage(targetId: string, text: string, color: string): void {
     const position = this.sceneRenderer.getCombatantPositions().get(targetId);
     if (!position) return;
+   // const dot = this.scene.add.circle(position.x, position.y , 5, anyToColor(COLORTOKEN.Accent.Red)).setDepth(2000);
 
     const label = this.scene.add.text(
       position.x + Phaser.Math.Between(-8, 8),
-      position.y - 70 + Phaser.Math.Between(-32, 0),
+      position.y + Phaser.Math.Between(-32, 0),
       text,
       {
         ...TYPETOKEN.Tertiary.Lead,
@@ -69,10 +69,16 @@ export class BattleEffects {
       }
     ).setOrigin(0.5).setDepth(1200);
 
+    let dx = Phaser.Math.Between(80, 90);
+
+    if (targetId.includes('hero')) {
+      dx = Phaser.Math.Between(-80, -140);
+    }
+
     this.scene.tweens.add({
       targets: label,
+      x: label.x + dx,
       y: label.y - 120,
-      x: label.x + Phaser.Math.Between(18, 48),
       scale: 1.25,
       duration: 1000,
       ease: 'Quint.easeOut',
@@ -181,19 +187,28 @@ export class BattleEffects {
 
     tintable.setTint?.(anyToColor(COLORTOKEN.Accent.Red));
     this.scene.time.delayedCall(105, () => tintable.clearTint?.());
+        let shakeDx = "+=20"
+        let flashSize = 32;
+        let particleSpeedX = { min: -140, max: 1000 };
+        let flashY = mainSprite.y;
+        
+        if (targetId.includes('hero')) {
+          shakeDx = "-=10"
+          flashSize = 48;
+          flashY = mainSprite.y - mainSprite.displayHeight / 2
+          particleSpeedX = { min: 140, max: -1000 };
+        }
+        
 
     this.scene.tweens.add({
       targets: mainSprite,
-      x: '+=20',
+      x: shakeDx,
       duration: 45,
       yoyo: true,
       repeat: 2,
       ease: 'Sine.easeInOut',
     });
-
-    //this.scene.add.rectangle(mainSprite.x, mainSprite.y - mainSprite.displayHeight / 2, mainSprite.displayWidth, mainSprite.displayHeight, anyToColor(COLORTOKEN.Accent.Red))
-
-    const flash = this.scene.add.circle(mainSprite.x, mainSprite.y - mainSprite.displayHeight / 2, 32, anyToColor(COLORTOKEN.Accent.Red), 1).setDepth(85);
+    const flash = this.scene.add.circle(mainSprite.x, flashY, flashSize, anyToColor(COLORTOKEN.Accent.Red), 1).setDepth(85);
     this.scene.tweens.add({
       targets: flash,
       alpha: 0,
@@ -204,7 +219,7 @@ export class BattleEffects {
 
     const emitter = this.scene.add.particles(0, 0, '__WHITE', {
       lifespan: { min: 300, max: 1000 },
-      speedX: { min: -140, max: 1000 },
+      speedX: particleSpeedX,
       speedY: { min: -200, max: -1000 },
       scale: { start: 4, end: 0.2, ease: 'Cubic.easeOut' },
       alpha: { start: 1, end: 0 },
@@ -217,11 +232,11 @@ export class BattleEffects {
       gravityY: 3000,
       quantity: 32,
       emitZone: new Phaser.GameObjects.Particles.Zones.RandomZone(
-        new Phaser.Geom.Circle(0, 0, 50) as Phaser.Types.GameObjects.Particles.RandomZoneSource
+        new Phaser.Geom.Circle(0, 0, flashSize) as Phaser.Types.GameObjects.Particles.RandomZoneSource
       )
     }).setDepth(200);
 
-    emitter.explode(32, position.x, position.y - 64);
+    emitter.explode(32, position.x, mainSprite.y - mainSprite.displayHeight / 2);
   }
 
   private playAttackMotion(event: Extract<CombatVisualEvent, { type: 'attack' }>): void {

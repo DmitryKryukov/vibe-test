@@ -8,6 +8,14 @@ export interface ActiveAbilityBattle extends ActiveAbilityScheme {
   progress: number;
   windupQueued?: boolean;
 }
+export interface StatusEffect {
+  id: string;
+  label: string;
+  duration: number;
+  stacks: number;
+  tickEvery?: number;
+  tickTimer?: number;
+}
 
 export interface Combatant {
   id: string;
@@ -22,7 +30,7 @@ export interface Combatant {
   }
   basicAttacks: ActiveAbilityBattle[];
   activeAbilities: ActiveAbilityBattle[];
-  //statuses: StatusEffect[];
+  statuses: StatusEffect[];
   alive: boolean;
   //shield: number;
   attackCounter: number;
@@ -49,7 +57,7 @@ export class CombatSystem {
     const run = GameState.requireRun();
     const hero = Heroes[run.heroId.replace("-hero", "")];
     this.hero = {
-      id: 'hero',
+      id: hero.id,
       definitionId: hero.id,
       name: hero.name,
       stats: {
@@ -62,7 +70,7 @@ export class CombatSystem {
       //stats: { ...heroDef.baseStats, maxHp: run.maxHp, attack: heroDef.baseStats.attack + (GameState.state.meta.buildings.forge ?? 0) * 2 },
       basicAttacks: hero.basicAttacks.map((attack) => ({ ...attack, progress: 0 })),
       activeAbilities: hero.activeAbilities.map((ability) => ({ ...ability, progress: 0 })),
-      //statuses: [],
+      statuses: [],
       //shield: heroDef.id === 'galahad' ? run.hp * 0.2 : 0,
       attackCounter: 0
     };
@@ -84,7 +92,8 @@ export class CombatSystem {
       basicAttacks: enemy.basicAttacks.map((attack) => ({ ...attack, progress: 0 })),
       activeAbilities: enemy.activeAbilities.map((ability) => ({ ...ability, progress: 0 })),
       alive: true,
-      attackCounter: 0
+      attackCounter: 0,
+      statuses: [],
     };
 
   }
@@ -102,22 +111,30 @@ export class CombatSystem {
           this.resolveHeroAttack(attack.id);
         }
       });
+      if (this.hero.stats.hp <= 0) this.killHero();
     }
   }
 
   private tickEnemies(dt: number): void {
     this.enemies.forEach((enemy) => {
-      this.tickStatuses(enemy, dt);
-      enemy.basicAttacks.forEach((attack) => {
-        const previousProgress = attack.progress;
-        //this.queueWindupFlash(this.hero.uid, ability, ability.cooldown, previousProgress);
-        attack.progress += dt;
-        if (attack.progress >= attack.cooldown) {
-          attack.progress = 0;
-          attack.windupQueued = false;
-          // this.resolveHeroAttack(ability.id);
-        }
-      });
+
+      if (enemy.alive) {
+        this.tickStatuses(enemy, dt);
+        enemy.basicAttacks.forEach((attack) => {
+          const previousProgress = attack.progress;
+          //this.queueWindupFlash(this.hero.uid, ability, ability.cooldown, previousProgress);
+          attack.progress += dt;
+          if (attack.progress >= attack.cooldown) {
+            attack.progress = 0;
+            attack.windupQueued = false;
+            this.resolveEnemyAttack(attack.id, enemy);
+          }
+        });
+
+        if (enemy.stats.hp <= 0) this.killEnemy(enemy);
+
+      }
+      if (this.enemies.every((enemy) => !enemy.alive)) this.ended = 'victory';
       /*
       const enemyObj = Enemies[enemy.definitionId];
       if (enemy.alive && def.aura === 'cursed-resonance' && this.remains.count > 0) {
@@ -134,14 +151,14 @@ export class CombatSystem {
     if (!target) return;
     let damage = this.hero.stats.damage;
 
-    
+
     if (id === 'strike') {
       this.hero.attackCounter += 1;
+      this.visualEvents.push({ type: 'attack', sourceUid: this.hero.definitionId, targetUid: target.id });
       this.scene.time.delayedCall(45, () => {
         this.damageTarget(target, this.hero, damage);
       })
     }
-    this.visualEvents.push({ type: 'attack', sourceUid: this.hero.definitionId, targetUid: target.id });
     /*
     if (id === 'widow-veil') {
       this.visualEvents.push({ type: 'attack', sourceUid: this.hero.uid, targetUid: target.uid });
@@ -176,11 +193,75 @@ export class CombatSystem {
       if (weapons >= 4) {
         const neighbor = this.enemies.find((enemy) => enemy.alive && enemy.uid !== target.uid);
         if (neighbor) this.damage(neighbor, damage * 0.16, this.hero);
-      }
-    }
-      */
+        }
+        }
+        */
   }
 
+  resolveEnemyAttack(id: string, enemy: Combatant): void {
+    enemy.attackCounter += 1;
+    if (id === 'rotten-bite') {
+      let damage = enemy.stats.damage;
+      let finalDamage = damage
+      this.visualEvents.push({ type: 'attack', sourceUid: enemy.id, targetUid: this.hero.definitionId });
+      this.damageTarget(this.hero, enemy, finalDamage);
+      this.addStackingStatus(this.hero, 'poison', 'Яд', 25);
+      //this.enemies.some((ally) => ally.alive && Enemies[ally.definitionId].aura === 'beast-alpha') ? 38 : 25)
+    };
+    /*
+    if (this.hasStatus(enemy, 'blind') && Math.random() < 0.9) {
+      this.logPush(`${enemy.name} промахивается.`);
+      this.visualEvents.push({ type: 'miss', targetUid: this.hero.uid });
+  return;
+}
+if (id === 'summon-pack' && this.enemies.length < 5) {
+  this.enemies.push(this.makeEnemy(ENEMIES.mangy_hound, this.enemies.length));
+  this.logPush('Вожак призвал гончую.');
+  return;
+}
+if (id === 'cleansing-rite') {
+  const target = [...this.enemies].filter((ally) => ally.alive).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+  if (target) target.hp = Math.min(target.maxHp, target.hp + target.maxHp * 0.2);
+  return;
+}
+if (id === 'funeral-bell') {
+  const dead = this.enemies.find((ally) => !ally.alive);
+  if (dead) {
+    dead.alive = true;
+    dead.hp = dead.maxHp * 0.3;
+    this.logPush('Колокол поднял павшего.');
+  }
+  return;
+}
+let damage = enemy.stats.attack;
+let attackVisualQueued = false;
+if (id === 'quick-lunge') {
+  this.visualEvents.push({ type: 'attack', sourceUid: enemy.uid, targetUid: this.hero.uid });
+  attackVisualQueued = true;
+  if (Math.random() < 0.8) {
+    this.logPush(`${enemy.name} промахивается.`);
+    this.visualEvents.push({ type: 'miss', targetUid: this.hero.uid });
+    return;
+  }
+}
+if (id === 'mutter') return;
+if (id === 'tendon-rip' && this.stackCount(this.hero, 'poison') + this.stackCount(this.hero, 'bleed') >= 50) damage *= 2;
+if (id === 'wide-shovel') this.hero.statuses.push({ id: 'dizzy', label: 'Головокружение', duration: 5, stacks: 1 });
+if (id === 'groin-stab' && this.hasStatus(this.hero, 'dizzy')) damage *= 2;
+if (id === 'boar-charge') this.hero.statuses.push({ id: 'stun', label: 'Оглушение', duration: 1, stacks: 1 });
+if (id === 'corpse-grip') this.hero.statuses.push({ id: 'slow', label: 'Замедление', duration: 3, stacks: 1 });
+if (id === 'abyss-breath') {
+  damage *= 1 + this.remains.count * 0.1;
+  this.hero.statuses.push({ id: 'antiheal', label: 'Запрет лечения', duration: 3 + this.remains.count, stacks: 1 });
+}
+if (id === 'tombstone-smash' && Math.random() < 0.2 + this.remains.count * 0.1) this.hero.abilities.forEach((a) => { a.progress = 0; });
+if (!attackVisualQueued) this.visualEvents.push({ type: 'attack', sourceUid: enemy.uid, targetUid: this.hero.uid });
+this.damage(this.hero, damage, enemy);
+if (this.enemies.some((ally) => ally.alive && ENEMIES[ally.definitionId].aura === 'war-council') && enemy.faction === 'forsaken') {
+  this.enemies.filter((ally) => ally.faction === 'forsaken').forEach((ally) => ally.abilities.forEach((a) => { if (a.id !== 'quick-lunge') a.progress += 0.15; }));
+}
+  */
+  }
   update(deltaMs: number): void {
     if (this.ended) return;
     const dt = deltaMs / 1000;
@@ -210,14 +291,19 @@ export class CombatSystem {
         }
       });
     });
-    this.enemies.forEach((enemy) => {
-      if (enemy.alive && enemy.hp <= 0) this.killEnemy(enemy);
-    });
-    this.hero.alive = this.hero.hp > 0;
-    if (!this.hero.alive) this.ended = 'defeat';
-    if (this.enemies.every((enemy) => !enemy.alive)) this.ended = 'victory';
     */
   }
+
+  addStackingStatus(target: Combatant, id: string, label: string, stacks: number): void {
+    const existing = target.statuses.find((status) => status.id === id);
+    if (existing) {
+      existing.stacks += stacks;
+      existing.duration = Math.max(existing.duration, 10);
+    } else {
+      target.statuses.push({ id, label, duration: 10, stacks, tickEvery: id === 'chill' ? undefined : 0.5, tickTimer: 0.5 });
+    }
+  }
+
 
   tickStatuses(target: Combatant, dt: number): void {
     /*
@@ -243,7 +329,6 @@ export class CombatSystem {
   }
 
   damageTarget(target: Combatant, source: Combatant, amount: number): void {
-    console.log(target.name + " получит урон " + amount)
     let final = amount;
     target.stats.hp -= final;
     if (target.stats.hp < 0) target.stats.hp = 0;
@@ -276,6 +361,21 @@ export class CombatSystem {
       attack.windupQueued = true;
       this.visualEvents.push({ type: 'windup', sourceUid });
     }
+  }
+
+  killEnemy(enemy: Combatant): void {
+    enemy.alive = false;
+    const Enemy = Enemies[enemy.definitionId];
+    //if (Enemy.leavesRemains) this.remains.count += 1;
+    // const goldBonus = GameState.requireRun().equipment.some((item) => item?.itemId === 'golden_signet') ? 1.1 : 1;
+    //this.rewards.gold += Math.ceil(def.gold * goldBonus);
+    //this.rewards.xp += def.xp;
+    //this.rewards.items.push(Phaser.Utils.Array.GetRandom(LOOT_TABLE));
+  }
+
+  killHero(): void {
+    this.hero.alive = false;
+    this.ended = 'defeat'
   }
 }
 /*
@@ -325,23 +425,6 @@ export class CombatSystem {
     });
     this.enemies = enemyIds.map((id, index) => this.makeEnemy(ENEMIES[id], index));
     this.applyBagMapEffects();
-  }
-
-  makeEnemy(def: EnemyDefinition, index: number): CombatantState {
-    return {
-      uid: `enemy-${index}-${def.id}`,
-      definitionId: def.id,
-      name: def.name,
-      faction: def.faction,
-      hp: def.maxHp,
-      maxHp: def.maxHp,
-      stats: { maxHp: def.maxHp, attack: def.attack, defense: def.defense, attackSpeed: 1, critChance: 0.04, dodgeChance: 0 },
-      abilities: def.abilities.map((a) => ({ ...a, progress: 0 })),
-      statuses: [],
-      alive: true,
-      shield: 0,
-      attackCounter: 0
-    };
   }
 
   applyBagMapEffects(): void {
@@ -566,27 +649,7 @@ export class CombatSystem {
     target.statuses = target.statuses.filter((status) => status.duration > 0);
   }
 
-  addStackingStatus(target: CombatantState, id: 'poison' | 'bleed' | 'chill', label: string, stacks: number): void {
-    const existing = target.statuses.find((status) => status.id === id);
-    if (existing) {
-      existing.stacks += stacks;
-      existing.duration = Math.max(existing.duration, 10);
-    } else {
-      target.statuses.push({ id, label, duration: 10, stacks, tickEvery: id === 'chill' ? undefined : 0.5, tickTimer: 0.5 });
-    }
-  }
-
-  killEnemy(enemy: CombatantState): void {
-    enemy.alive = false;
-    enemy.hp = 0;
-    const def = ENEMIES[enemy.definitionId];
-    if (def.leavesRemains) this.remains.count += 1;
-    const goldBonus = GameState.requireRun().equipment.some((item) => item?.itemId === 'golden_signet') ? 1.1 : 1;
-    this.rewards.gold += Math.ceil(def.gold * goldBonus);
-    this.rewards.xp += def.xp;
-    this.rewards.items.push(Phaser.Utils.Array.GetRandom(LOOT_TABLE));
-    this.logPush(`${def.name} повержен.`);
-  }
+  
 
   hasStatus(target: CombatantState, id: string): boolean {
     return target.statuses.some((status) => status.id === id);

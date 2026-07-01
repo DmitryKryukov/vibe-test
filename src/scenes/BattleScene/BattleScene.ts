@@ -48,7 +48,7 @@ export class BattleScene extends Phaser.Scene {
     //this.scale.off('resize', this.handleResize);
     //this.scale.on('resize', this.handleResize);
     //this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off('resize', this.handleResize));
-    
+
     this.sceneRenderer = new BattleSceneRenderer(this, this.combatSystem);
     this.battleEffects = new BattleEffects(this, this.combatSystem, this.sceneRenderer);
     this.sceneRenderer.renderStatic();
@@ -59,22 +59,76 @@ export class BattleScene extends Phaser.Scene {
     this.combatSystem.update(delta);
     this.sceneRenderer.updateBars();
     this.battleEffects.processVisualEvents();
+    this.sceneRenderer.syncHeroViews();
+    this.sceneRenderer.syncEnemyViews();
+    this.sceneRenderer.updateStatusBadges();
+    if (this.combatSystem.ended) {
+      this.time.delayedCall(0, () => this.finishBattle(this.combatSystem.ended));
+    }
     /*
-    this.renderer.syncEnemyViews();
-    this.renderer.spawnPendingCombatLoot();
-    this.renderer.updateStatusBadges();
 
+    this.renderer.spawnPendingCombatLoot();
     if (this.combat.ended && !this.finishQueued) {
       this.finishQueued = true;
       this.time.delayedCall(950, () => this.finishBattle(this.combat.ended));
     }
       */
   }
+  private finishBattle(result: 'victory' | 'defeat' | null): void {
+    this.ended = true;
+    this.time.timeScale = 1;
+    if (result === 'victory') {
+      //this.combat.applyRewards();
+      const run = GameState.requireRun();
+      //const robertRepair = run.squireId === 'robert' ? run.bag.filter(Boolean).length * 3 : 0;
+      //run.hp = Math.min(run.maxHp, run.hp + robertRepair);
+
+      //this.victorySummary = [
+      //  `Золото: +${this.combat.rewards.gold}`,
+      //  `Опыт: +${this.combat.rewards.xp}`,
+      // `Предметы выпали на поле: ${this.combat.rewards.items.length}`,
+      //  run.trainingPoints > 0 ? 'Герой получил очко обучения.' : '',
+      //].filter(Boolean);
+
+      // Показываем экран победы с кнопками
+      this.sceneRenderer.renderVictoryPanel(
+        //this.victorySummary,
+        //this.nodeType,
+        //() => this.pickUpAllLoot(),
+        //() => this.afterVictory()
+      );
+      return;
+    }
+
+    if (result === 'defeat') {
+      this.time.delayedCall(1000, () => {
+        this.sceneRenderer.renderDefeatPanel(
+          //this.victorySummary,
+          //this.nodeType,
+          //() => this.pickUpAllLoot(),
+          //() => this.afterVictory()
+        );
+        return;
+      })
+    }
+    /*
+
+    } else {
+      // Поражение
+      const reward = GameState.finishRun(false);
+      SaveSystem.save();
+      this.ui.modal('Поражение', [
+        `Герой пал. Деревня получила: дерево ${reward.wood}, камень ${reward.stone}, чертежи ${reward.blueprints}.`,
+      ], [
+        { label: 'В меню', cb: () => this.scene.start('MainMenuScene') }
+      ]);
+    }*/
+  }
 
   //public override destroy(fromScene?: boolean): void {
-    //this.sceneRenderer?.destroy();
-    //this.dragManager?.destroy();
-    //this.effects?.destroy();
-    //super.destroy(fromScene);
+  //this.sceneRenderer?.destroy();
+  //this.dragManager?.destroy();
+  //this.effects?.destroy();
+  //super.destroy(fromScene);
   //}
 }

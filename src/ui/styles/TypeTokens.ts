@@ -26,6 +26,12 @@ export namespace TYPETOKEN {
     }
 
     export const Secondary: Record<string, Phaser.Types.GameObjects.Text.TextStyle> = {
+        Tagline: {
+            fontFamily: FONTTOKEN.FontFamily.radiance,
+            resolution: 2,
+            fontSize: METRICTOKEN.Typography.Tagline.Size,
+            color: COLORTOKEN.Foreground.Primary,
+        },
         Lead: {
             fontFamily: FONTTOKEN.FontFamily.radiance,
             resolution: 2,

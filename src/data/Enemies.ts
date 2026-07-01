@@ -22,11 +22,11 @@ export interface EnemyScheme {
   },
   basicAttacks: ActiveAbilityScheme[];
   activeAbilities: ActiveAbilityScheme[];
+  //leavesRemains?: boolean;
   //defense: number;
   //xp: number;
   //gold: number;
   //abilities: AbilityDefinition[];
-  //leavesRemains?: boolean;
   //aura?: string;
   //tint: number;
   //scale: number;
@@ -58,7 +58,7 @@ export const Enemies: Record<string, EnemyScheme> = {
       spriteHeight: 210,
       spriteScale: 1.1,
       spriteOffsetX: 20,
-      spriteOffsetY: 40,
+      spriteOffsetY: 100,
     }
   },
 };
