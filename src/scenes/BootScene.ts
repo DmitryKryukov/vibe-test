@@ -48,6 +48,8 @@ export class BootScene extends Phaser.Scene {
 
     public preload(): void {
         this.registerAssets();
+        this.load.audio('bg_music', 'assets/audio/music/main-menu.mp3');
+        //this.load.audio('click_sfx', 'assets/audio/click.wav');
     }
 
     public async create(): Promise<void> {
@@ -100,7 +102,7 @@ export class BootScene extends Phaser.Scene {
 
     private simulateLoading(): void {
         this.loadingBar.animateFill(1, () => {
-            this.transitionToMainMenu(true);
+            this.transitionToMainMenu(false);
         }, this.BOOT_SCENE_CONFIG.animation.loadingBarFill.duration);
     }
 

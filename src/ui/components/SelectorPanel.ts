@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 
 import { SelectorCard, SelectableEntity } from './SelectorCard';
+import { LockedSelectorCard } from './LockedSelectorCard';
 
 import { TYPETOKEN } from '../styles/TypeTokens';
 import { HeroScheme } from '@/data/Heroes';
@@ -16,17 +17,12 @@ export interface SelectorPanelDataScheme<T extends SelectableEntity> {
     title: string;
     list: T[];
     selectedId: string;
-    // attachTooltip?: (target: Phaser.GameObjects.GameObject, entity: T) => void;
+    attachTooltip?: (target: Phaser.GameObjects.GameObject, entity: T) => void;
 }
 
 export interface SelectorPanelInteractScheme<T extends SelectableEntity> {
     onSelect: (id: T['id']) => void;
 }
-
-// export const SelectorPabelLayout = {
-//   gap: 4,
-//   titleOffsetY: -40,
-// } as const;
 
 
 export class SelectorPanel<T extends SelectableEntity> extends Phaser.GameObjects.Container {
@@ -41,7 +37,11 @@ export class SelectorPanel<T extends SelectableEntity> extends Phaser.GameObject
         cards: Map<string, SelectorCard<T>>;
     } = { title: null, background: null, cards: new Map<string, SelectorCard<T>>};
 
-    constructor(scene: Phaser.Scene, data: SelectorPanelDataScheme<HeroScheme | SquireScheme>, layout?: SelectorPanelLayoutScheme, interaction?: SelectorPanelInteractScheme<T>) {
+    constructor(
+        scene: Phaser.Scene, 
+        data: SelectorPanelDataScheme<HeroScheme | SquireScheme>, 
+        layout?: SelectorPanelLayoutScheme, 
+        interaction?: SelectorPanelInteractScheme<T>) {
         super(scene, layout?.x, layout?.y);
         this.scene = scene;
         this.dataList = data;
@@ -79,15 +79,27 @@ export class SelectorPanel<T extends SelectableEntity> extends Phaser.GameObject
     private renderCards(): void {
         const newArray = this.dataList.list.map(item => ({
             ...item,
+            tooltip: this.dataList.attachTooltip,
             selectedId: this.dataList.selectedId
         }));
 
 
         Object.values(newArray).forEach((entity, index) => {
+            if (entity.locked) {
+                const card = new LockedSelectorCard(
+                    this.scene,
+                    entity.tooltip,
+                );
+                card.setPosition(228 * index, 40);
+                this.add(card);
+                return;
+            }
+            
             const card = new SelectorCard(
                 this.scene, 
                 entity, 
                 entity.id === entity.selectedId,
+                entity.tooltip,
                 () => {this.interaction.onSelect(entity.id)}
             )
                 card.setPosition(228 * index, 40);
@@ -103,7 +115,3 @@ export class SelectorPanel<T extends SelectableEntity> extends Phaser.GameObject
         })
     }
 }
-//config.items.forEach((item, index) => {
-//  const card = new SelectorCard(scene, 0, index * (SelectorCardLayout.height + SelectorPabelLayout.gap), {
-//    attachTooltip: config.attachTooltip,
-//  });

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import '../ui/styles/ColorTokens';
 import { COLORTOKEN } from '../ui/styles/ColorTokens';
+import AudioManager from '../services/AudioManager';
 import { SCENE } from './ScenesConfig';
 
 export const GAME_WIDTH = 1728;
@@ -43,6 +44,16 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
         arcade: {
             debug: false
         }
+    },
+    plugins: {
+        global: [
+            { 
+                key: 'AudioManager', 
+                plugin: AudioManager, 
+                start: true,
+                mapping: 'audioManager'
+            }
+        ]
     },
 
     scene: SCENE,

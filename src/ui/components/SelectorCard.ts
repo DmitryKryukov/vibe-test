@@ -124,7 +124,7 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
 
     private currentState: keyof SelectorCardState = 'idle';
 
-    constructor(scene: Phaser.Scene, entity: HeroScheme | SquireScheme, selected: boolean, onClick: () => void, style?: SelectorCardStyleScheme) {
+    constructor(scene: Phaser.Scene, entity: HeroScheme | SquireScheme, selected: boolean, tooltip: any, onClick: () => void, style?: SelectorCardStyleScheme) {
         super(scene);
         this.style = { ...defaultStyle, ...style };
         this.setDepth(100);
@@ -138,6 +138,7 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
 
         scene.add.existing(this);
         this.initFollowMask();
+        tooltip?.(this.GO.background, entity);
     }
 
     public setSelected(selected: boolean): void {
@@ -340,18 +341,3 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
         super.destroy(fromScene);
     }
 }
-
-/*
-
-export interface SelectorCardConfig<T extends SelectableEntity> {
-attachTooltip?: (target: Phaser.GameObjects.GameObject, entity: T) => void;
-}
-
-export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects.Container {
- 
-constructor(scene: Phaser.Scene, x: number, y: number, config: SelectorCardConfig<T>) {
-config.attachTooltip?.(this.background, config.entity);
-}
-}
-
-*/

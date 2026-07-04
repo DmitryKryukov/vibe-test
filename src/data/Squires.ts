@@ -2,6 +2,7 @@ export interface SquireScheme {
   id: string,
   name: string,
   class: string,
+  lore: string,
   /*
   bagSlots: number;
   bagColumns: number;
@@ -13,7 +14,8 @@ export interface SquireScheme {
  baseStats: SquireStats,
   content: {
     portraitImage: string,
-  }
+  },
+  locked: boolean,
 }
 
 export interface SquireStats {
@@ -32,9 +34,10 @@ export const Squires: Record<string, SquireScheme> = {
     id: 'robert-squire',
     name: 'Верный Роберт',
     class: 'Слуга-оруженосец',
+    lore: 'Молчаливый оруженосец несет на спине тяжелый горн и наковальню. В угасающем мире на последнем издыхании он переплавляет разбитые доспехи мертвых, продлевая жизнь ржавеющей броне живых.',
     perks: [
       {
-        name: 'Походная Починка',
+        name: 'Походная починка',
         description: 'Предметы в инвентаре медленно чинятся.'
       },
       {
@@ -49,11 +52,13 @@ export const Squires: Record<string, SquireScheme> = {
     content: {
       portraitImage: 'robert-squire-portrait',
     },
+    locked: false,
   },
   clavridius: {
     id: 'clavridius-squire',
     name: 'Клавридий',
     class: 'Клеймёный Алхимик',
+    lore: 'Старец-рыцарь, томимый скорбью, странствует по землям, гаснущим, как светильник в ночи. Он же упорно следует уставу воинскому, древнему и святому, и собирает с павших врагов остатки их благородной экипировки. И была присяга его крепче, нежели король, и крепче, нежели само царство.',
     perks: [
       {
         name: 'Альбедо',
@@ -70,7 +75,8 @@ export const Squires: Record<string, SquireScheme> = {
     },
     content: {
       portraitImage: 'clavridius-squire-portrait',
-    }
+    },
+    locked: true,
   }
   /*
 robert: {

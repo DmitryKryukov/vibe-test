@@ -2,6 +2,8 @@ export namespace COLORTOKEN {
     export const Background = {
         Zeroth: '#020302',
         Primary: '#1A1D1B',
+        Secondary: '#16140f',
+        Tertiary: '#37301c',
         Accent: {
             Primary: '#FFDD73',
         },

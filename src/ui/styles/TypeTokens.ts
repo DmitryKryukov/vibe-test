@@ -49,6 +49,7 @@ export namespace TYPETOKEN {
             resolution: 2,
             fontSize: METRICTOKEN.Typography.Caption.Size,
             color: COLORTOKEN.Foreground.Quanternary,
+            lineSpacing: METRICTOKEN.Typography.Caption.LineSpacing,
         }
     }
 
@@ -63,6 +64,20 @@ export namespace TYPETOKEN {
             fontFamily: FONTTOKEN.FontFamily.reaver,
             resolution: 2,
             fontSize: METRICTOKEN.Typography.Body.Size,
+            color: COLORTOKEN.Foreground.Primary,
+        },
+        Caption: {
+            fontFamily: FONTTOKEN.FontFamily.reaver,
+            resolution: 2,
+            fontSize: METRICTOKEN.Typography.Caption.Size,
+            lineSpacing: METRICTOKEN.Typography.Caption.LineSpacing,
+            color: COLORTOKEN.Foreground.Primary,
+        },
+        Label: {
+            fontFamily: FONTTOKEN.FontFamily.reaver,
+            resolution: 2,
+            fontSize: METRICTOKEN.Typography.Label.Size,
+            lineSpacing: METRICTOKEN.Typography.Label.LineSpacing,
             color: COLORTOKEN.Foreground.Primary,
         }
     }

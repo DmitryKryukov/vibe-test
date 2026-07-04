@@ -14,6 +14,11 @@ export namespace METRICTOKEN {
         },
         Caption: {
             Size: '16px',
+            LineSpacing: 3,
+        },
+        Label: {
+            Size: '14px',
+            LineSpacing: 3,
         }
     } as const
 }
