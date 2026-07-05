@@ -1,0 +1,48 @@
+    /*
+    RENDER VICTORY PANEL
+    
+    const arrowPos = screenToWorld(this.scene, screen.right - 74, screen.centerY);
+    const arrow = this.scene.add.container(arrowPos.x, arrowPos.y)
+      .setScale(screenSpaceScale(this.scene))
+      .setDepth(1900);
+    const button = this.scene.add.circle(0, 0, 44, 0x151b16, 0.92).setStrokeStyle(3, 0xf2cf69);
+    const icon = this.scene.add.text(2, -2, '›', {
+      resolution: Math.min(window.devicePixelRatio || 1, 2),
+      fontSize: '72px',
+      color: '#ffdf83',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+    arrow.add([button, icon]);
+    button.setInteractive({ useHandCursor: true })
+    const body = this.scene.add.text(0, 15, victorySummary.join('   '), {
+      resolution: Math.min(window.devicePixelRatio || 1, 2),
+      fontSize: '18px',
+      color: '#e5dcc2',
+      align: 'center',
+      wordWrap: { width: 520 },
+    }).setOrigin(0.5);
+ 
+    // Стрелка для продолжения
+      .on('pointerover', () => {
+        button.setFillStyle(0x263021);
+        arrow.setScale(1.08);
+      })
+      .on('pointerout', () => {
+        button.setFillStyle(0x151b16);
+        arrow.setScale(1);
+      })
+      .on('pointerdown', () => onContinue());
+    this.ui.tooltip(button, 'Покинуть бой', 'Можно сначала подобрать артефакты с поля. Нажмите стрелку, когда готовы вернуться на карту.');
+    const arrowTweenX = screenToWorld(this.scene, screen.right - 86, screen.centerY).x;
+    this.scene.tweens.add({
+      targets: arrow,
+      x: arrowTweenX,
+      yoyo: true,
+      repeat: -1,
+      duration: 820,
+      ease: 'Sine.easeInOut',
+    });
+ 
+    // Кнопка "Подобрать всё"
+    this.ui.button(screen.right - 116, screen.centerY + 82, 170, 42, 'Подобрать всё', () => onPickUpAll());
+    */
