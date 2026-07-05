@@ -364,8 +364,8 @@ if (this.enemies.some((ally) => ally.alive && ENEMIES[ally.definitionId].aura ==
   }
 
   killEnemy(enemy: Combatant): void {
-    enemy.alive = false;
-    const Enemy = Enemies[enemy.definitionId];
+    //enemy.alive = false;
+    //const Enemy = Enemies[enemy.definitionId];
     //if (Enemy.leavesRemains) this.remains.count += 1;
     // const goldBonus = GameState.requireRun().equipment.some((item) => item?.itemId === 'golden_signet') ? 1.1 : 1;
     //this.rewards.gold += Math.ceil(def.gold * goldBonus);
@@ -374,8 +374,8 @@ if (this.enemies.some((ally) => ally.alive && ENEMIES[ally.definitionId].aura ==
   }
 
   killHero(): void {
-    this.hero.alive = false;
-    this.ended = 'defeat'
+    //this.hero.alive = false;
+    //this.ended = 'defeat'
   }
 }
 /*

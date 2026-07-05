@@ -30,6 +30,6 @@ export function getEnemySlots(count: number, screen: { right: number; centerY: n
 export function getHeroSlots(): { x: number; y: number } {
     return {
         x: 450,
-        y: 600,
+        y: 360,
     }
 }

@@ -166,7 +166,7 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
         this.maskGraphics.setVisible(false);
 
         const roundedMask = this.maskGraphics.createGeometryMask();
-     //  this.setMask(roundedMask);
+        this.setMask(roundedMask);
 
         this.scene.events.on(Phaser.Scenes.Events.PRE_RENDER, this.updateMaskPosition, this);
 

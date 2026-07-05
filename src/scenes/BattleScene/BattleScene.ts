@@ -44,6 +44,7 @@ export class BattleScene extends Phaser.Scene {
     this.nodeId = data.nodeId;
     this.combatSystem = new CombatSystem(this, EncounterPool.battle.encounter1);
   }
+  
   create(): void {
     //this.scale.off('resize', this.handleResize);
     //this.scale.on('resize', this.handleResize);

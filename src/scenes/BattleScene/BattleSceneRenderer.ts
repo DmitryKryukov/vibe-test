@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Background } from '@/ui/components/Background';
 import { Combatant, CombatSystem } from '@/services/CombatSystem';
+import { CombatantView } from '../Partials/CombatantView';
 import { GameState } from '@/store/GameState';
 import { Heroes } from '@/data/Heroes';
 
@@ -13,30 +14,17 @@ import { anyToColor } from '@/utils/UtilsColor';
 import { Enemies, EnemyScheme } from '@/data/Enemies';
 import { screenBounds, screenToWorld, screenSpaceScale } from '@/utils/UtilsLayout';
 import { getEnemySlots, getHeroSlots } from './BattleLayout';
-
-const StatusInfo: Record<string, { name: string; description: string }> = {
-  poison: { name: 'Яд', description: 'Копится стаками. Каждые 100 стаков дают одну порцию периодического урона.' },
-  bleed: { name: 'Кровотечение', description: 'Периодически наносит физический урон. Чем больше стаков, тем сильнее тик.' },
-  burn: { name: 'Поджог', description: 'Периодически наносит огненный урон.' },
-  chill: { name: 'Окоченение', description: 'Холодный эффект. Используется предметами и способностями для замедляющего давления.' },
-  stun: { name: 'Оглушение', description: 'Цель временно не может выполнять свои действия.' },
-  blind: { name: 'Ослепление', description: 'Цель с высокой вероятностью промахивается атакой.' },
-  dizzy: { name: 'Головокружение', description: 'Делает цель уязвимой к некоторым атакам врагов.' },
-  hex: { name: 'Сглаз', description: 'Цель получает больше входящего урона.' },
-  madness: { name: 'Безумие', description: 'Ускоряет действия, но мешает нормально учитывать защиту.' },
-  antiheal: { name: 'Запрет лечения', description: 'Цель не может восстанавливать здоровье.' },
-  shield: { name: 'Щит', description: 'Поглощает часть входящего урона.' },
-  slow: { name: 'Замедление', description: 'Замедляет заполнение таймеров действий.' },
-  invulnerable: { name: 'Неуязвимость', description: 'Цель временно не получает урон.' }
-};
+import { StatusInfo } from '@/data/Statuses';
+import { BattleUI } from './BattleUI';
 
 export class BattleSceneRenderer {
   private scene: Phaser.Scene;
   private background!: Background;
   private combatSystem: CombatSystem;
-  private heroPanel!: HeroPanel;
-  private squirePanel!: SquirePanel;
 
+  private battleUI: BattleUI;
+
+  private combatantViews = new Map<string, CombatantView>();
   private heroZone!: Phaser.GameObjects.Zone;
   private enemyZones = new Map<string, Phaser.GameObjects.Zone>();
 
@@ -56,30 +44,13 @@ export class BattleSceneRenderer {
   constructor(scene: Phaser.Scene, combatSystem: CombatSystem) {
     this.scene = scene;
     this.combatSystem = combatSystem;
+    this.battleUI = new BattleUI(scene, combatSystem);
   }
 
   public renderStatic(): void {
-    this.scene.children.removeAll();
-    this.scene.input.off('drop');
-    this.scene.input.off('dragend');
-
-    this.hpBarCollection.clear();
-    this.hpTextCollection.clear();
-    this.statusContainers.clear();
-    this.statusSignatures.clear();
-
-    this.heroObjects.clear();
-    this.enemiesCollection.clear();
-    this.enemiesObjects.clear();
-    this.enemyZones.clear();
-    this.removedEnemies.clear();
-
-    this.combatantPositions.clear();
-    this.spriteObjects.clear();
-
+    this.sceneClear();
     this.renderBackground();
-    this.renderSquirePanel();
-    this.renderHeroPanel();
+    this.battleUI.renderPanels();
     this.renderHero();
     this.renderEnemies();
 
@@ -101,47 +72,32 @@ this.drawFieldLoot();
     this.background = new Background(this.scene, 'battle');
   }
 
-  private renderHeroPanel(): void {
-    this.heroPanel = new HeroPanel(this.scene);
-  }
-
-  private renderSquirePanel(): void {
-    this.squirePanel = new SquirePanel(this.scene);
-  }
-
   private renderHero(): void {
-    const { x, y } = getHeroSlots();
     const hero = this.combatSystem.hero;
+    const heroScheme = Heroes[GameState.requireRun().heroId];
 
-    const graphics = this.renderHeroSprite(x, y);
-    const hpBar = this.renderHPBar("hero", hero, x, y, 248);
-
-    const Data = [graphics, ...hpBar];
-    this.heroObjects.set(hero.id, Data);
-    this.statusContainers.set(hero.id, this.scene.add.container(x, y - 292).setDepth(95));
+    const { x, y } = getHeroSlots();
+    const view = new CombatantView(
+      this.scene, hero, x, y,
+      {
+        textureKey:
+          heroScheme.content?.spriteImage ?? '__White',
+        width:
+          heroScheme.content?.spriteWidth ?? 390,
+        height:
+          heroScheme.content?.spriteHeight ?? 510,
+        scale:
+          heroScheme.content?.spriteScale ?? 1,
+        offsetX:
+          heroScheme.content?.spriteOffsetX ?? 0,
+        offsetY:
+          heroScheme.content?.spriteOffsetY ?? -84,
+        type: 'hero',
+      },
+    );
+    this.combatantViews.set(hero.id, view);
   }
 
-  private renderHeroSprite(x: number, y: number): Phaser.GameObjects.GameObject {
-    const hero = Heroes[GameState.requireRun().heroId];
-    const textureKey = hero.content?.spriteImage;
-
-    const width = hero.content?.spriteWidth ?? 390;
-    const height = hero.content?.spriteHeight ?? 510;
-    const spriteScale = hero.content?.spriteScale ?? 1;
-    const offsetX = hero.content?.spriteOffsetX ?? 0;
-    const offsetY = hero.content?.spriteOffsetY ?? -84;
-    const sprite = this.scene.add.image(x, y, textureKey ?? "__White")
-      .setDisplaySize(width * spriteScale, height * spriteScale)
-      .setX(x + offsetX)
-      .setY(y + offsetY)
-      .setDepth(10)
-      .setOrigin(0.5, 1);
-    this.heroZone = this.scene.add.zone(x + offsetX, y + offsetY, width, height).setRectangleDropZone(width, height);
-
-    this.combatantPositions.set(hero.id, { x: x + offsetX, y: y - height / 2 + offsetY });
-    this.spriteObjects.set(hero.id, [sprite]);
-    return sprite as Phaser.GameObjects.GameObject;
-  }
 
   private renderEnemies(): void {
     const screen = screenBounds(this.scene);
@@ -156,227 +112,30 @@ this.drawFieldLoot();
 
   private renderEnemy(enemy: Combatant, x: number, y: number): void {
     if (!enemy.alive || this.enemiesCollection.has(enemy.id)) return;
-    const enemyDefinition = Enemies[enemy.definitionId];
-
-    const graphics = this.renderEnemySprite(enemy, x, y);
-
-    this.enemiesCollection.add(enemy.id);
-
-    const enemyHpBar = this.renderHPBar("enemy", enemy, x, y + enemyDefinition.content.spriteHeight / 2 - 20, 162);
-
-    let currentData = this.enemiesObjects.get(enemy.id);
-    if (currentData) {
-      let updatedData = [...currentData, graphics, ...enemyHpBar];
-      this.enemiesObjects.set(enemy.id, updatedData);
-    }
-    this.statusContainers.set(enemy.id, this.scene.add.container(x, y - 178).setDepth(95));
-    /*
-    this.enemyPositions.set(enemy.uid, { x, y });
-    */
-  }
-
-  private renderEnemySprite(enemy: Combatant, x: number, y: number): Phaser.GameObjects.GameObject {
-    const enemyObj = Enemies[enemy.definitionId];
-    let textureKey = enemyObj.content?.spriteImage;
-
-    if (!textureKey || !this.scene.textures.exists(textureKey)) {
-      textureKey = 'default_texture_key';
-    }
-
-    const width = enemyObj.content?.spriteWidth ?? 390;
-    const height = enemyObj.content?.spriteHeight ?? 390;
-    const spriteScale = enemyObj.content?.spriteScale ?? 1;
-    const offsetX = enemyObj.content?.spriteOffsetX ?? 0;
-    const offsetY = enemyObj.content?.spriteOffsetY ?? -84;
-
-    const sprite = this.scene.add.image(0, 0, textureKey);
-
-    sprite.setDisplaySize(width * spriteScale, height * spriteScale)
-      .setX(x + offsetX)
-      .setY(y + offsetY - height / 2)
-      .setDepth(10)
-      .setOrigin(0.5, 0.5);
-
-    const zone = this.scene.add.zone(x + offsetX, y + offsetY - height / 2, width, height)
-      .setRectangleDropZone(width, height);
-
-    this.enemyZones.set(enemy.id, zone);
-    this.enemiesObjects.set(enemy.id, [zone]);
-
-    this.combatantPositions.set(enemy.id, { x: x + offsetX, y: y + offsetY - height / 2 });
-    this.spriteObjects.set(enemy.id, [sprite]);
-
-    return sprite;
-  }
-
-  private renderCombatantSprite(
-  combatant: Combatant,
-  definition: { content: any }, // или интерфейс
-  x: number,
-  y: number,
-  isHero: boolean = false
-): { sprite: Phaser.GameObjects.Image; zone: Phaser.GameObjects.Zone } {
-  const { spriteImage, spriteWidth, spriteHeight, spriteScale, spriteOffsetX, spriteOffsetY } = definition.content;
-  const textureKey = spriteImage ?? '__White';
-  
-  const sprite = this.scene.add.image(0, 0, textureKey)
-    .setDisplaySize(spriteWidth * spriteScale, spriteHeight * spriteScale)
-    .setPosition(x + spriteOffsetX, y + spriteOffsetY - (isHero ? 0 : spriteHeight / 2))
-    .setDepth(10)
-    .setOrigin(0.5, isHero ? 1 : 0.5);
-
-  const zone = this.scene.add.zone(sprite.x, sprite.y, spriteWidth, spriteHeight)
-    .setRectangleDropZone(spriteWidth, spriteHeight);
-
-  this.combatantPositions.set(combatant.id, { x: sprite.x, y: sprite.y });
-  this.spriteObjects.set(combatant.id, [sprite]);
-
-  return { sprite, zone };
-}
-
-
-  private renderHPBar(type: "hero" | "enemy", target: Combatant, x: number, y: number, width: number): Phaser.GameObjects.GameObject[] {
-    const graphics = this.scene.add.graphics().setDepth(40);
-    const GO: Phaser.GameObjects.GameObject[] = [graphics];
-    const height: number = type === "hero" ? 38 : 20;
-    const cornerRadius: number = type === "hero" ? 8 : 4;
-
-    graphics.setData('target', target);
-    graphics.setData('type', type);
-    graphics.setData('x', x);
-    graphics.setData('y', y);
-    graphics.setData('width', width);
-    graphics.setData('height', height);
-    graphics.setData('cornerRadius', cornerRadius);
-    this.hpBarCollection.set(target.id, graphics);
-
-    graphics.clear();
-    graphics.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
-    graphics.fillRoundedRect(x - width / 2, y, width, height, cornerRadius);
-
-    if (type == "hero") {
-      const hpTextStroke = this.scene.add.text(x, y + 20, '', {
-        ...TYPETOKEN.Primary.Tagline, ...{
-          color: COLORTOKEN.Background.Zeroth,
-          stroke: COLORTOKEN.Background.Zeroth,
-          strokeThickness: 10,
-        }
-      }).setOrigin(0.5).setDepth(0);
-
-      const hpText = this.scene.add.text(x, y + 20, '', {
-        ...TYPETOKEN.Primary.Tagline, ...{
-          color: COLORTOKEN.Background.Zeroth,
-          stroke: COLORTOKEN.Accent.Red,
-          strokeThickness: 4,
-        }
-      }).setOrigin(0.5).setDepth(75);
-
-      graphics.setData('hpTextStroke', hpTextStroke);
-      graphics.setData('hpText', hpText);
-
-      GO.push(hpTextStroke);
-      GO.push(hpText);
-
-      hpTextStroke?.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
-      hpText?.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
-    }
-    graphics.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
-    graphics.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.stats.hp / target.stats.maxHp)), height - 8, Math.min((width - 8) * (target.stats.hp / target.stats.maxHp), cornerRadius - 4));
-
-    if (type == "enemy") {
-      const factionIconKey = `icon-faction-${target.faction}`;
-      const factionIcon = this.scene.textures.exists(factionIconKey)
-        ? this.scene.add.image(x - 5 - width / 2, y + 40, factionIconKey).setDisplaySize(40, 40).setOrigin(0, 0.5).setDepth(500)
-        : this.scene.add.circle(x - width / 2, y + 40, 15, anyToColor(COLORTOKEN.Background.Zeroth)).setStrokeStyle(2, anyToColor(COLORTOKEN.Accent.Red)).setOrigin(0, 0.5);
-
-      GO.push(factionIcon);
-
-      //this.ui.tooltip(factionIcon.setInteractive({ useHandCursor: false }), 'Фракция', `Тип врага: ${target.faction}`);
-    }
-
-    this.updateBar(graphics)
-
-    target.basicAttacks.forEach((attack, index) => {
-      const attackIconScheme = type === "hero"
-        ? {
-          posX: x - width / 2 - 4 - index * 45,
-          posY: y - 2,
-          radius: 21,
-        }
-        : {
-          posX: x - width / 2 - 4 - index * 28,
-          posY: y - 3,
-          radius: 13,
-        }
-      const zone = this.scene.add.circle(attackIconScheme.posX, attackIconScheme.posY, attackIconScheme.radius, anyToColor(COLORTOKEN.Background.Zeroth));
-      zone.setOrigin(1, 0);
-      zone.setInteractive({ useHandCursor: true });
-      /*
-      this.ui.tooltip(
-          zone,
-          ability.name,
-          [
-              ability.description,
-              `Таймер: ${ability.cooldown} сек.`,
-              'Когда круг заполняется, действие срабатывает автоматически и таймер сбрасывается.'
-          ].join('\n')
-      );
-  });
-  return objects;*/
-      GO.push(zone);
-    })
-
-    return GO;
-  }
-
-  private updateBar(bar: Phaser.GameObjects.Graphics) {
-    const target = bar.getData('target') as Combatant;
-    const x = bar.getData('x') as number;
-    const y = bar.getData('y') as number;
-    const width = bar.getData('width') as number;
-    const height = bar.getData('height') as number;
-    const cornerRadius = bar.getData('cornerRadius');
-    const hpTextStroke = bar.getData('hpTextStroke');
-    const hpText = bar.getData('hpText');
-    const type = bar.getData('type');
-
-    bar.clear();
-    bar.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
-    bar.fillRoundedRect(x - width / 2, y, width, height, cornerRadius);
-    if (hpText && hpTextStroke) {
-      hpTextStroke.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
-      hpText.setText(`${Math.max(0, Math.ceil(target.stats.hp))}/${target.stats.maxHp}`);
-    }
-
-    bar.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
-    bar.fillRoundedRect(x - width / 2 + 4, y + 4, Math.max(0, (width - 8) * (target.stats.hp / target.stats.maxHp)), height - 8, Math.min((width - 8) * (target.stats.hp / target.stats.maxHp), cornerRadius - 4));
-
-    target.basicAttacks.forEach((attack, index) => {
-      const attackIconScheme = type === "hero"
-        ? {
-          posX: x - width / 2 - 4 - index * 45,
-          posY: y - 2,
-          radius: 21,
-          radiusOffset: 4,
-        }
-        : {
-          posX: x - width / 2 - 4 - index * 28,
-          posY: y - 3,
-          radius: 13,
-          radiusOffset: 3,
-        }
-
-      bar.fillStyle(0x090909, 0.95);
-      bar.fillCircle(attackIconScheme.posX - attackIconScheme.radius, attackIconScheme.posY + attackIconScheme.radius, attackIconScheme.radius);
-      bar.slice(attackIconScheme.posX - attackIconScheme.radius, attackIconScheme.posY + attackIconScheme.radius, attackIconScheme.radius - attackIconScheme.radiusOffset, Phaser.Math.DegToRad(-90), Phaser.Math.DegToRad(-90 + 360 * Math.min(1, attack.progress / attack.cooldown)), false);
-      bar.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
-      bar.fillPath();
-
-    })
+    const enemyScheme = Enemies[enemy.definitionId];
+    const view = new CombatantView(
+      this.scene, enemy, x, y,
+      {
+        textureKey:
+          enemyScheme.content?.spriteImage ?? '__White',
+        width:
+          enemyScheme.content?.spriteWidth ?? 390,
+        height:
+          enemyScheme.content?.spriteHeight ?? 510,
+        scale:
+          enemyScheme.content?.spriteScale ?? 1,
+        offsetX:
+          enemyScheme.content?.spriteOffsetX ?? 0,
+        offsetY:
+          enemyScheme.content?.spriteOffsetY ?? -84,
+        type: 'enemy',
+      },
+    );
+    this.combatantViews.set(enemy.id, view);
   }
 
   public updateBars(): void {
-    this.hpBarCollection.forEach((bar) => this.updateBar(bar));
+    //this.hpBarCollection.forEach((bar) => this.updateBar(bar));
   }
 
   public getCombatantPositions(): Map<string, { x: number; y: number }> {
@@ -386,6 +145,7 @@ this.drawFieldLoot();
   public getSpriteObjects(): Map<string, Phaser.GameObjects.GameObject[]> {
     return this.spriteObjects;
   }
+
   public syncHeroViews(): void {
     const hero = this.combatSystem.hero;
     if (!hero.alive) {
@@ -524,138 +284,31 @@ this.drawFieldLoot();
   //public drawVictoryExit(victorySummary: string[], nodeType: string, onPickUpAll: () => void, onContinue: () => void): void {
 
   public renderVictoryPanel(): void {
-    const screen = screenBounds(this.scene);
-
-    const dimmer = this.scene.add.rectangle(0, 0, screen.width, screen.height, anyToColor(COLORTOKEN.Background.Zeroth), 0.62).setOrigin(0).setDepth(5000);
-
-    const title = 'Выпало в бою';
-    const panelSize = {
-      width: 640,
-      height: screen.height - 64
-    };
-    const panelPosition = screenToWorld(this.scene, screen.centerX, screen.centerY);
-
-    const panel = this.scene.add.container(panelPosition.x, panelPosition.y)
-      .setScale(screenSpaceScale(this.scene))
-      .setDepth(8000);
-
-    const background = this.scene.add.rectangle(0, 0, panelSize.width, panelSize.height, anyToColor(COLORTOKEN.Background.Zeroth), 0.9).setStrokeStyle(2, anyToColor(COLORTOKEN.Foreground.Tertiary));
-    const heading = this.scene.add.text(0, -panelSize.height / 2 + 30, title, { ...TYPETOKEN.Secondary.Tagline, color: COLORTOKEN.Foreground.Secondary }).setOrigin(0.5);
-    panel.add([background, heading]);
-    /*
-    const arrowPos = screenToWorld(this.scene, screen.right - 74, screen.centerY);
-    const arrow = this.scene.add.container(arrowPos.x, arrowPos.y)
-      .setScale(screenSpaceScale(this.scene))
-      .setDepth(1900);
-    const button = this.scene.add.circle(0, 0, 44, 0x151b16, 0.92).setStrokeStyle(3, 0xf2cf69);
-    const icon = this.scene.add.text(2, -2, '›', {
-      resolution: Math.min(window.devicePixelRatio || 1, 2),
-      fontSize: '72px',
-      color: '#ffdf83',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-    arrow.add([button, icon]);
-    button.setInteractive({ useHandCursor: true })
-    const body = this.scene.add.text(0, 15, victorySummary.join('   '), {
-      resolution: Math.min(window.devicePixelRatio || 1, 2),
-      fontSize: '18px',
-      color: '#e5dcc2',
-      align: 'center',
-      wordWrap: { width: 520 },
-    }).setOrigin(0.5);
- 
-    // Стрелка для продолжения
-      .on('pointerover', () => {
-        button.setFillStyle(0x263021);
-        arrow.setScale(1.08);
-      })
-      .on('pointerout', () => {
-        button.setFillStyle(0x151b16);
-        arrow.setScale(1);
-      })
-      .on('pointerdown', () => onContinue());
-    this.ui.tooltip(button, 'Покинуть бой', 'Можно сначала подобрать артефакты с поля. Нажмите стрелку, когда готовы вернуться на карту.');
-    const arrowTweenX = screenToWorld(this.scene, screen.right - 86, screen.centerY).x;
-    this.scene.tweens.add({
-      targets: arrow,
-      x: arrowTweenX,
-      yoyo: true,
-      repeat: -1,
-      duration: 820,
-      ease: 'Sine.easeInOut',
-    });
- 
-    // Кнопка "Подобрать всё"
-    this.ui.button(screen.right - 116, screen.centerY + 82, 170, 42, 'Подобрать всё', () => onPickUpAll());
-    */
-
+    this.battleUI.renderResultPanel('victory');
   }
 
   public renderDefeatPanel(): void {
-    const screen = screenBounds(this.scene);
+    this.battleUI.renderResultPanel('defeat')
+  }
 
-    const dimmer = this.scene.add.rectangle(0, 0, screen.width, screen.height, anyToColor(COLORTOKEN.Background.Zeroth), 0.62).setOrigin(0).setDepth(5000);
+  private sceneClear(): void {
+    this.scene.children.removeAll();
+    this.scene.input.off('drop');
+    this.scene.input.off('dragend');
 
-    const title = 'Поражение';
-    const panelSize = {
-      width: 640,
-      height: screen.height - 64
-    };
-    const panelPosition = screenToWorld(this.scene, screen.centerX, screen.centerY);
+    this.hpBarCollection.clear();
+    this.hpTextCollection.clear();
+    this.statusContainers.clear();
+    this.statusSignatures.clear();
 
-    const panel = this.scene.add.container(panelPosition.x, panelPosition.y)
-      .setScale(screenSpaceScale(this.scene))
-      .setDepth(8000);
+    this.heroObjects.clear();
+    this.enemiesCollection.clear();
+    this.enemiesObjects.clear();
+    this.enemyZones.clear();
+    this.removedEnemies.clear();
 
-    const background = this.scene.add.rectangle(0, 0, panelSize.width, panelSize.height, anyToColor(COLORTOKEN.Background.Zeroth), 0.9).setStrokeStyle(2, anyToColor(COLORTOKEN.Foreground.Tertiary));
-    const heading = this.scene.add.text(0, -panelSize.height / 2 + 30, title, { ...TYPETOKEN.Secondary.Tagline, color: COLORTOKEN.Foreground.Secondary }).setOrigin(0.5);
-    panel.add([background, heading]);
-    /*
-    const arrowPos = screenToWorld(this.scene, screen.right - 74, screen.centerY);
-    const arrow = this.scene.add.container(arrowPos.x, arrowPos.y)
-      .setScale(screenSpaceScale(this.scene))
-      .setDepth(1900);
-    const button = this.scene.add.circle(0, 0, 44, 0x151b16, 0.92).setStrokeStyle(3, 0xf2cf69);
-    const icon = this.scene.add.text(2, -2, '›', {
-      resolution: Math.min(window.devicePixelRatio || 1, 2),
-      fontSize: '72px',
-      color: '#ffdf83',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-    arrow.add([button, icon]);
-    button.setInteractive({ useHandCursor: true })
-    const body = this.scene.add.text(0, 15, victorySummary.join('   '), {
-      resolution: Math.min(window.devicePixelRatio || 1, 2),
-      fontSize: '18px',
-      color: '#e5dcc2',
-      align: 'center',
-      wordWrap: { width: 520 },
-    }).setOrigin(0.5);
- 
-    // Стрелка для продолжения
-      .on('pointerover', () => {
-        button.setFillStyle(0x263021);
-        arrow.setScale(1.08);
-      })
-      .on('pointerout', () => {
-        button.setFillStyle(0x151b16);
-        arrow.setScale(1);
-      })
-      .on('pointerdown', () => onContinue());
-    this.ui.tooltip(button, 'Покинуть бой', 'Можно сначала подобрать артефакты с поля. Нажмите стрелку, когда готовы вернуться на карту.');
-    const arrowTweenX = screenToWorld(this.scene, screen.right - 86, screen.centerY).x;
-    this.scene.tweens.add({
-      targets: arrow,
-      x: arrowTweenX,
-      yoyo: true,
-      repeat: -1,
-      duration: 820,
-      ease: 'Sine.easeInOut',
-    });
- 
-    // Кнопка "Подобрать всё"
-    this.ui.button(screen.right - 116, screen.centerY + 82, 170, 42, 'Подобрать всё', () => onPickUpAll());
-    */
+    this.combatantPositions.clear();
+    this.spriteObjects.clear();
   }
 
 }

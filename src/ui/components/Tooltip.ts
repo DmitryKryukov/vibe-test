@@ -25,9 +25,9 @@ export class Tooltip extends Phaser.GameObjects.Container {
         height: 118,
         minHeight: 53,
         maxHeight: 560,
-        paddingTop: 10,
+        paddingTop: 12,
         paddingRight: 20,
-        paddingBottom: 12,
+        paddingBottom: 14,
         paddingLeft: 14,
         gap: 4,
     }
@@ -38,11 +38,11 @@ export class Tooltip extends Phaser.GameObjects.Container {
         this.scene = scene;
     }
 
-    public show(target: Phaser.GameObjects.GameObject, title: string, text: string, entity: any, tooltipStyle?: any): void {
+    public show(target: Phaser.GameObjects.GameObject, title: string, text: string, entity?: any, tooltipStyle?: any): void {
     const style = { ...this.tooltipStyle, ...tooltipStyle };
 
     target.on('pointerover', (pointer: Phaser.Input.Pointer) => {
-        this.renderTooltip(title, text, entity, style);  // передаём стиль
+        this.renderTooltip(title, text, entity, style); 
         if (this.tooltipContainer) {
             this.placeTooltip(
                 this.tooltipContainer,
@@ -72,7 +72,7 @@ export class Tooltip extends Phaser.GameObjects.Container {
     });
 }
 
-    private renderTooltip(titleText: string, bodyText: string, entity: any, style: TooltipScheme): void {
+    private renderTooltip(titleText: string, bodyText: string, entity?: any, style?: TooltipScheme): void {
         let tooltipConfig: {
             title: Phaser.GameObjects.Text | null,
             body: Phaser.GameObjects.Text | null,
@@ -194,7 +194,7 @@ export class Tooltip extends Phaser.GameObjects.Container {
         this.tooltipStyle.height = lastElementY + this.tooltipStyle.paddingTop + this.tooltipStyle.paddingBottom;
 
         let background = this.renderBackground(
-            style.width,
+            style?.width ?? 390,
             this.tooltipStyle.height
         );
 

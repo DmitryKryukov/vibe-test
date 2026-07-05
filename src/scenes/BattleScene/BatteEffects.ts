@@ -1,4 +1,3 @@
-// BattleEffects.ts
 import Phaser from 'phaser';
 import { CombatSystem, CombatVisualEvent } from '@/services/CombatSystem';
 import { BattleSceneRenderer } from './BattleSceneRenderer';

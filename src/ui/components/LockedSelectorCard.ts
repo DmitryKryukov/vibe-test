@@ -101,6 +101,8 @@ export class LockedSelectorCard<T extends SelectableEntity> extends Phaser.GameO
         this.maskGraphics = this.scene.add.graphics();
         this.maskGraphics.setVisible(false);
 
+        const roundedMask = this.maskGraphics.createGeometryMask();
+        this.setMask(roundedMask);
         this.scene.events.on(Phaser.Scenes.Events.PRE_RENDER, this.updateMaskPosition, this);
 
         this.once(Phaser.GameObjects.Events.DESTROY, () => {
@@ -138,7 +140,7 @@ export class LockedSelectorCard<T extends SelectableEntity> extends Phaser.GameO
                 this.style.height / source.height
             );
             this.GO.portrait = new Phaser.GameObjects.Image(this.scene, 0, 0, portraitKey)
-                .setDisplaySize(source.width * scale, source.height * scale)
+                .setDisplaySize(221, 311)
                 .setOrigin(0);
             this.add(this.GO.portrait);
 

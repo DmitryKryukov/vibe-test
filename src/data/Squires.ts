@@ -77,16 +77,27 @@ export const Squires: Record<string, SquireScheme> = {
       portraitImage: 'clavridius-squire-portrait',
     },
     locked: true,
+  },
+  placeholder: {
+    id: 'placeholder-squire',
+    name: 'Плейсхолдер',
+    class: 'Плейсхолдер',
+    lore: 'Плейсхолдер',
+    perks: [],
+    baseStats: {
+      maxWeight: 0,
+      slotCount: 0,
+    },
+    content: {
+      portraitImage: '',
+    },
+    locked: true,
   }
   /*
 robert: {
-  id: 'robert',
-  name: 'Верный Роберт',
-  title: 'Слуга-оруженосец',
   bagSlots: 8,
   bagColumns: 4,
   maxWeight: 22,
-  portraitTint: 0xc59b75,
   perks: [
     'Походная Починка: после боя герой восстанавливает 3 HP за предмет в сумке.',
     'Полевая медицина: лагерь лечит на 15% эффективнее.',

@@ -1,16 +1,30 @@
 import { ActiveAbilityScheme, Abilities } from "./Abilities";
-export type Faction = 'beast';
+
+export interface FactionInfo {
+  id: string;
+  name: string;
+  description: string;
+}
 
 export interface EnemyStats {
   maxHp: number;
   baseDamage: number;
   baseAttackSpeed: number;
 }
+export type FactionId = keyof typeof Factions;
+
+export const Factions = {
+  beast: {
+    id: 'beast',
+    name: 'Дикие звери',
+    description: 'Твари из забытых чащ, ведомые слепым инстинктом и яростью. Они не знают жалости и сомнений, полагаясь лишь на силу когтей и клыков. В их безумных глазах нет ничего, кроме стремления разорвать чужака на части.'
+  },
+} as const;
 
 export interface EnemyScheme {
   id: string;
   name: string;
-  faction: Faction;
+  faction: FactionId;
   enemyStats: EnemyStats;
   content: {
     spriteImage: string,
@@ -58,7 +72,7 @@ export const Enemies: Record<string, EnemyScheme> = {
       spriteHeight: 210,
       spriteScale: 1.1,
       spriteOffsetX: 20,
-      spriteOffsetY: 100,
+      spriteOffsetY: 40,
     }
   },
 };

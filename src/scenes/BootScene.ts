@@ -102,7 +102,7 @@ export class BootScene extends Phaser.Scene {
 
     private simulateLoading(): void {
         this.loadingBar.animateFill(1, () => {
-            this.transitionToMainMenu(false);
+            this.transitionToMainMenu(true);
         }, this.BOOT_SCENE_CONFIG.animation.loadingBarFill.duration);
     }
 

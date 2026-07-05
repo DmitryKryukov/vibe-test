@@ -114,5 +114,17 @@ export const Heroes: Record<string, HeroScheme> = {
         slots: ['weapon', 'weapon', 'weapon', 'weapon', 'amulet', 'ring'],
         baseStats: { maxHp: 90, baseDamage: 8, baseAttackSpeed: 0.8 },
         locked : true,
+    },
+    placeholder: {
+        id: 'placeholder-hero',
+        name: 'Плейсхолдер',
+        class: 'Плейсхолдер',
+        lore: 'Плейсхолдер',
+        perks: [],
+        basicAttacks: [],
+        activeAbilities: [],
+        slots: [],
+        baseStats: { maxHp: 0, baseDamage: 0, baseAttackSpeed: 0 },
+        locked : true,
     }
 };
