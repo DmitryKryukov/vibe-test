@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { Heroes } from "@/data/Heroes";
-import { Enemies, EnemyScheme, Faction } from "@/data/Enemies";
+import { Enemies, EnemyScheme, FactionId } from "@/data/Enemies";
 import { ActiveAbilityScheme } from "@/data/Abilities";
 import { GameState } from "@/store/GameState";
 
@@ -21,7 +21,7 @@ export interface Combatant {
   id: string;
   definitionId: string;
   name: string;
-  faction?: Faction;
+  faction?: FactionId;
   stats: {
     hp: number;
     maxHp: number;
@@ -148,13 +148,13 @@ export class CombatSystem {
 
   resolveHeroAttack(id: string): void {
     const target = this.enemies.find((enemy) => enemy.alive);
+    
     if (!target) return;
     let damage = this.hero.stats.damage;
 
-
     if (id === 'strike') {
-      this.hero.attackCounter += 1;
       this.visualEvents.push({ type: 'attack', sourceUid: this.hero.definitionId, targetUid: target.id });
+      this.hero.attackCounter += 1;
       this.scene.time.delayedCall(45, () => {
         this.damageTarget(target, this.hero, damage);
       })
@@ -205,7 +205,7 @@ export class CombatSystem {
       let finalDamage = damage
       this.visualEvents.push({ type: 'attack', sourceUid: enemy.id, targetUid: this.hero.definitionId });
       this.damageTarget(this.hero, enemy, finalDamage);
-      this.addStackingStatus(this.hero, 'poison', 'Яд', 25);
+      //this.addStackingStatus(this.hero, 'poison', 'Яд', 25);
       //this.enemies.some((ally) => ally.alive && Enemies[ally.definitionId].aura === 'beast-alpha') ? 38 : 25)
     };
     /*
@@ -330,9 +330,9 @@ if (this.enemies.some((ally) => ally.alive && ENEMIES[ally.definitionId].aura ==
 
   damageTarget(target: Combatant, source: Combatant, amount: number): void {
     let final = amount;
+    this.visualEvents.push({ type: 'damage', targetUid: target.id, amount: Math.round(final) });
     target.stats.hp -= final;
     if (target.stats.hp < 0) target.stats.hp = 0;
-    this.visualEvents.push({ type: 'damage', targetUid: target.id, amount: Math.round(final) });
     /*
     if (Math.random() < target.stats.dodgeChance) {
     if (this.hasStatus(target, 'invulnerable')) return;
@@ -364,7 +364,9 @@ if (this.enemies.some((ally) => ally.alive && ENEMIES[ally.definitionId].aura ==
   }
 
   killEnemy(enemy: Combatant): void {
-    //enemy.alive = false;
+    this.scene.time.delayedCall(45, ()=>{
+      enemy.alive = false;
+    })
     //const Enemy = Enemies[enemy.definitionId];
     //if (Enemy.leavesRemains) this.remains.count += 1;
     // const goldBonus = GameState.requireRun().equipment.some((item) => item?.itemId === 'golden_signet') ? 1.1 : 1;
@@ -374,8 +376,8 @@ if (this.enemies.some((ally) => ally.alive && ENEMIES[ally.definitionId].aura ==
   }
 
   killHero(): void {
-    //this.hero.alive = false;
-    //this.ended = 'defeat'
+    this.hero.alive = false;
+    this.ended = 'defeat'
   }
 }
 /*

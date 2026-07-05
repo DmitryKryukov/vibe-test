@@ -58,10 +58,8 @@ export class BattleScene extends Phaser.Scene {
   update(_: number, delta: number): void {
     if (this.ended) return;
     this.combatSystem.update(delta);
-    this.sceneRenderer.updateBars();
     this.battleEffects.processVisualEvents();
-    this.sceneRenderer.syncHeroViews();
-    this.sceneRenderer.syncEnemyViews();
+    this.sceneRenderer.syncCombatantViews();
     this.sceneRenderer.updateStatusBadges();
     if (this.combatSystem.ended) {
       this.time.delayedCall(0, () => this.finishBattle(this.combatSystem.ended));

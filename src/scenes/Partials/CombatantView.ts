@@ -33,7 +33,7 @@ export class CombatantView {
     private readonly combatantViewScheme: CombatantViewScheme;
 
     private readonly root: Phaser.GameObjects.Container;
-    private hpBar: HPBar | null = null;
+    public hpBar: HPBar | null = null;
 
     constructor(scene: Phaser.Scene, combatant: Combatant, x: number, y: number, combatantViewScheme: CombatantViewScheme, renderHPBar?: boolean) {
         this.scene = scene;
@@ -70,8 +70,10 @@ export class CombatantView {
             anchor
         ]);
     }
+
     public destroy(): void {
         this.root.destroy(true);
+        if (this.hpBar) this.hpBar?.destroy();
     }
 
 }

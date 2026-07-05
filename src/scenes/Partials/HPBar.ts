@@ -24,8 +24,9 @@ export class HPBar extends Phaser.GameObjects.Container {
     private hpTextStroke: Phaser.GameObjects.Text | null = null;
     private hpText: Phaser.GameObjects.Text | null = null;
     private attackIndicators: Phaser.GameObjects.Arc[] = [];
+    private factionIcon: Phaser.GameObjects.GameObject | null = null;
 
-    private tooltip: Tooltip | null = null;
+    private tooltips: Tooltip[] = [];
 
     constructor(scene: Phaser.Scene, combatantView: CombatantView, type: "hero" | "enemy" | undefined = "enemy", target: Combatant, x: number, y: number) {
         super(scene)
@@ -38,7 +39,7 @@ export class HPBar extends Phaser.GameObjects.Container {
         this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.update, this);
 
         this.on(Phaser.GameObjects.Events.DESTROY, () => {
-            this.scene.events.off(Phaser.Scenes.Events.UPDATE, this.update, this);
+            this.cleanup();
         });
     }
 
@@ -90,15 +91,14 @@ export class HPBar extends Phaser.GameObjects.Container {
 
     private renderEnemyFactionIcon(width: number, height: number, x: number, y: number): void {
         const factionIconKey = `icon-faction-${this.target.faction}`;
-        let factionIcon: Phaser.GameObjects.GameObject;
 
         if (this.scene.textures.exists(factionIconKey)) {
-            factionIcon = this.scene.add.image(-4, height, factionIconKey)
+            this.factionIcon = this.scene.add.image(-4, height, factionIconKey)
                 .setDisplaySize(40, 40)
                 .setOrigin(0, 0)
                 .setDepth(500);
         } else {
-            factionIcon = this.scene.add.circle(
+            this.factionIcon = this.scene.add.circle(
                 x - width / 2,
                 y + 40,
                 15,
@@ -106,78 +106,77 @@ export class HPBar extends Phaser.GameObjects.Container {
             ).setStrokeStyle(2, anyToColor(COLORTOKEN.Accent.Red)).setOrigin(0, 0.5);
         }
 
-        factionIcon.setInteractive({ useHandCursor: true });
+        this.factionIcon.setInteractive({ useHandCursor: true });
         const factionData = Factions[this.target.faction as keyof typeof Factions];
         const tooltip = new Tooltip(this.scene);
-        tooltip.show(factionIcon, factionData.name, factionData.description, this.target, { width: 390 });
+        tooltip.show(this.factionIcon, factionData.name, factionData.description, this.target, { width: 390 });
+        this.tooltips.push(tooltip);
 
-        this.root.add(factionIcon);
+        this.root.add(this.factionIcon);
     }
 
     private createAttackIndicators(height: number, isHero: boolean): void {
-    this.target.basicAttacks.forEach((attack, index) => {
-        const offset = index * (isHero ? 45 : 28);
-        const radius = isHero ? 20 : 12;
-        const posX = -offset - 4;
-        const posY = height / 2 - radius + 1;
+        this.target.basicAttacks.forEach((attack, index) => {
+            const offset = index * (isHero ? 45 : 28);
+            const radius = isHero ? 20 : 12;
+            const posX = -offset - 4;
+            const posY = height / 2 - radius + 1;
 
-        const attackIndicator = this.scene.add.circle(
-            posX,
-            posY,
-            radius,
-            anyToColor(COLORTOKEN.Background.Zeroth),
-            0
-        );
-        attackIndicator.setOrigin(1, 0);
+            const attackIndicator = this.scene.add.circle(
+                posX,
+                posY,
+                radius,
+                anyToColor(COLORTOKEN.Background.Zeroth),
+                0
+            );
+            attackIndicator.setOrigin(1, 0);
+            attackIndicator.setInteractive({ useHandCursor: true });
 
-        attackIndicator.setInteractive({ useHandCursor: true });
+            const tooltip = new Tooltip(this.scene);
+            tooltip.show(
+                attackIndicator,
+                attack.name,
+                attack.description,
+                { cooldown: attack.cooldown },
+                { width: 390 }
+            );
+            this.tooltips.push(tooltip);
 
-        const tooltip = new Tooltip(this.scene);
-
-        tooltip.show(
-            attackIndicator,
-            attack.name,
-            attack.description,
-            { cooldown: attack.cooldown },
-            { width: 390 }
-        );
-
-        this.root.add(attackIndicator);
-        this.attackIndicators.push(attackIndicator);
-    });
-}
+            this.root.add(attackIndicator);
+            this.attackIndicators.push(attackIndicator);
+        });
+    }
 
     private renderAttackIndicators(height: number, isHero: boolean): void {
-    this.target.basicAttacks.forEach((attack, index) => {
-        const offset = index * (isHero ? 45 : 28);
-        const padding = isHero ? 4 : 3;
-        const posX = -offset - 4;
-        const radius = isHero ? 20 : 12;
-        const posY = height / 2 - radius;
+        this.target.basicAttacks.forEach((attack, index) => {
+            const offset = index * (isHero ? 45 : 28);
+            const padding = isHero ? 4 : 3;
+            const posX = -offset - 4;
+            const radius = isHero ? 20 : 12;
+            const posY = height / 2 - radius;
 
-        this.hpBarGraphics.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth), 1);
+            this.hpBarGraphics.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth), 1);
+            this.hpBarGraphics.fillCircle(
+                posX - radius,
+                posY + radius,
+                radius
+            );
 
-        this.hpBarGraphics.fillCircle(
-            posX - radius,
-            posY + radius,
-            radius
-        );
+            this.hpBarGraphics.slice(
+                posX - radius,
+                posY + radius,
+                radius - padding,
+                Phaser.Math.DegToRad(-90),
+                Phaser.Math.DegToRad(
+                    -90 + 360 * Math.min(1, attack.progress / attack.cooldown)
+                ),
+                false
+            );
 
-        this.hpBarGraphics.slice(
-            posX - radius,
-            posY + radius,
-            radius - padding,
-            Phaser.Math.DegToRad(-90),
-            Phaser.Math.DegToRad(
-                -90 + 360 * Math.min(1, attack.progress / attack.cooldown)
-            ),
-            false
-        );
-
-        this.hpBarGraphics.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
-        this.hpBarGraphics.fillPath();
-    });
-}
+            this.hpBarGraphics.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
+            this.hpBarGraphics.fillPath();
+        });
+    }
 
     private renderHPBarThumb(width: number, height: number, cornerRadius: number): void {
         const hpRatio = Math.max(0, this.target.stats.hp / this.target.stats.maxHp);
@@ -199,9 +198,10 @@ export class HPBar extends Phaser.GameObjects.Container {
     }
 
     public update(): void {
+        if (!this.target) return;
+
         const { width, height, cornerRadius } = this.getHPBarStyles();
         const isHero = this.hpBarType === "hero";
-        if (!this.target) return;
 
         this.hpBarGraphics.clear();
 
@@ -214,8 +214,31 @@ export class HPBar extends Phaser.GameObjects.Container {
             this.hpText.setText(hpString);
         }
 
-        this.target.basicAttacks.forEach((attack, index) => {
-            this.renderAttackIndicators(height, isHero);
-        })
+        this.renderAttackIndicators(height, isHero);
+    }
+
+    private cleanup(): void {
+        this.scene.events.off(Phaser.Scenes.Events.UPDATE, this.update, this);
+        
+        this.tooltips.forEach(tooltip => {
+            if (typeof (tooltip as any).destroy === 'function') {
+                (tooltip as any).destroy();
+            }
+        });
+        this.tooltips = [];
+
+        if (this.root) {
+            this.root.destroy(true); 
+        }
+        
+        this.attackIndicators = [];
+        this.factionIcon = null;
+        this.hpText = null;
+        this.hpTextStroke = null;
+    }
+
+    public destroy(fromScene?: boolean): void {
+        this.cleanup();
+        super.destroy(fromScene);
     }
 }

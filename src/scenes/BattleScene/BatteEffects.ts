@@ -31,9 +31,10 @@ export class BattleEffects {
       }
 
       if (event.type === 'damage') {
+        // alert(event);
         this.scene.time.delayedCall(impactDelay, () => {
-          this.renderFloatMessage(event.targetUid, `−${event.amount}`, COLORTOKEN.Accent.Red);
           this.playHitImpact(event.targetUid);
+          this.renderFloatMessage(event.targetUid, `−${event.amount}`, COLORTOKEN.Accent.Red);
         });
       }
 
@@ -52,9 +53,8 @@ export class BattleEffects {
   }
 
   private renderFloatMessage(targetId: string, text: string, color: string): void {
-    const position = this.sceneRenderer.getCombatantPositions().get(targetId);
+    const position = this.sceneRenderer.getCombatantPosition(targetId);
     if (!position) return;
-   // const dot = this.scene.add.circle(position.x, position.y , 5, anyToColor(COLORTOKEN.Accent.Red)).setDepth(2000);
 
     const label = this.scene.add.text(
       position.x + Phaser.Math.Between(-8, 8),
@@ -172,42 +172,40 @@ export class BattleEffects {
   }
 
   private playHitImpact(targetId: string): void {
-    const position = this.sceneRenderer.getCombatantPositions().get(targetId);
-    const gameObjects = this.sceneRenderer.getSpriteObjects().get(targetId);
-    if (!position || !gameObjects?.length) return;
+    const position = this.sceneRenderer.getCombatantPosition(targetId);
+    const combatantSprite = this.sceneRenderer.getCombatantSprite(targetId) as Phaser.GameObjects.Sprite;
+    if (!position || !combatantSprite) return;
 
-
-    const mainSprite = gameObjects[0] as Phaser.GameObjects.Sprite;
-
-    const tintable = mainSprite as Phaser.GameObjects.GameObject & {
+    const tintable = combatantSprite as Phaser.GameObjects.GameObject & {
       setTint?: (color: number) => void;
       clearTint?: () => void;
     };
 
     tintable.setTint?.(anyToColor(COLORTOKEN.Accent.Red));
+
     this.scene.time.delayedCall(105, () => tintable.clearTint?.());
-        let shakeDx = "+=20"
-        let flashSize = 32;
-        let particleSpeedX = { min: -140, max: 1000 };
-        let flashY = mainSprite.y;
-        
-        if (targetId.includes('hero')) {
-          shakeDx = "-=10"
-          flashSize = 48;
-          flashY = mainSprite.y - mainSprite.displayHeight / 2
-          particleSpeedX = { min: 140, max: -1000 };
-        }
-        
+    let shakeDx = "+=20"
+    let flashSize = 32;
+    let particleSpeedX = { min: -140, max: 1000 };
+    let flashY = combatantSprite.y;
+
+    if (targetId.includes('hero')) {
+      shakeDx = "-=20"
+      flashSize = 48;
+      flashY = combatantSprite.y;
+      particleSpeedX = { min: 140, max: -1000 };
+    }
 
     this.scene.tweens.add({
-      targets: mainSprite,
+      targets: combatantSprite,
       x: shakeDx,
       duration: 45,
       yoyo: true,
       repeat: 2,
       ease: 'Sine.easeInOut',
     });
-    const flash = this.scene.add.circle(mainSprite.x, flashY, flashSize, anyToColor(COLORTOKEN.Accent.Red), 1).setDepth(85);
+
+    const flash = this.scene.add.circle(combatantSprite.x, flashY, flashSize, anyToColor(COLORTOKEN.Accent.Red), 1).setDepth(85);
     this.scene.tweens.add({
       targets: flash,
       alpha: 0,
@@ -235,27 +233,47 @@ export class BattleEffects {
       )
     }).setDepth(200);
 
-    emitter.explode(32, position.x, mainSprite.y - mainSprite.displayHeight / 2);
+    emitter.explode(32, position.x, combatantSprite.y);
   }
 
   private playAttackMotion(event: Extract<CombatVisualEvent, { type: 'attack' }>): void {
-  
-    const sourcePosition = this.sceneRenderer.getCombatantPositions().get(event.sourceUid);
-    const targetPosition = this.sceneRenderer.getCombatantPositions().get(event.targetUid);
-    const objects = this.sceneRenderer.getSpriteObjects().get(event.sourceUid);
-    
-    if (!sourcePosition || !targetPosition || !objects?.length) return;
+    const ATTACK_MOTION_CONFIG = {
+      distanceFactorX: 0.16,
+      distanceFactorY: 0.09,
+      clampX: 40,
+      clampY: 22,
+      duration: 100,
+      ease: 'Sine.easeOut',
+    };
 
-    const dx = Phaser.Math.Clamp((targetPosition.x - sourcePosition.x) * 0.08, -34, 34);
-    const dy = Phaser.Math.Clamp((targetPosition.y - sourcePosition.y) * 0.05, -18, 18);
+    const { sourceUid, targetUid } = event;
+
+    const sourcePosition = this.sceneRenderer.getCombatantPosition(sourceUid);
+    const targetPosition = this.sceneRenderer.getCombatantPosition(targetUid);
+    const combatantSprite = this.sceneRenderer.getCombatantSprite(sourceUid) as Phaser.GameObjects.Sprite;
+
+    if (!sourcePosition || !targetPosition || !combatantSprite) {
+      return;
+    }
+
+    const { x: sx, y: sy } = sourcePosition;
+    const { x: tx, y: ty } = targetPosition;
+    const { distanceFactorX, distanceFactorY, clampX, clampY, duration, ease } = ATTACK_MOTION_CONFIG;
+
+    const dx = Phaser.Math.Clamp((tx - sx) * distanceFactorX, -clampX, clampX);
+    const dy = Phaser.Math.Clamp((ty - sy) * distanceFactorY, -clampY, clampY);
+    
+    const startCombatantX = sourcePosition.x;
+    const startCombatantY = sourcePosition.y;
 
     this.scene.tweens.add({
-      targets: objects,
+      targets: combatantSprite,
       x: `+=${dx}`,
       y: `+=${dy}`,
-      duration: 85,
+      duration,
       yoyo: true,
-      ease: 'Sine.easeOut',
+      ease,
+      
     });
   }
 
