@@ -56,19 +56,15 @@ export class HPBar extends Phaser.GameObjects.Container {
         const spriteHeight = this.combatantView.sprite.height * this.combatantView.sprite.scale;
         this.root.setPosition(x - width / 2, y + spriteHeight / 2);
 
-        // Графика для фона и полосы HP
         this.hpBarGraphics = this.scene.add.graphics().setDepth(40);
         this.root.add(this.hpBarGraphics);
 
-        // Текст HP (только для героя)
         if (this.hpBarType === "hero") {
             this.renderHPBarText(width, height);
         } else {
-            // Иконка фракции для врага
             this.renderEnemyFactionIcon(width, height, x, y);
         }
 
-        // Индикаторы атак и способностей
         const isHero = this.hpBarType === "hero";
         this.attackIndicator = new AttackIndicator(
             this.scene,
@@ -182,15 +178,12 @@ export class HPBar extends Phaser.GameObjects.Container {
 
         const { width, height, cornerRadius } = this.getHPBarStyles();
 
-        // Перерисовка полосы HP
         this.hpBarGraphics.clear();
         this.renderHpBarBackground(width, height, cornerRadius);
         this.renderHPBarThumb(width, height, cornerRadius);
 
-        // Текст HP
         this.updateHPText();
 
-        // Обновление дочерних индикаторов
         this.attackIndicator?.update();
         this.abilityIndicator?.update();
     }

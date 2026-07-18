@@ -1,6 +1,7 @@
 import Phaser from "phaser";
+import { Combatant } from "@/services/CombatantFactory";
 import { CombatantView } from "./CombatantView";
-import { Combatant, StatusEffect } from "@/services/CombatSystem";
+import { StatusEffect } from "@/services/StatusSystem";
 import { Tooltip } from "@/ui/components/Tooltip";
 import { anyToColor } from "@/utils/UtilsColor";
 import { COLORTOKEN } from "@/ui/styles/ColorTokens";

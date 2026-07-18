@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Combatant } from "@/services/CombatSystem";
+import { Combatant } from "@/services/CombatantFactory";
 import { COLORTOKEN } from "@/ui/styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
 import { Tooltip } from "@/ui/components/Tooltip";

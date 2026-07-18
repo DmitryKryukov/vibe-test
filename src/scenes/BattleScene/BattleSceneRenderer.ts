@@ -12,7 +12,6 @@ import { anyToColor } from '@/utils/UtilsColor';
 import { Enemies, EnemyScheme } from '@/data/Enemies';
 import { screenBounds, screenToWorld, screenSpaceScale } from '@/utils/UtilsLayout';
 import { getEnemySlots, getHeroSlots } from './BattleLayout';
-import { StatusInfo } from '@/data/Statuses';
 import { BattleUI } from './BattleUI';
 
 export class BattleSceneRenderer {
@@ -141,7 +140,7 @@ this.drawFieldLoot();
     return this.combatantViews.get(id)?.sprite as Phaser.GameObjects.GameObject
   }
 
-  public syncCombatantViews(): void {
+  public update(): void {
     const hero = this.combatSystem.hero;
     if (!hero.alive) {
       this.removeCombatant(hero.id);
