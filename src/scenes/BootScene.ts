@@ -11,6 +11,7 @@ import { LoadingBar, LoadingBarStyleScheme } from '@/ui/components/LoadingBar';
 
 import { ImageAssets } from '@/assets/sprites/AssetsMap';
 import { GameState } from '@/store/GameState';
+import { AudioAssets } from '@/assets/audio/AudioMap';
 
 /*
 import { SaveSystem } from '../state/SaveSystem';
@@ -48,7 +49,8 @@ export class BootScene extends Phaser.Scene {
 
     public preload(): void {
         this.registerAssets();
-        this.load.audio('bg_music', 'assets/audio/music/main-menu.mp3');
+       // this.load.audio('bg_music', 'assets/audio/music/main-menu.mp3');
+        //this.load.audio('sfx-strike-ability', 'assets/audio/sfx/abilities/sfx-strike-ability.m4a')
         //this.load.audio('click_sfx', 'assets/audio/click.wav');
     }
 
@@ -66,6 +68,7 @@ export class BootScene extends Phaser.Scene {
 
     private registerAssets(): void {
         //const contentPack = applyContentOverrides();
+        const audio = AudioAssets;
         const assets = ImageAssets;
 
         Object.entries(assets).forEach(([key, url]) => {
@@ -73,6 +76,9 @@ export class BootScene extends Phaser.Scene {
                 this.load.image(key, url);
             }
         })
+          Object.entries(AudioAssets).forEach(([key, url]) => {
+             this.load.audio(key, url);
+          });
     }
 
     private renderScene(): void {
@@ -102,7 +108,7 @@ export class BootScene extends Phaser.Scene {
 
     private simulateLoading(): void {
         this.loadingBar.animateFill(1, () => {
-            this.transitionToMainMenu(true);
+            this.transitionToMainMenu(false);
         }, this.BOOT_SCENE_CONFIG.animation.loadingBarFill.duration);
     }
 

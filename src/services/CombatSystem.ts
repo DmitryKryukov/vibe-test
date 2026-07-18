@@ -1,8 +1,10 @@
 import Phaser from "phaser";
 import { Heroes } from "@/data/Heroes";
 import { Enemies, EnemyScheme, FactionId } from "@/data/Enemies";
-import { ActiveAbilityScheme } from "@/data/Abilities";
+import { Abilities, ActiveAbilityScheme } from "@/data/Abilities";
 import { GameState } from "@/store/GameState";
+import AudioManager from "./AudioManager";
+
 
 export interface ActiveAbilityBattle extends ActiveAbilityScheme {
   progress: number;
@@ -45,6 +47,7 @@ export type CombatVisualEvent =
   | { type: 'miss'; targetUid: string };
 
 export class CombatSystem {
+  private audio!: AudioManager;
   private scene: Phaser.Scene;
   hero: Combatant;
   enemies: Combatant[];
@@ -52,8 +55,9 @@ export class CombatSystem {
   visualEvents: CombatVisualEvent[] = [];
 
 
-  constructor(scene: Phaser.Scene, enemyIds: string[]) {
+  constructor(scene: Phaser.Scene, enemyIds: string[], audio: AudioManager) {
     this.scene = scene;
+    this.audio = audio;
     const run = GameState.requireRun();
     const hero = Heroes[run.heroId.replace("-hero", "")];
     this.hero = {
@@ -148,13 +152,14 @@ export class CombatSystem {
 
   resolveHeroAttack(id: string): void {
     const target = this.enemies.find((enemy) => enemy.alive);
-    
+
     if (!target) return;
     let damage = this.hero.stats.damage;
 
     if (id === 'strike') {
       this.visualEvents.push({ type: 'attack', sourceUid: this.hero.definitionId, targetUid: target.id });
       this.hero.attackCounter += 1;
+      this.audio.playSFX('sfx-strike-ability',{ volume: Phaser.Math.FloatBetween(.8, 1.0) }, { rate: Phaser.Math.FloatBetween(.5, 2.0) });
       this.scene.time.delayedCall(45, () => {
         this.damageTarget(target, this.hero, damage);
       })
@@ -205,7 +210,8 @@ export class CombatSystem {
       let finalDamage = damage
       this.visualEvents.push({ type: 'attack', sourceUid: enemy.id, targetUid: this.hero.definitionId });
       this.damageTarget(this.hero, enemy, finalDamage);
-      //this.addStackingStatus(this.hero, 'poison', 'Яд', 25);
+      this.addStackingStatus(this.hero, 'poison', 'Яд', 25);
+      this.audio.playSFX('sfx-rotten-bite', {volume:  Phaser.Math.FloatBetween(.4, .75)}, { rate:  Phaser.Math.FloatBetween(.75, 1.25) });
       //this.enemies.some((ally) => ally.alive && Enemies[ally.definitionId].aura === 'beast-alpha') ? 38 : 25)
     };
     /*
@@ -364,7 +370,12 @@ if (this.enemies.some((ally) => ally.alive && ENEMIES[ally.definitionId].aura ==
   }
 
   killEnemy(enemy: Combatant): void {
-    this.scene.time.delayedCall(45, ()=>{
+
+
+    this.scene.time.delayedCall(45, () => {
+      if (enemy.alive) {
+        this.audio.playSFX(enemy.definitionId + '-death', {}, { rate: Phaser.Math.FloatBetween(.75, 1.25) });
+      }
       enemy.alive = false;
     })
     //const Enemy = Enemies[enemy.definitionId];

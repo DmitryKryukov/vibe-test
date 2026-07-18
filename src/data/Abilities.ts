@@ -3,6 +3,7 @@ export interface AbilityScheme {
   name: string;
   kind: 'baseAttack' | 'attack' | 'heal' | 'buff' | 'summon' | 'utility';
   description: string;
+  sfxKey: string | null;
 }
 
 export interface ActiveAbilityScheme extends AbilityScheme {
@@ -10,8 +11,8 @@ export interface ActiveAbilityScheme extends AbilityScheme {
 }
 
 export const Abilities = {
-    strikeAbility: {id: 'strike', name: 'Удар', kind: 'baseAttack', description: 'Базовая атака по текущей цели.', cooldown: 1.5},
+    strikeAbility: {id: 'strike', name: 'Удар', kind: 'baseAttack', description: 'Базовая атака по текущей цели.', cooldown: 1.5, sfxKey: 'sfx-strike-ability'},
     mechaStrikeAbility: {id: 'strike', name: 'Удар', kind: 'baseAttack', description: 'Базовая атака по текущей цели.', cooldown: 2.8},
 
-    rottenBiteAbility: { id: 'rotten-bite', name: 'Гнилой укус', kind: 'attack', description: 'Наносит слабый урон и 25 стаков яда.', cooldown: 1.55},
+    rottenBiteAbility: { id: 'rotten-bite', name: 'Гнилой укус', kind: 'attack', description: 'Наносит слабый урон и 25 стаков яда.', cooldown: 1.6},
 }

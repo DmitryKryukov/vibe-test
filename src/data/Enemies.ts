@@ -33,6 +33,8 @@ export interface EnemyScheme {
     spriteScale: number,
     spriteOffsetX: number,
     spriteOffsetY: number,
+    statusBarX: number,
+    statusBarY: number,
   },
   basicAttacks: ActiveAbilityScheme[];
   activeAbilities: ActiveAbilityScheme[];
@@ -57,7 +59,7 @@ export const Enemies: Record<string, EnemyScheme> = {
     name: 'Чумной Грызун',
     faction: 'beast',
     enemyStats: {
-      maxHp: 42,
+      maxHp: 140,
       baseDamage: 5,
       baseAttackSpeed: 1,
     },
@@ -73,6 +75,8 @@ export const Enemies: Record<string, EnemyScheme> = {
       spriteScale: 1.1,
       spriteOffsetX: 20,
       spriteOffsetY: 40,
+      statusBarX: 0,
+      statusBarY: -60,
     }
   },
 };

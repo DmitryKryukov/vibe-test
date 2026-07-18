@@ -22,21 +22,9 @@ export class BattleSceneRenderer {
   private battleUI: BattleUI;
 
   private combatantViews = new Map<string, CombatantView>();
-  private heroZone!: Phaser.GameObjects.Zone;
-  private enemyZones = new Map<string, Phaser.GameObjects.Zone>();
 
-  private hpBarCollection = new Map<string, Phaser.GameObjects.Graphics>();
-  private hpTextCollection = new Map<string, Phaser.GameObjects.Text>();
   private statusContainers = new Map<string, Phaser.GameObjects.Container>();
   private statusSignatures = new Map<string, string>();
-
-  private heroObjects = new Map<string, Phaser.GameObjects.GameObject[]>();
-  private enemiesCollection = new Set<string>();
-  private enemiesObjects = new Map<string, Phaser.GameObjects.GameObject[]>();
-  private removedEnemies = new Set<string>();
-
-  private combatantPositions = new Map<string, { x: number; y: number }>();
-  private spriteObjects = new Map<string, Phaser.GameObjects.GameObject[]>;
 
   constructor(scene: Phaser.Scene, combatSystem: CombatSystem) {
     this.scene = scene;
@@ -89,6 +77,10 @@ this.drawFieldLoot();
           heroScheme.content?.spriteOffsetX ?? 0,
         offsetY:
           heroScheme.content?.spriteOffsetY ?? -84,
+          statusBarX:
+          heroScheme.content?.statusBarX ?? 0,
+        statusBarY:
+          heroScheme.content?.statusBarY ?? -84,
         type: 'hero',
       },
     );
@@ -107,7 +99,7 @@ this.drawFieldLoot();
   }
 
   private renderEnemy(enemy: Combatant, x: number, y: number): void {
-    if (!enemy.alive || this.enemiesCollection.has(enemy.id)) return;
+    if (!enemy.alive) return;
     const enemyScheme = Enemies[enemy.definitionId];
     const view = new CombatantView(
       this.scene, enemy, x, y,
@@ -124,6 +116,10 @@ this.drawFieldLoot();
           enemyScheme.content?.spriteOffsetX ?? 0,
         offsetY:
           enemyScheme.content?.spriteOffsetY ?? -84,
+        statusBarX:
+          enemyScheme.content?.statusBarX ?? 0,
+        statusBarY:
+          enemyScheme.content?.statusBarY ?? -84,
         type: 'enemy',
       },
     );
@@ -142,10 +138,6 @@ this.drawFieldLoot();
   }
   public getCombatantSprite(id: string): Phaser.GameObjects.GameObject {
     return this.combatantViews.get(id)?.sprite as Phaser.GameObjects.GameObject
-  }
-
-  public getSpriteObjects(): Map<string, Phaser.GameObjects.GameObject[]> {
-    return this.spriteObjects;
   }
 
   public syncCombatantViews(): void {
@@ -199,55 +191,7 @@ this.drawFieldLoot();
     this.combatantViews.delete(id);
   }
 
-  public updateStatusBadges(): void {
-    const targets = [this.combatSystem.hero, ...this.combatSystem.enemies.filter((enemy) => enemy.alive)];
-    targets.forEach((target) => {
-      const container = this.statusContainers.get(target.id);
-      const compact = new Map<string, { id: string; label: string; stacks: number }>();
-      if (!container) return;
-
-      target.statuses.forEach((status) => {
-        const prev = compact.get(status.id);
-        compact.set(status.id, {
-          id: status.id,
-          label: status.label,
-          stacks: Math.max(status.stacks, prev?.stacks ?? 0),
-        });
-      });
-
-      const signature = [...compact.values()].map((s) => `${s.id}:${s.stacks}`).join('|');
-      if (this.statusSignatures.get(target.id) === signature) return;
-
-      container.removeAll(true);
-      [...compact.values()].slice(0, 5).forEach((status, index) => {
-        const info = StatusInfo[status.id as keyof typeof StatusInfo];
-        const width = Phaser.Math.Clamp(74 + info.name.length * 8 + (status.stacks > 1 ? 30 : 0), 118, 184);
-        const x = (index - Math.min(4, compact.size - 1) / 2) * 148;
-        const bg = this.scene.add.rectangle(x, 0, width, 30, 0x141414, 0.9).setStrokeStyle(1, 0xb44737, 0.9);
-        const iconKey = `icon-status-${status.id}`;
-        const icon = this.scene.textures.exists(iconKey)
-          ? this.scene.add.image(x - width / 2 + 18, 0, iconKey).setDisplaySize(24, 24)
-          : this.scene.add.circle(x - width / 2 + 18, 0, 9, 0xb44737);
-        const stackText = status.stacks > 1 ? ` ${status.stacks}` : '';
-        const label = this.scene.add.text(x - width / 2 + 36, 0, `${info.name}${stackText}`, {
-          resolution: Math.min(window.devicePixelRatio || 1, 2),
-          fontSize: '12px',
-          color: '#ffd0c6',
-        }).setOrigin(0, 0.5);
-        const hit = this.scene.add.zone(x, 0, width, 30);
-        /*
-        this.ui.tooltip(
-          hit.setInteractive({ useHandCursor: false }),
-          info.name,
-          [info.description, status.stacks > 1 ? `Стаков: ${status.stacks}` : undefined]
-            .filter(Boolean)
-            .join('\n')
-        );
-        */
-        container.add([bg, icon, label, hit]);
-      });
-    })
-  }
+  
 
   public renderVictoryPanel(): void {
     this.battleUI.renderResultPanel('victory');
@@ -262,19 +206,8 @@ this.drawFieldLoot();
     this.scene.input.off('drop');
     this.scene.input.off('dragend');
 
-    this.hpBarCollection.clear();
-    this.hpTextCollection.clear();
     this.statusContainers.clear();
     this.statusSignatures.clear();
-
-    this.heroObjects.clear();
-    this.enemiesCollection.clear();
-    this.enemiesObjects.clear();
-    this.enemyZones.clear();
-    this.removedEnemies.clear();
-
-    this.combatantPositions.clear();
-    this.spriteObjects.clear();
   }
 
 }

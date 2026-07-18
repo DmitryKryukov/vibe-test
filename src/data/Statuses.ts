@@ -1,5 +1,6 @@
-export const StatusInfo: Record<string, { name: string; description: string }> = {
-  poison: { name: 'Яд', description: 'Копится стаками. Каждые 100 стаков дают одну порцию периодического урона.' },
+export const StatusInfo: Record<string, { name: string; description: string, color: string}> = {
+  poison: { name: 'Яд', description: 'Копится стаками. Каждые 100 стаков дают одну порцию периодического урона.', color: '#43FF00'},
+  /*
   bleed: { name: 'Кровотечение', description: 'Периодически наносит физический урон. Чем больше стаков, тем сильнее тик.' },
   burn: { name: 'Поджог', description: 'Периодически наносит огненный урон.' },
   chill: { name: 'Окоченение', description: 'Холодный эффект. Используется предметами и способностями для замедляющего давления.' },
@@ -12,4 +13,5 @@ export const StatusInfo: Record<string, { name: string; description: string }> =
   shield: { name: 'Щит', description: 'Поглощает часть входящего урона.' },
   slow: { name: 'Замедление', description: 'Замедляет заполнение таймеров действий.' },
   invulnerable: { name: 'Неуязвимость', description: 'Цель временно не получает урон.' }
-};
+*/
+  };

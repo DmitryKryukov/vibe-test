@@ -6,6 +6,7 @@ import { BattleSceneRenderer } from './BattleSceneRenderer';
 import { CombatSystem } from '@/services/CombatSystem';
 import { EncounterPool } from '@/data/Enemies';
 import { BattleEffects } from './BatteEffects';
+import AudioManager from '@/services/AudioManager';
 //import { ENEMIES } from '../data/Enemies';
 //import { ITEMS } from '../data/items';
 //import { CombatantState, EncounterType, InventoryItem, StatusId } from '../entities/Types';
@@ -35,6 +36,7 @@ export class BattleScene extends Phaser.Scene {
   private battleEffects!: BattleEffects;
   private combatSystem!: CombatSystem;
   private ended = false;
+  public audio!: AudioManager;
 
   constructor() {
     super('BattleScene');
@@ -42,10 +44,13 @@ export class BattleScene extends Phaser.Scene {
 
   init(data: BattleData): void {
     this.nodeId = data.nodeId;
-    this.combatSystem = new CombatSystem(this, EncounterPool.battle.encounter1);
   }
-  
+
   create(): void {
+    this.audio = this.plugins.get('AudioManager') as AudioManager;
+    this.combatSystem = new CombatSystem(this, EncounterPool.battle.encounter1, this.audio);
+    this.audio.playMusic('sfx-strike-ability');
+
     //this.scale.off('resize', this.handleResize);
     //this.scale.on('resize', this.handleResize);
     //this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off('resize', this.handleResize));
@@ -53,6 +58,11 @@ export class BattleScene extends Phaser.Scene {
     this.sceneRenderer = new BattleSceneRenderer(this, this.combatSystem);
     this.battleEffects = new BattleEffects(this, this.combatSystem, this.sceneRenderer);
     this.sceneRenderer.renderStatic();
+    this.audio.stopMusic();
+    this.time.delayedCall(45, () => {
+      this.audio.setMusicVolume(1);
+      this.audio.playMusic('music-battle-1', true);
+    })
   }
 
   update(_: number, delta: number): void {
@@ -60,7 +70,6 @@ export class BattleScene extends Phaser.Scene {
     this.combatSystem.update(delta);
     this.battleEffects.processVisualEvents();
     this.sceneRenderer.syncCombatantViews();
-    this.sceneRenderer.updateStatusBadges();
     if (this.combatSystem.ended) {
       this.time.delayedCall(0, () => this.finishBattle(this.combatSystem.ended));
     }

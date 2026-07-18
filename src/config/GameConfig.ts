@@ -11,12 +11,11 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     type: Phaser.WEBGL,
     parent: 'gameRoot',
     backgroundColor: COLORTOKEN.Background.Zeroth,
-    roundPixels: true,
    
     scale: {
-        mode: Phaser.Scale.FIT,
-        width: window.innerWidth, 
-        height: window.innerHeight,
+        mode: Phaser.Scale.RESIZE,
+        width: window.innerWidth * 1, 
+        height: window.innerHeight * 1,
         zoom: 2,
         autoCenter: Phaser.Scale.CENTER_BOTH,
     },
@@ -25,12 +24,12 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
         antialias: true,
         antialiasGL: true,
         roundPixels: false,
-        pixelArt: false,
+        pixelArt: true,
         powerPreference: 'high-performance'
     },
 
     fps: {
-        target: 120,
+        target: 120 ,
         forceSetTimeOut: true
     },
 

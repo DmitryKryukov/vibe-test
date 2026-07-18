@@ -18,6 +18,8 @@ export interface HeroScheme {
         spriteScale?: number;
         spriteOffsetX?: number;
         spriteOffsetY?: number;
+        statusBarX?: number;
+        statusBarY?: number;
     },
     locked?: boolean;
 }
@@ -62,7 +64,7 @@ export const Heroes: Record<string, HeroScheme> = {
             },
         ],
         slots: ['weapon', 'helmet', 'amulet', 'shield', 'armor', 'ring'],
-        baseStats: { maxHp: 135, baseDamage: 16, baseAttackSpeed: 1 },
+        baseStats: { maxHp: 1350, baseDamage: 16, baseAttackSpeed: 1 },
         basicAttacks: [
             Abilities.strikeAbility as ActiveAbilityScheme,
         ],
@@ -77,6 +79,8 @@ export const Heroes: Record<string, HeroScheme> = {
             spriteScale: 1,
             spriteOffsetX: -10,
             spriteOffsetY: 40,
+            statusBarX: 0,
+            statusBarY: -150,
         },
         locked : false,
     },

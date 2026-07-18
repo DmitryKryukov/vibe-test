@@ -62,7 +62,8 @@ export class MainMenuScene extends Phaser.Scene {
         this.scale.on('resize', this.handleResize);
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this);
         this.input.once(Phaser.Input.Events.POINTER_DOWN, () => {
-            this.audio.playMusic('bg_music');
+            this.audio.setMusicVolume(.25);
+            this.audio.playMusic('main-menu');
         });
     }
 
