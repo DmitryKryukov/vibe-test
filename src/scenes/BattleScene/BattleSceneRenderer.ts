@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Background } from '@/ui/components/Background';
-import { Combatant, CombatSystem } from '@/services/CombatSystem';
+import { Combatant } from '@/services/CombatantFactory';
+import { CombatSystem } from '@/services/CombatSystem';
 import { CombatantView } from '../Partials/CombatantView';
 import { GameState } from '@/store/GameState';
 import { Heroes } from '@/data/Heroes';

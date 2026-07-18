@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { Combatant, CombatSystem } from '@/services/CombatSystem';
+import { Combatant } from '@/services/CombatantFactory';
+import { CombatSystem } from '@/services/CombatSystem';
 
 import { anyToColor } from '@/utils/UtilsColor';
 import { HPBar } from './HPBar';
