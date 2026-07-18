@@ -1,10 +1,6 @@
 import Phaser from 'phaser';
 import { Combatant, CombatSystem } from '@/services/CombatSystem';
-import { GameState } from '@/store/GameState';
-import { Heroes } from '@/data/Heroes';
 
-import { Enemies, EnemyScheme } from '@/data/Enemies';
-import { StatusInfo } from '@/data/Statuses';
 import { anyToColor } from '@/utils/UtilsColor';
 import { HPBar } from './HPBar';
 import { StatusBar } from './StatusBar';
@@ -84,8 +80,9 @@ export class CombatantView {
 
     public destroy(): void {
         this.root.destroy(true);
-        if (this.hpBar) this.hpBar?.destroy();
+        this.statusBarAnchor.destroy(true);
         if (this.statusBar) this.statusBar?.destroy();
+        if (this.hpBar) this.hpBar?.destroy();
     }
 
 }

@@ -15,4 +15,5 @@ export const Abilities = {
     mechaStrikeAbility: {id: 'strike', name: 'Удар', kind: 'baseAttack', description: 'Базовая атака по текущей цели.', cooldown: 2.8},
 
     rottenBiteAbility: { id: 'rotten-bite', name: 'Гнилой укус', kind: 'attack', description: 'Наносит слабый урон и 25 стаков яда.', cooldown: 1.6},
+    boarChargeAbility: { id: 'boar-charge', name: 'Таран с разбега', kind: 'ability', description: 'Тяжелый урон и оглушение.', cooldown: 4.8},
 }

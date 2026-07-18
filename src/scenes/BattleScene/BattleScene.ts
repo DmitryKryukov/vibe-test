@@ -97,6 +97,7 @@ export class BattleScene extends Phaser.Scene {
       // `Предметы выпали на поле: ${this.combat.rewards.items.length}`,
       //  run.trainingPoints > 0 ? 'Герой получил очко обучения.' : '',
       //].filter(Boolean);
+      
 
       // Показываем экран победы с кнопками
       this.sceneRenderer.renderVictoryPanel(

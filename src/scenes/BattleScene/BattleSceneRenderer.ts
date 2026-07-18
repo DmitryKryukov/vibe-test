@@ -168,6 +168,7 @@ this.drawFieldLoot();
     const sprite = view.sprite;
 
     view.hpBar?.destroy();
+    view.statusBar?.destroy();
 
     this.scene.tweens.add({
       targets: sprite,

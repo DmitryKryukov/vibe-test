@@ -5,7 +5,9 @@ import { anyToColor } from "@/utils/UtilsColor";
 import { CombatantView } from "./CombatantView";
 import { TYPETOKEN } from "@/ui/styles/TypeTokens";
 import { Tooltip } from "@/ui/components/Tooltip";
-import { Factions, FactionInfo } from "@/data/Enemies";
+import { Factions } from "@/data/Enemies";
+import { AttackIndicator } from "./AttackIndicator";
+import { AbilityIndicator } from "./AbilityIndicator";
 
 interface BarDimensions {
     width: number;
@@ -14,22 +16,27 @@ interface BarDimensions {
 }
 
 export class HPBar extends Phaser.GameObjects.Container {
-
     private readonly combatantView: CombatantView;
     private readonly root: Phaser.GameObjects.Container;
-
-    private target!: Combatant;
+    private target: Combatant;
     private hpBarType: "hero" | "enemy";
     private hpBarGraphics!: Phaser.GameObjects.Graphics;
     private hpTextStroke: Phaser.GameObjects.Text | null = null;
     private hpText: Phaser.GameObjects.Text | null = null;
-    private attackIndicators: Phaser.GameObjects.Arc[] = [];
     private factionIcon: Phaser.GameObjects.GameObject | null = null;
-
+    private attackIndicator: AttackIndicator | null = null;
+    private abilityIndicator: AbilityIndicator | null = null;
     private tooltips: Tooltip[] = [];
 
-    constructor(scene: Phaser.Scene, combatantView: CombatantView, type: "hero" | "enemy" | undefined = "enemy", target: Combatant, x: number, y: number) {
-        super(scene)
+    constructor(
+        scene: Phaser.Scene,
+        combatantView: CombatantView,
+        type: "hero" | "enemy" = "enemy",
+        target: Combatant,
+        x: number,
+        y: number
+    ) {
+        super(scene);
         this.combatantView = combatantView;
         this.root = this.scene.add.container(0, 0);
         this.target = target;
@@ -44,26 +51,46 @@ export class HPBar extends Phaser.GameObjects.Container {
     }
 
     private renderHPBar(x: number, y: number): void {
-        const dimensions = this.getHPBarStyles();
-        const { width, height, cornerRadius } = dimensions;
+        const dims = this.getHPBarStyles();
+        const { width, height, cornerRadius } = dims;
         const spriteHeight = this.combatantView.sprite.height * this.combatantView.sprite.scale;
         this.root.setPosition(x - width / 2, y + spriteHeight / 2);
 
+        // Графика для фона и полосы HP
         this.hpBarGraphics = this.scene.add.graphics().setDepth(40);
         this.root.add(this.hpBarGraphics);
+
+        // Текст HP (только для героя)
         if (this.hpBarType === "hero") {
             this.renderHPBarText(width, height);
-        } else if (this.hpBarType === "enemy") {
+        } else {
+            // Иконка фракции для врага
             this.renderEnemyFactionIcon(width, height, x, y);
         }
 
-        this.createAttackIndicators(height, this.hpBarType === "hero");
-        this.update();
-    }
+        // Индикаторы атак и способностей
+        const isHero = this.hpBarType === "hero";
+        this.attackIndicator = new AttackIndicator(
+            this.scene,
+            this.target,
+            isHero,
+            0, 0,
+            height
+        );
+        this.abilityIndicator = new AbilityIndicator(
+            this.scene,
+            this.target,
+            isHero,
+            0, 0,
+            height,
+            width,
+            this.root
+        );
 
-    private renderHpBarBackground(width: number, height: number, cornerRadius: number): void {
-        this.hpBarGraphics.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
-        this.hpBarGraphics.fillRoundedRect(0, 0, width, height, cornerRadius);
+        this.root.add(this.attackIndicator);
+        this.root.add(this.abilityIndicator);
+
+        this.update();
     }
 
     private renderHPBarText(width: number, height: number): void {
@@ -84,9 +111,7 @@ export class HPBar extends Phaser.GameObjects.Container {
         this.root.add(this.hpText);
         this.root.addAt(this.hpTextStroke, 0);
 
-        const hpString = `${Math.max(0, Math.ceil(this.target.stats.hp))}/${this.target.stats.maxHp}`;
-        this.hpTextStroke.setText(hpString);
-        this.hpText.setText(hpString);
+        this.updateHPText();
     }
 
     private renderEnemyFactionIcon(width: number, height: number, x: number, y: number): void {
@@ -109,73 +134,20 @@ export class HPBar extends Phaser.GameObjects.Container {
         this.factionIcon.setInteractive({ useHandCursor: true });
         const factionData = Factions[this.target.faction as keyof typeof Factions];
         const tooltip = new Tooltip(this.scene);
-        tooltip.show(this.factionIcon, factionData.name, factionData.description, this.target, { width: 390 });
+        tooltip.show(
+            this.factionIcon,
+            factionData.name,
+            factionData.description,
+            this.target,
+            { width: 390 }
+        );
         this.tooltips.push(tooltip);
-
         this.root.add(this.factionIcon);
     }
 
-    private createAttackIndicators(height: number, isHero: boolean): void {
-        this.target.basicAttacks.forEach((attack, index) => {
-            const offset = index * (isHero ? 45 : 28);
-            const radius = isHero ? 20 : 12;
-            const posX = -offset - 4;
-            const posY = height / 2 - radius + 1;
-
-            const attackIndicator = this.scene.add.circle(
-                posX,
-                posY,
-                radius,
-                anyToColor(COLORTOKEN.Background.Zeroth),
-                0
-            );
-            attackIndicator.setOrigin(1, 0);
-            attackIndicator.setInteractive({ useHandCursor: true });
-
-            const tooltip = new Tooltip(this.scene);
-            tooltip.show(
-                attackIndicator,
-                attack.name,
-                attack.description,
-                { cooldown: attack.cooldown },
-                { width: 390 }
-            );
-            this.tooltips.push(tooltip);
-
-            this.root.add(attackIndicator);
-            this.attackIndicators.push(attackIndicator);
-        });
-    }
-
-    private renderAttackIndicators(height: number, isHero: boolean): void {
-        this.target.basicAttacks.forEach((attack, index) => {
-            const offset = index * (isHero ? 45 : 28);
-            const padding = isHero ? 4 : 3;
-            const posX = -offset - 4;
-            const radius = isHero ? 20 : 12;
-            const posY = height / 2 - radius;
-
-            this.hpBarGraphics.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth), 1);
-            this.hpBarGraphics.fillCircle(
-                posX - radius,
-                posY + radius,
-                radius
-            );
-
-            this.hpBarGraphics.slice(
-                posX - radius,
-                posY + radius,
-                radius - padding,
-                Phaser.Math.DegToRad(-90),
-                Phaser.Math.DegToRad(
-                    -90 + 360 * Math.min(1, attack.progress / attack.cooldown)
-                ),
-                false
-            );
-
-            this.hpBarGraphics.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
-            this.hpBarGraphics.fillPath();
-        });
+    private renderHpBarBackground(width: number, height: number, cornerRadius: number): void {
+        this.hpBarGraphics.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
+        this.hpBarGraphics.fillRoundedRect(0, 0, width, height, cornerRadius);
     }
 
     private renderHPBarThumb(width: number, height: number, cornerRadius: number): void {
@@ -193,52 +165,61 @@ export class HPBar extends Phaser.GameObjects.Container {
         return {
             cornerRadius: isHero ? 8 : 4,
             width: isHero ? 248 : 162,
-            height: isHero ? 38 : 20
+            height: isHero ? 38 : 20,
         };
+    }
+
+    private updateHPText(): void {
+        if (this.hpText && this.hpTextStroke) {
+            const hpString = `${Math.max(0, Math.ceil(this.target.stats.hp))}/${this.target.stats.maxHp}`;
+            this.hpTextStroke.setText(hpString);
+            this.hpText.setText(hpString);
+        }
     }
 
     public update(): void {
         if (!this.target) return;
 
         const { width, height, cornerRadius } = this.getHPBarStyles();
-        const isHero = this.hpBarType === "hero";
 
+        // Перерисовка полосы HP
         this.hpBarGraphics.clear();
-
         this.renderHpBarBackground(width, height, cornerRadius);
         this.renderHPBarThumb(width, height, cornerRadius);
 
-        if (isHero && this.hpText && this.hpTextStroke) {
-            const hpString = `${Math.max(0, Math.ceil(this.target.stats.hp))}/${this.target.stats.maxHp}`;
-            this.hpTextStroke.setText(hpString);
-            this.hpText.setText(hpString);
-        }
+        // Текст HP
+        this.updateHPText();
 
-        this.renderAttackIndicators(height, isHero);
+        // Обновление дочерних индикаторов
+        this.attackIndicator?.update();
+        this.abilityIndicator?.update();
     }
 
     private cleanup(): void {
         this.scene.events.off(Phaser.Scenes.Events.UPDATE, this.update, this);
-        
-        this.tooltips.forEach(tooltip => {
-            if (typeof (tooltip as any).destroy === 'function') {
-                (tooltip as any).destroy();
-            }
-        });
+
+        this.tooltips.forEach(t => t.destroy());
         this.tooltips = [];
 
-        if (this.root) {
-            this.root.destroy(true); 
+        if (this.attackIndicator) {
+            this.attackIndicator.destroy(true);
+            this.attackIndicator = null;
         }
-        
-        this.attackIndicators = [];
-        this.factionIcon = null;
+        if (this.abilityIndicator) {
+            this.abilityIndicator.destroy(true);
+            this.abilityIndicator = null;
+        }
+
+        if (this.root) {
+            this.root.destroy(true);
+        }
+
         this.hpText = null;
         this.hpTextStroke = null;
+        this.factionIcon = null;
     }
 
     public destroy(fromScene?: boolean): void {
         this.cleanup();
-        super.destroy(fromScene);
     }
 }

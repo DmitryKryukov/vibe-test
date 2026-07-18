@@ -59,7 +59,7 @@ export const Enemies: Record<string, EnemyScheme> = {
     name: 'Чумной Грызун',
     faction: 'beast',
     enemyStats: {
-      maxHp: 140,
+      maxHp: 32,
       baseDamage: 5,
       baseAttackSpeed: 1,
     },
@@ -70,20 +70,47 @@ export const Enemies: Record<string, EnemyScheme> = {
     ],
     content: {
       spriteImage: 'enemy-plague-rodent',
-      spriteWidth: 354,
-      spriteHeight: 210,
-      spriteScale: 1.1,
-      spriteOffsetX: 20,
-      spriteOffsetY: 40,
+      spriteWidth: 348,
+      spriteHeight: 204,
+      spriteScale: .8,
+      spriteOffsetX: 0,
+      spriteOffsetY: 10,
       statusBarX: 0,
       statusBarY: -60,
+    }
+  },
+
+  graveBoar: {
+    id: 'graveBoar',
+    name: 'Могильный Вепрь',
+    faction: 'beast',
+    enemyStats: {
+      maxHp: 64,
+      baseDamage: 13,
+      baseAttackSpeed: 1,
+    },
+    basicAttacks: [
+      Abilities.rottenBiteAbility as ActiveAbilityScheme,
+    ],
+    activeAbilities: [
+      Abilities.boarChargeAbility as ActiveAbilityScheme,
+    ],
+    content: {
+      spriteImage: 'enemy-grave-boar',
+      spriteWidth: 450,
+      spriteHeight: 450,
+      spriteScale: .8,
+      spriteOffsetX: -60,
+      spriteOffsetY: 20,
+      statusBarX: 0,
+      statusBarY: -100,
     }
   },
 };
 
 export const EncounterPool = {
   battle: {
-    encounter1: ['plagueRodent', 'plagueRodent', 'plagueRodent']
+    encounter1: ['graveBoar', 'plagueRodent', 'plagueRodent']
   },
   //elite: ['grave_boar', 'pack_alpha', 'excommunicated_intendant', 'penitent_guard', 'crypt_keeper'],
   //boss: ['pack_alpha', 'excommunicated_intendant', 'crypt_keeper']
