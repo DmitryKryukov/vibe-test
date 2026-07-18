@@ -11,7 +11,7 @@ import { COLORTOKEN } from '@/ui/styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
 import { Enemies, EnemyScheme } from '@/data/Enemies';
 import { screenBounds, screenToWorld, screenSpaceScale } from '@/utils/UtilsLayout';
-import { getEnemySlots, getHeroSlots } from './BattleLayout';
+import { getEnemySlots, getHeroSlots } from '../../data/Battleground';
 import { BattleUI } from './BattleUI';
 
 export class BattleSceneRenderer {
