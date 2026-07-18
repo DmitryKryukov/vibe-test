@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CombatSystem, CombatVisualEvent } from '@/services/CombatSystem';
+import { CombatEventType, CombatSystem, CombatVisualEvent } from '@/services/CombatSystem';
 import { BattleSceneRenderer } from './BattleSceneRenderer';
 import { COLORTOKEN } from '@/ui/styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
@@ -21,31 +21,31 @@ export class BattleEffects {
 		let impactDelay = 0;
 
 		events.forEach((event) => {
-			if (event.type === 'windup') {
+			if (event.type === CombatEventType.Windup) {
 				this.playWindupFlash(event.sourceUid);
 			}
 
-			if (event.type === 'attack') {
+			if (event.type === CombatEventType.Attack) {
 				this.playAttackWindup(event);
 				impactDelay = 310;
 			}
 
-			if (event.type === 'damage') {
+			if (event.type === CombatEventType.Damage) {
 				this.scene.time.delayedCall(impactDelay, () => {
 					this.playHitImpact(event.targetUid);
 					this.renderFloatMessage(event.targetUid, `−${event.amount}`, COLORTOKEN.Accent.Red);
 				});
 			}
 
-			if (event.type === 'heal') {
+			if (event.type === CombatEventType.Heal) {
 				this.scene.time.delayedCall(impactDelay, () => {
 					//this.floatNumber(event.targetUid, `+${event.amount}`, '#5cff83');
 				});
 			}
 
-			if (event.type === 'miss') {
+			if (event.type === CombatEventType.Miss) {
 				this.scene.time.delayedCall(impactDelay, () => {
-					//this.floatNumber(event.targetUid, 'Промах', '#f2e7c6');
+					this.renderFloatMessage(event.targetUid, 'Промах', COLORTOKEN.Foreground.Quanternary);
 				});
 			}
 		});
@@ -164,8 +164,7 @@ export class BattleEffects {
 		*/
 	}
 
-	// ----- Анимация движения атакующего (рывок вперёд) -----
-	private playAttackWindup(event: Extract<CombatVisualEvent, { type: 'attack' }>): void {
+	private playAttackWindup(event: Extract<CombatVisualEvent, { type: CombatEventType.Attack }>): void {
 		//this.playWindupFlash(event.sourceUid);
 		this.playAttackMotion(event)
 	}
@@ -235,7 +234,7 @@ export class BattleEffects {
 		emitter.explode(32, position.x, combatantSprite.y);
 	}
 
-	private playAttackMotion(event: Extract<CombatVisualEvent, { type: 'attack' }>): void {
+	private playAttackMotion(event: Extract<CombatVisualEvent, { type: CombatEventType.Attack }>): void {
 		const ATTACK_MOTION_CONFIG = {
 			distanceFactorX: 0.16,
 			distanceFactorY: 0.09,

@@ -5,12 +5,20 @@ import { Combatant, CombatantFactory } from "./CombatantFactory";
 import { AbilitySystem } from "./AbilitySystem";
 import { StatusSystem } from "./StatusSystem";
 
+export enum CombatEventType {
+    Damage,
+    Heal,
+    Windup,
+    Attack,
+    Miss,
+}
+
 export type CombatVisualEvent =
-	| { type: "windup"; sourceUid: string }
-	| { type: "attack"; sourceUid: string; targetUid: string }
-	| { type: "damage"; targetUid: string; amount: number }
-	| { type: "heal"; targetUid: string; amount: number }
-	| { type: "miss"; targetUid: string };
+	| { type: CombatEventType.Windup; sourceUid: string }
+	| { type: CombatEventType.Attack; sourceUid: string; targetUid: string }
+	| { type: CombatEventType.Damage; targetUid: string; amount: number }
+	| { type: CombatEventType.Heal; targetUid: string; amount: number }
+	| { type: CombatEventType.Miss; targetUid: string };
 
 export class CombatSystem {
 	private static readonly WINDUP_TIME = 0.25;

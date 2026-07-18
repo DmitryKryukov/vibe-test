@@ -1,7 +1,7 @@
 import AudioManager from "./AudioManager";
 import { ActiveAbilityScheme } from "@/data/Abilities";
 import { Combatant } from "./CombatantFactory";
-import { CombatVisualEvent } from "./CombatSystem";
+import { CombatEventType, CombatVisualEvent } from "./CombatSystem";
 import { StatusSystem } from "./StatusSystem";
 
 export interface ActiveAbilityBattle extends ActiveAbilityScheme {
@@ -53,7 +53,7 @@ export class AbilitySystem {
 
 		ability.windupQueued = true;
 
-		this.events.push({ type: "windup", sourceUid });
+		this.events.push({ type: CombatEventType.Windup, sourceUid });
 	}
 
 	resolve(source: Combatant, target: Combatant, ability: ActiveAbilityBattle) {
@@ -76,8 +76,8 @@ export class AbilitySystem {
 	}
 
 	private attack(source: Combatant, target: Combatant, damage: number) {
-		this.events.push({ type: "attack", sourceUid: source.id, targetUid: target.id });
-		this.events.push({ type: "damage", targetUid: target.id, amount: damage });
+		this.events.push({ type: CombatEventType.Attack, sourceUid: source.id, targetUid: target.id });
+		this.events.push({ type: CombatEventType.Damage, targetUid: target.id, amount: damage });
 		target.stats.hp -= damage;
 	}
 }
