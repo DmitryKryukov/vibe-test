@@ -232,6 +232,6 @@ export class Tooltip extends Phaser.GameObjects.Container {
 
     destroy(fromScene?: boolean): void {
         this.tooltipContainer?.removeAll(true);
-        
+        super.destroy(fromScene);       
     }
 }
