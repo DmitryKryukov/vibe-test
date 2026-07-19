@@ -82,6 +82,18 @@ class GameStateStore {
 		}
 		*/
 	}
+
+	getEncounterEnemies(type: EncounterType): string[] {
+		//if (type === 'boss') return ['pack_alpha', 'excommunicated_intendant', 'crypt_keeper'];
+		//const pool = type === 'elite' ? ENCOUNTER_POOLS.elite : ENCOUNTER_POOLS.battle;
+		//	const count = type === 'elite' ? 2 + Math.floor(Math.random() * 2) : 1 + Math.floor(Math.random() * 3);
+		const pool = EncounterPool.battle;
+		const keys = Object.keys(pool) as Array<keyof typeof pool>; // <-- Приводим тип массива ключей
+		const randomKey = keys[Math.floor(Math.random() * keys.length)];
+
+		return pool[randomKey];
+		//return Phaser.Math.RND.shuffle([...pool]).slice(0, count);
+	}
 	/*
 	  
     

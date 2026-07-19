@@ -57,7 +57,7 @@ export function generateMap(extraBranches: number = 1): MapNode[] {
 
 function generateRows(column: number, extraBranches: number): number[] {
     if (column === 1) {
-        return [0, 1, 2, 3];
+        return [0.5, 1.5, 2.5];
     }
 
     if (column === 9) {
@@ -83,20 +83,68 @@ function connectColumns(
     const fromRows = grid.get(column) ?? [];
     const toRows = grid.get(column + 1) ?? [];
 
-    for (const row of fromRows) {
-        const from = findNode(nodes, column, row);
-        if (!from) continue;
+    if (column === 0) {
+        const fromRow = fromRows[0];
+        const from = findNode(nodes, column, fromRow);
+        if (from) {
+            from.links = toRows.map(target => nodeId(column + 1, target));
+        }
+        return;
+    }
 
-        const sorted = [...toRows].sort(
-            (a, b) => Math.abs(a - row) - Math.abs(b - row)
-        );
+    const sortedFrom = [...fromRows].sort((a, b) => a - b);
+    const sortedTo = [...toRows].sort((a, b) => a - b);
+    const m = sortedFrom.length;
+    const n = sortedTo.length;
 
-        const targets =
-            column === 0
-                ? sorted
-                : sorted.slice(0, Math.min(2, sorted.length));
+    let bestDist = Infinity;
+    let bestPlan: { start: number; k: number }[] | null = null;
 
-        from.links = targets.map(target => nodeId(column + 1, target));
+    function dfs(i: number, lastEnd: number, plan: { start: number; k: number }[]) {
+        if (i === m) {
+            if (lastEnd === n - 1) {
+                let total = 0;
+                for (let j = 0; j < m; j++) {
+                    const { start, k } = plan[j];
+                    for (let t = start; t < start + k; t++) {
+                        total += Math.abs(sortedFrom[j] - sortedTo[t]);
+                    }
+                }
+                if (total < bestDist) {
+                    bestDist = total;
+                    bestPlan = plan.map(p => ({ ...p }));
+                }
+            }
+            return;
+        }
+
+        for (const k of [1, 2]) {
+            if (k === 2 && lastEnd + 2 > n - 1) continue;
+            const possibleStarts = [lastEnd];
+            if (lastEnd + 1 <= n - 1) possibleStarts.push(lastEnd + 1);
+            for (const s of possibleStarts) {
+                if (s + k - 1 > n - 1) continue;
+                const newPlan = [...plan, { start: s, k }];
+                const newEnd = s + k - 1;
+                dfs(i + 1, newEnd, newPlan);
+            }
+        }
+    }
+
+    dfs(0, -1, []);
+
+    if (bestPlan) {
+        for (let i = 0; i < m; i++) {
+            const fromRow = sortedFrom[i];
+            const from = findNode(nodes, column, fromRow);
+            if (!from) continue;
+            const { start, k } = bestPlan[i];
+            const targets = [];
+            for (let t = start; t < start + k; t++) {
+                targets.push(nodeId(column + 1, sortedTo[t]));
+            }
+            from.links = targets;
+        }
     }
 }
 

@@ -29,7 +29,7 @@ export class Tooltip extends Phaser.GameObjects.Container {
         paddingRight: 20,
         paddingBottom: 14,
         paddingLeft: 14,
-        gap: 4,
+        gap: 6,
     }
 
     constructor(scene: Phaser.Scene) {
@@ -39,40 +39,44 @@ export class Tooltip extends Phaser.GameObjects.Container {
     }
 
     public show(target: Phaser.GameObjects.GameObject, title: string, text: string, entity?: any, tooltipStyle?: any): void {
-    const style = { ...this.tooltipStyle, ...tooltipStyle };
+        const style = { ...this.tooltipStyle, ...tooltipStyle };
+        this.tooltipStyle = style;
 
-    target.on('pointerover', (pointer: Phaser.Input.Pointer) => {
-        this.renderTooltip(title, text, entity, style); 
-        if (this.tooltipContainer) {
-            this.placeTooltip(
-                this.tooltipContainer,
-                pointer.worldX,
-                pointer.worldY,
-                style.width,
-                this.tooltipStyle.height
-            );
-        }
-    });
+        target.on('pointerover', (pointer: Phaser.Input.Pointer) => {
+            this.renderTooltip(title, text, entity, style);
+            if (this.tooltipContainer) {
+                this.placeTooltip(
+                    this.tooltipContainer,
+                    pointer.worldX,
+                    pointer.worldY,
+                    this.tooltipStyle.width,
+                    this.tooltipStyle.height
+                );
+            }
+        });
 
-    target.on('pointerout', () => {
-        this.tooltipContainer?.destroy();
-        this.tooltipContainer = null;
-    });
+        target.on('pointerout', () => {
+            this.tooltipContainer?.destroy();
+            this.tooltipContainer = null;
+        });
 
-    target.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-        if (this.tooltipContainer) {
-            this.placeTooltip(
-                this.tooltipContainer,
-                pointer.worldX,
-                pointer.worldY,
-                style.width,
-                this.tooltipStyle.height
-            );
-        }
-    });
-}
+        target.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+            if (this.tooltipContainer) {
+                this.placeTooltip(
+                    this.tooltipContainer,
+                    pointer.worldX,
+                    pointer.worldY,
+                    style.width,
+                    this.tooltipStyle.height
+                );
+            }
+        });
+    }
 
-    private renderTooltip(titleText: string, bodyText: string, entity?: any, style?: TooltipScheme): void {
+    private renderTooltip(titleText: string, bodyText: string, entity?: any, tooltipStyle?: TooltipScheme): void {
+        const style = { ...this.tooltipStyle, ...tooltipStyle };
+        this.tooltipStyle = style;
+
         let tooltipConfig: {
             title: Phaser.GameObjects.Text | null,
             body: Phaser.GameObjects.Text | null,
@@ -194,7 +198,7 @@ export class Tooltip extends Phaser.GameObjects.Container {
         this.tooltipStyle.height = lastElementY + this.tooltipStyle.paddingTop + this.tooltipStyle.paddingBottom;
 
         let background = this.renderBackground(
-            style?.width ?? 390,
+            tooltipStyle?.width ?? 390,
             this.tooltipStyle.height
         );
 
@@ -232,6 +236,6 @@ export class Tooltip extends Phaser.GameObjects.Container {
 
     destroy(fromScene?: boolean): void {
         this.tooltipContainer?.removeAll(true);
-        super.destroy(fromScene);       
+        super.destroy(fromScene);
     }
 }

@@ -42,14 +42,14 @@ export class BattleScene extends Phaser.Scene {
 	
 	init(data: BattleData): void {
 		this.nodeId = data.nodeId;
-	}
-	
-	create(): void {
 		this.audio = this.plugins.get('AudioManager') as AudioManager;
-		this.combatSystem = new CombatSystem(this, EncounterPool.battle.encounter1, this.audio);
+		this.combatSystem = new CombatSystem(this, data.enemyIds, this.audio);
 		this.sceneRenderer = new BattleSceneRenderer(this, this.combatSystem);
 		this.battleEffects = new BattleEffects(this, this.combatSystem, this.sceneRenderer);
 		this.audio.stopMusic();
+	}
+	
+	create(): void {
 		this.time.delayedCall(45, () => {
 			this.audio.setMusicVolume(1);
 			this.audio.playMusic('music-battle-1', true);

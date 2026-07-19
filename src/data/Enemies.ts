@@ -110,7 +110,10 @@ export const Enemies: Record<string, EnemyScheme> = {
 
 export const EncounterPool = {
   battle: {
-    encounter1: ['graveBoar', 'plagueRodent', 'plagueRodent']
+    encounter1: ['graveBoar', 'plagueRodent', 'plagueRodent'],
+    encounter2: ['plagueRodent', 'plagueRodent', 'plagueRodent'],
+    encounter3: ['plagueRodent', 'plagueRodent'],
+    encounter4: ['plagueRodent']
   },
   //elite: ['grave_boar', 'pack_alpha', 'excommunicated_intendant', 'penitent_guard', 'crypt_keeper'],
   //boss: ['pack_alpha', 'excommunicated_intendant', 'crypt_keeper']

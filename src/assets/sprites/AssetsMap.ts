@@ -7,6 +7,7 @@ const spriteModules = import.meta.glob(
         '@assets/sprites/backgrounds/*.png',
         '@assets/sprites/ui/inventory/*.png',
         '@assets/sprites/ui/icons/*.png',
+        '@assets/sprites/map/*.png',
     ], 
     { eager: true, query: '?url', import: 'default' }
 ) as Record<string, string>;
