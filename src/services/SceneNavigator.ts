@@ -8,7 +8,7 @@ export class SceneNavigator {
   public startRun(heroId: string, squireId: string): void {
     GameState.startRun(heroId, squireId);
     //SaveSystem.save();
-    this.scene.scene.start('BattleScene');
+    this.scene.scene.start('MapScene');
   }
 
   public continueRun(): void {

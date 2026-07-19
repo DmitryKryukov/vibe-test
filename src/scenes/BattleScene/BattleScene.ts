@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import AudioManager from '@/services/AudioManager';
 import { GameState } from '@/store/GameState';
-import { BattleSceneRenderer } from './BattleSceneRenderer';
+import { BattleSceneRenderer } from './BattleRenderer';
 import { CombatSystem } from '@/services/CombatSystem';
 import { EncounterPool } from '@/data/Enemies';
 import { BattleEffects } from './BatteEffects';
