@@ -1,10 +1,10 @@
 import Phaser from "phaser";
 import { Combatant } from "@/services/CombatantFactory";
-import { COLORTOKEN } from "@/ui/styles/ColorTokens";
+import { COLORTOKEN } from "@/partials/ui/styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
 import { CombatantView } from "./CombatantView";
-import { TYPETOKEN } from "@/ui/styles/TypeTokens";
-import { Tooltip } from "@/ui/components/Tooltip";
+import { TYPETOKEN } from "@/partials/ui/styles/TypeTokens";
+import { Tooltip } from "@/partials/ui/components/Tooltip";
 import { Factions } from "@/data/Enemies";
 import { AttackIndicator } from "./AttackIndicator";
 import { AbilityIndicator } from "./AbilityIndicator";
@@ -191,7 +191,7 @@ export class HPBar extends Phaser.GameObjects.Container {
     private cleanup(): void {
         this.scene.events.off(Phaser.Scenes.Events.UPDATE, this.update, this);
 
-        this.tooltips.forEach(t => t.destroy());
+        this.tooltips.forEach(t => t.destroy(true));
         this.tooltips = [];
 
         if (this.attackIndicator) {

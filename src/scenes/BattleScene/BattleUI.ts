@@ -1,11 +1,11 @@
 import Phaser from 'phaser';
 
-import { SquirePanel } from '@/ui/components/SquirePanel';
-import { HeroPanel } from '@/ui/components/HeroPanel';
+import { SquirePanel } from '@/partials/ui/components/SquirePanel';
+import { HeroPanel } from '@/partials/ui/components/HeroPanel';
 import { CombatSystem } from '@/services/CombatSystem';
 
-import { TYPETOKEN } from '@/ui/styles/TypeTokens';
-import { COLORTOKEN } from '@/ui/styles/ColorTokens';
+import { TYPETOKEN } from '@/partials/ui/styles/TypeTokens';
+import { COLORTOKEN } from '@/partials/ui/styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
 import { screenBounds, screenToWorld, screenSpaceScale } from '@/utils/UtilsLayout';
 

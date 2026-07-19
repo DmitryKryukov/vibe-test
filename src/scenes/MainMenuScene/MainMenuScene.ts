@@ -3,14 +3,14 @@ import Phaser from 'phaser';
 import { Heroes, HeroScheme } from '@/data/Heroes';
 import { Squires, SquireScheme } from '@/data/Squires';
 
-import { COLORTOKEN } from '@/ui/styles/ColorTokens';
-import { TYPETOKEN } from '@/ui/styles/TypeTokens';
+import { COLORTOKEN } from '@/partials/ui/styles/ColorTokens';
+import { TYPETOKEN } from '@/partials/ui/styles/TypeTokens';
 
-import { Background } from '@/ui/components/Background';
-import { Button } from '@/ui/components/Button';
-import { SelectorPanel } from '@/ui/components/SelectorPanel';
-import { SelectableEntity } from '@/ui/components/SelectorCard';
-import { Tooltip } from '@/ui/components/Tooltip';
+import { Background } from '@/partials/ui/components/Background';
+import { Button } from '@/partials/ui/components/Button';
+import { SelectorPanel } from '@/partials/ui/components/SelectorPanel';
+import { SelectableEntity } from '@/partials/ui/components/SelectorCard';
+import { Tooltip } from '@/partials/ui/components/Tooltip';
 
 import { viewBounds } from '@/utils/UtilsLayout';
 import { SceneNavigator } from '@/services/SceneNavigator';

@@ -1,5 +1,5 @@
 
-import { FONTTOKEN } from '../ui/styles/FontTokens';
+import { FONTTOKEN } from '../partials/ui/styles/FontTokens';
 
 const STYLE_ELEMENT_ID = 'armory-intendant-fonts';
 let fontLoadPromise: Promise<void> | undefined;

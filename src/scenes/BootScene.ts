@@ -1,13 +1,13 @@
 import Phaser from 'phaser';
 import { UI } from '@/config/UIConfig';
 
-import { COLORTOKEN } from '@/ui/styles/ColorTokens';
-import { TYPETOKEN } from '@/ui/styles/TypeTokens';
+import { COLORTOKEN } from '@/partials/ui/styles/ColorTokens';
+import { TYPETOKEN } from '@/partials/ui/styles/TypeTokens';
 
 import { fitCameraToCanvas, viewBounds, ViewBounds } from '@/utils/UtilsLayout';
 import { loadGameFonts } from '@/utils/UtilsFont';
-import { Background } from '@/ui/components/Background';
-import { LoadingBar, LoadingBarStyleScheme } from '@/ui/components/LoadingBar';
+import { Background } from '@/partials/ui/components/Background';
+import { LoadingBar, LoadingBarStyleScheme } from '@/partials/ui/components/LoadingBar';
 
 import { ImageAssets } from '@/assets/sprites/AssetsMap';
 import { GameState } from '@/store/GameState';

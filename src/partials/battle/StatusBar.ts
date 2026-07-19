@@ -2,11 +2,11 @@ import Phaser from "phaser";
 import { Combatant } from "@/services/CombatantFactory";
 import { CombatantView } from "./CombatantView";
 import { StatusEffect } from "@/services/StatusSystem";
-import { Tooltip } from "@/ui/components/Tooltip";
+import { Tooltip } from "@/partials/ui/components/Tooltip";
 import { anyToColor } from "@/utils/UtilsColor";
-import { COLORTOKEN } from "@/ui/styles/ColorTokens";
+import { COLORTOKEN } from "@/partials/ui/styles/ColorTokens";
 import { StatusInfo } from "@/data/Statuses";
-import { TYPETOKEN } from "@/ui/styles/TypeTokens";
+import { TYPETOKEN } from "@/partials/ui/styles/TypeTokens";
 
 export class StatusBar extends Phaser.GameObjects.Container {
     private readonly combatantView: CombatantView;

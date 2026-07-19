@@ -229,4 +229,9 @@ export class Tooltip extends Phaser.GameObjects.Container {
         const y = Phaser.Math.Clamp(pointerY + layoutConfig.pointerYOffstet, view.top + layoutConfig.topPadding, view.bottom - height - layoutConfig.bottomPadding);
         tooltipContainer.setPosition(x, y);
     }
+
+    destroy(fromScene?: boolean): void {
+        this.tooltipContainer?.removeAll(true);
+        
+    }
 }

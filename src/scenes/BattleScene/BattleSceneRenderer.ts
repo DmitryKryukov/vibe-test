@@ -1,16 +1,13 @@
 import Phaser from 'phaser';
-import { Background } from '@/ui/components/Background';
+import { Background } from '@/partials/ui/components/Background';
 import { Combatant } from '@/services/CombatantFactory';
 import { CombatSystem } from '@/services/CombatSystem';
-import { CombatantView } from '../Partials/CombatantView';
+import { CombatantView } from '@/partials/battle/CombatantView';
 import { GameState } from '@/store/GameState';
 import { Heroes } from '@/data/Heroes';
 
-import { TYPETOKEN } from '@/ui/styles/TypeTokens';
-import { COLORTOKEN } from '@/ui/styles/ColorTokens';
-import { anyToColor } from '@/utils/UtilsColor';
-import { Enemies, EnemyScheme } from '@/data/Enemies';
-import { screenBounds, screenToWorld, screenSpaceScale } from '@/utils/UtilsLayout';
+import { Enemies } from '@/data/Enemies';
+import { screenBounds } from '@/utils/UtilsLayout';
 import { getEnemySlots, getHeroSlots } from '../../data/Battleground';
 import { BattleUI } from './BattleUI';
 
