@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Combatant } from "@/services/CombatSystem";
+import { Combatant } from "@/services/CombatantFactory";
 import { COLORTOKEN } from "@/ui/styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
 import { Tooltip } from "@/ui/components/Tooltip";
@@ -39,8 +39,8 @@ export class AbilityIndicator extends Phaser.GameObjects.Container {
     private createIndicators(): void {
         this.target.activeAbilities.forEach((ability, index) => {
             const offset = index * ((this.isHero ? 24 * 2 : 20 * 2) + 4) + this.barWidth;
-            const posX = offset + 4;
             const radius = this.isHero ? 24 : 20;
+            const posX = offset + 4;
             const posY = this.height / 2 - radius;
             const size = radius * 2;
 
@@ -53,15 +53,26 @@ export class AbilityIndicator extends Phaser.GameObjects.Container {
 
             const progressGraphics = this.scene.add.graphics();
             container.add(progressGraphics);
+            
+            const imagePadding = 4;
+
+            const img = this.scene.add.image(imagePadding, imagePadding, ability.id);
+            img.setDisplaySize(size - imagePadding * 2, size - imagePadding * 2);
+            img.setOrigin(0,0);
+            container.add(img);
+
+            const imageMaskGraphics = this.scene.make.graphics();
+
+            imageMaskGraphics.fillStyle(0xffffff);
+            imageMaskGraphics.fillRoundedRect(this.root.x + posX + imagePadding, this.root.y + posY + imagePadding, size - imagePadding * 2, size - imagePadding * 2, 12 - imagePadding);
+            img.setMask(imageMaskGraphics.createGeometryMask());
 
             const maskGraphics = this.scene.make.graphics();
 
             maskGraphics.fillStyle(0xffffff);
             maskGraphics.fillRoundedRect(this.root.x + posX, this.root.y + posY, size, size, 12);
 
-            const mask = maskGraphics.createGeometryMask()
-
-            progressGraphics.setMask(mask);
+            progressGraphics.setMask(maskGraphics.createGeometryMask());
             
             const circle = this.scene.add.circle(
                 0,

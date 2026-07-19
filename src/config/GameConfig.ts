@@ -24,7 +24,7 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
         antialias: true,
         antialiasGL: true,
         roundPixels: true,
-        pixelArt: false,
+        pixelArt: true,
         powerPreference: 'high-performance'
     },
 

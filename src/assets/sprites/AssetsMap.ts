@@ -3,6 +3,7 @@ const spriteModules = import.meta.glob(
         '@assets/sprites/heroes/*.png',
         '@assets/sprites/squires/*.png', 
         '@assets/sprites/enemies/*.png',
+        '@assets/sprites/ability/*.png',
         '@assets/sprites/backgrounds/*.png',
         '@assets/sprites/ui/inventory/*.png',
         '@assets/sprites/ui/icons/*.png',
