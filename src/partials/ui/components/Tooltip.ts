@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import { viewBounds } from '@/utils/UtilsLayout';
 import { anyToColor } from '@/utils/UtilsColor';
-import { TYPETOKEN } from '../styles/TypeTokens';
-import { COLORTOKEN } from '../styles/ColorTokens';
+import { TYPETOKEN } from '../../styles/TypeTokens';
+import { COLORTOKEN } from '../../styles/ColorTokens';
 
 export interface TooltipScheme {
     width: number;

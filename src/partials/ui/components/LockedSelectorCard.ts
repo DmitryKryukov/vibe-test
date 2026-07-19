@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { TYPETOKEN } from '../styles/TypeTokens';
-import { COLORTOKEN } from '../styles/ColorTokens';
+import { TYPETOKEN } from '../../styles/TypeTokens';
+import { COLORTOKEN } from '../../styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
 import { HeroScheme } from '@/data/Heroes';
 import { SquireScheme } from '@/data/Squires';

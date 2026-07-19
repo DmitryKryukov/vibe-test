@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import '../partials/ui/styles/ColorTokens';
-import { COLORTOKEN } from '../partials/ui/styles/ColorTokens';
+import '../partials/styles/ColorTokens';
+import { COLORTOKEN } from '../partials/styles/ColorTokens';
 import AudioManager from '../services/AudioManager';
 import { SCENE } from './ScenesConfig';
 

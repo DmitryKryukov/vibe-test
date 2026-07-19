@@ -3,7 +3,7 @@ import { GameState } from "@/store/GameState";
 import { Heroes, SlotType } from "@/data/Heroes";
 import { screenToWorld, screenSpaceScale } from "@/utils/UtilsLayout";
 import { degreesToRadians, getRandomInt } from "@/utils/UtilsMath";
-import { COLORTOKEN } from "../styles/ColorTokens";
+import { COLORTOKEN } from "../../styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
 
 export class HeroPanel extends Phaser.GameObjects.Container {

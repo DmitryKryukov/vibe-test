@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import { UI } from '@/config/UIConfig';
 
-import { COLORTOKEN } from '@/partials/ui/styles/ColorTokens';
-import { TYPETOKEN } from '@/partials/ui/styles/TypeTokens';
+import { COLORTOKEN } from '@/partials/styles/ColorTokens';
+import { TYPETOKEN } from '@/partials/styles/TypeTokens';
 
 import { fitCameraToCanvas, viewBounds, ViewBounds } from '@/utils/UtilsLayout';
 import { loadGameFonts } from '@/utils/UtilsFont';

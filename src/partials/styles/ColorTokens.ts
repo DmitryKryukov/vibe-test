@@ -1,3 +1,5 @@
+import { EncounterType } from "@/data/Map";
+
 export namespace COLORTOKEN {
     export const Background = {
         Zeroth: '#020302',
@@ -19,7 +21,7 @@ export namespace COLORTOKEN {
     export const Utility = {
         Transparent: '#00000000',
     }
-    
+
     export const Accent = {
         Red: '#FF472E',
         Gold: '#F6B94D',
@@ -71,7 +73,7 @@ export namespace COLORTOKEN {
                     }
                 },
                 Selected: {
-                     Idle: {
+                    Idle: {
                         Background: {
                             BackgroundColor: '#22231E',
                         }
@@ -89,5 +91,15 @@ export namespace COLORTOKEN {
                 }
             }
         }
+    }
+
+    export const Node: Record<EncounterType, number> = {
+        start: 0x5b6f52,
+        battle: 0x725034,
+        elite: 0x8c2222,
+        merchant: 0xb28a38,
+        event: 0x7561a3,
+        camp: 0x4f875f,
+        boss: 0xc41f1f
     }
 }

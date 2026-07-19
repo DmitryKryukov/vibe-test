@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import { SelectorCard, SelectableEntity } from './SelectorCard';
 import { LockedSelectorCard } from './LockedSelectorCard';
 
-import { TYPETOKEN } from '../styles/TypeTokens';
+import { TYPETOKEN } from '../../styles/TypeTokens';
 import { HeroScheme } from '@/data/Heroes';
 import { SquireScheme } from '@/data/Squires';
 

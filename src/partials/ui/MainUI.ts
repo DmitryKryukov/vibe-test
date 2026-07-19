@@ -4,12 +4,12 @@ import { SquirePanel } from '@/partials/ui/components/SquirePanel';
 import { HeroPanel } from '@/partials/ui/components/HeroPanel';
 import { CombatSystem } from '@/services/CombatSystem';
 
-import { TYPETOKEN } from '@/partials/ui/styles/TypeTokens';
-import { COLORTOKEN } from '@/partials/ui/styles/ColorTokens';
+import { TYPETOKEN } from '@/partials/styles/TypeTokens';
+import { COLORTOKEN } from '@/partials/styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
 import { screenBounds, screenToWorld, screenSpaceScale } from '@/utils/UtilsLayout';
 
-export class BattleUI {
+export class MainUI {
     private scene: Phaser.Scene;
     private combatSystem: CombatSystem;
     private heroPanel!: HeroPanel;

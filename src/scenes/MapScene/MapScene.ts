@@ -1,6 +1,30 @@
 import Phaser from 'phaser';
+import AudioManager from '@/services/AudioManager';
+import { MapRenderer } from './MapRenderer';
+import { CombatSystem } from '@/services/CombatSystem';
+
 
 export class MapScene extends Phaser.Scene {
+    private mapRender!: MapRenderer
+    private combatSystem!: CombatSystem;
+    public audio!: AudioManager;
+
+    constructor() {
+        super('MapScene');
+        
+    }
+    create(): void {
+        this.audio = this.plugins.get('AudioManager') as AudioManager;
+        this.combatSystem = new CombatSystem(this, [], this.audio);
+        this.mapRender = new MapRenderer(this, this.combatSystem);
+        /*
+    this.ui = new UIManager(this);
+    SaveSystem.startAutosave(this);
+    
+    this.input.keyboard?.on('keydown-ESC', () => this.openPause());
+    */
+    }
+
 }
 /*
 import { ITEMS } from '../data/items';
@@ -34,19 +58,8 @@ export class GlobalMapScene extends Phaser.Scene {
   private ui!: UIManager;
   private readonly handleResize = (): void => this.render();
 
-  constructor() {
-    super('GlobalMapScene');
-  }
 
-  create(): void {
-    this.ui = new UIManager(this);
-    SaveSystem.startAutosave(this);
-    this.scale.off('resize', this.handleResize);
-    this.scale.on('resize', this.handleResize);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off('resize', this.handleResize));
-    this.input.keyboard?.on('keydown-ESC', () => this.openPause());
-    this.render();
-  }
+  
 
   render(): void {
     this.children.removeAll();

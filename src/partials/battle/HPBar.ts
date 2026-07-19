@@ -1,9 +1,9 @@
 import Phaser from "phaser";
 import { Combatant } from "@/services/CombatantFactory";
-import { COLORTOKEN } from "@/partials/ui/styles/ColorTokens";
+import { COLORTOKEN } from "@/partials/styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
 import { CombatantView } from "./CombatantView";
-import { TYPETOKEN } from "@/partials/ui/styles/TypeTokens";
+import { TYPETOKEN } from "@/partials/styles/TypeTokens";
 import { Tooltip } from "@/partials/ui/components/Tooltip";
 import { Factions } from "@/data/Enemies";
 import { AttackIndicator } from "./AttackIndicator";

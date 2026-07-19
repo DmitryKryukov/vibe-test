@@ -4,9 +4,9 @@ import { GameState, RunState } from "@/store/GameState";
 import { Squires, SquireScheme } from "@/data/Squires";
 import { screenToWorld, screenBounds } from "@/utils/UtilsLayout";
 import { degreesToRadians, getRandomInt } from "@/utils/UtilsMath";
-import { COLORTOKEN } from "../styles/ColorTokens";
+import { COLORTOKEN } from "../../styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
-import { TYPETOKEN } from "../styles/TypeTokens";
+import { TYPETOKEN } from "../../styles/TypeTokens";
 
 export class SquirePanel extends Phaser.GameObjects.Container {
     public scene: Phaser.Scene

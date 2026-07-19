@@ -9,14 +9,14 @@ import { Heroes } from '@/data/Heroes';
 import { Enemies } from '@/data/Enemies';
 import { screenBounds } from '@/utils/UtilsLayout';
 import { getEnemySlots, getHeroSlots } from '../../data/Battleground';
-import { BattleUI } from './BattleUI';
+import { MainUI } from '../../partials/ui/MainUI';
 
 export class BattleSceneRenderer {
   private scene: Phaser.Scene;
   private background!: Background;
   private combatSystem: CombatSystem;
 
-  private battleUI: BattleUI;
+  private mainUI: MainUI;
 
   private combatantViews = new Map<string, CombatantView>();
 
@@ -26,13 +26,13 @@ export class BattleSceneRenderer {
   constructor(scene: Phaser.Scene, combatSystem: CombatSystem) {
     this.scene = scene;
     this.combatSystem = combatSystem;
-    this.battleUI = new BattleUI(scene, combatSystem);
+    this.mainUI = new MainUI(scene, combatSystem);
   }
 
   public renderStatic(): void {
     this.sceneClear();
     this.renderBackground();
-    this.battleUI.renderPanels();
+    this.mainUI.renderPanels();
     this.renderHero();
     this.renderEnemies();
 
@@ -192,11 +192,11 @@ this.drawFieldLoot();
   
 
   public renderVictoryPanel(): void {
-    this.battleUI.renderResultPanel('victory');
+    this.mainUI.renderResultPanel('victory');
   }
 
   public renderDefeatPanel(): void {
-    this.battleUI.renderResultPanel('defeat')
+    this.mainUI.renderResultPanel('defeat')
   }
 
   private sceneClear(): void {

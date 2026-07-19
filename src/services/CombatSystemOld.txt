@@ -1,3 +1,4 @@
+/
 import Phaser from "phaser";
 import { Heroes } from "@/data/Heroes";
 import { Enemies, EnemyScheme, FactionId } from "@/data/Enemies";
@@ -395,7 +396,7 @@ if (this.enemies.some((ally) => ally.alive && ENEMIES[ally.definitionId].aura ==
 
 
   tickStatuses(target: Combatant, dt: number): void {
-    /*
+    
     target.statuses.forEach((status) => {
       status.duration -= dt;
       if (status.tickEvery) {
@@ -414,7 +415,7 @@ if (this.enemies.some((ally) => ally.alive && ENEMIES[ally.definitionId].aura ==
     });
     target.statuses = target.statuses.filter((status) => status.duration > 0);
   }
-*/
+
   }
 
   damageTarget(target: Combatant, source: Combatant, amount: number): void {

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORTOKEN } from '@/partials/ui/styles/ColorTokens';
+import { COLORTOKEN } from '@/partials/styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
 
 export interface LoadingBarStyleScheme {

@@ -3,8 +3,8 @@ import Phaser from 'phaser';
 import { Heroes, HeroScheme } from '@/data/Heroes';
 import { Squires, SquireScheme } from '@/data/Squires';
 
-import { COLORTOKEN } from '@/partials/ui/styles/ColorTokens';
-import { TYPETOKEN } from '@/partials/ui/styles/TypeTokens';
+import { COLORTOKEN } from '@/partials/styles/ColorTokens';
+import { TYPETOKEN } from '@/partials/styles/TypeTokens';
 
 import { Background } from '@/partials/ui/components/Background';
 import { Button } from '@/partials/ui/components/Button';

@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { Combatant } from "@/services/CombatantFactory";
-import { COLORTOKEN } from "@/partials/ui/styles/ColorTokens";
+import { COLORTOKEN } from "@/partials/styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
 import { Tooltip } from "@/partials/ui/components/Tooltip";
 

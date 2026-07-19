@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORTOKEN } from '@/partials/ui/styles/ColorTokens';
-import { TYPETOKEN } from '../styles/TypeTokens';
+import { COLORTOKEN } from '@/partials/styles/ColorTokens';
+import { TYPETOKEN } from '../../styles/TypeTokens';
 
 import { anyToColor, parseColor, interpolateColor, interpolateColorToHex } from '@/utils/UtilsColor';
 import { createProgressTween, stopTweenSafely } from '@/utils/UtilsTween';
