@@ -37,6 +37,10 @@ export class BattleEffects {
 				});
 			}
 
+			if (event.type === CombatEventType.Charge) {
+					this.playCharge(event);
+			}
+
 			if (event.type === CombatEventType.Heal) {
 				this.scene.time.delayedCall(impactDelay, () => {
 					//this.floatNumber(event.targetUid, `+${event.amount}`, '#5cff83');
@@ -182,10 +186,14 @@ export class BattleEffects {
 		tintable.setTint?.(anyToColor(COLORTOKEN.Accent.Red));
 
 		this.scene.time.delayedCall(105, () => tintable.clearTint?.());
-		let shakeDx = "+=20"
+		let shakeDx = "+=40"
 		let flashSize = 32;
 		let particleSpeedX = { min: -140, max: 1000 };
 		let flashY = combatantSprite.y;
+
+		const { x: tx, y: ty } = position;
+		const dx = tx;
+
 
 		if (targetId.includes('hero')) {
 			shakeDx = "-=20"
@@ -193,15 +201,18 @@ export class BattleEffects {
 			flashY = combatantSprite.y;
 			particleSpeedX = { min: 140, max: -1000 };
 		}
+		
 
 		this.scene.tweens.add({
-			targets: combatantSprite,
+			targets: combatantSprite.parentContainer,
 			x: shakeDx,
-			duration: 45,
+			duration: 75,
 			yoyo: true,
-			repeat: 2,
+			repeat: 0,
 			ease: 'Sine.easeInOut',
+			overwrite: 'none',
 		});
+		
 
 		const flash = this.scene.add.circle(combatantSprite.x, flashY, flashSize, anyToColor(COLORTOKEN.Accent.Red), 1).setDepth(85);
 		this.scene.tweens.add({
@@ -209,6 +220,7 @@ export class BattleEffects {
 			alpha: 0,
 			scale: 2,
 			duration: 180,
+			overwrite: 'none',
 			onComplete: () => flash.destroy(),
 		});
 
@@ -232,6 +244,52 @@ export class BattleEffects {
 		}).setDepth(200);
 
 		emitter.explode(32, position.x, combatantSprite.y);
+	}
+
+	private playCharge(event: Extract<CombatVisualEvent, { type: CombatEventType.Charge }>): void {
+		const ATTACK_MOTION_CONFIG = {
+			distanceFactorX: 1,
+			distanceFactorY: 1,
+			clampX: 800,
+			clampY: 400,
+			duration: 300,
+			ease: 'Sine.easeIn',
+		};
+
+		const { sourceUid, targetUid } = event;
+
+		const sourcePosition = this.sceneRenderer.getCombatantPosition(sourceUid);
+		const targetPosition = this.sceneRenderer.getCombatantPosition(targetUid);
+		const combatantSprite = this.sceneRenderer.getCombatantSprite(sourceUid) as Phaser.GameObjects.Sprite;
+
+		if (!sourcePosition || !targetPosition || !combatantSprite) {
+			return;
+		}
+
+		const { x: sx, y: sy } = sourcePosition;
+		const { x: tx, y: ty } = targetPosition;
+		const { distanceFactorX, distanceFactorY, clampX, clampY, duration, ease } = ATTACK_MOTION_CONFIG;
+
+		const dx = Phaser.Math.Clamp((tx - sx) * distanceFactorX, -clampX, clampX);
+		const dy = Phaser.Math.Clamp((ty - sy) * distanceFactorY, -clampY, clampY);
+
+		const startCombatantX = sourcePosition.x;
+		const startCombatantY = sourcePosition.y;
+
+		this.scene.tweens.add({
+			targets: combatantSprite,
+			x: `+=${dx}`,
+			y: `+=${dy}`,
+			duration,
+			yoyo: true,
+			ease,
+			overwrite: 'none',
+			onComplete: () => {
+				combatantSprite.x = startCombatantX;
+				combatantSprite.y = startCombatantY;
+			},
+
+		});
 	}
 
 	private playAttackMotion(event: Extract<CombatVisualEvent, { type: CombatEventType.Attack }>): void {
@@ -271,6 +329,11 @@ export class BattleEffects {
 			duration,
 			yoyo: true,
 			ease,
+			overwrite: 'none',
+			onComplete: () => {
+				combatantSprite.x = startCombatantX;
+				combatantSprite.y = startCombatantY;
+			},
 
 		});
 	}

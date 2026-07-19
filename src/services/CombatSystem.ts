@@ -11,6 +11,7 @@ export enum CombatEventType {
     Windup,
     Attack,
     Miss,
+	Charge,
 }
 
 export type CombatVisualEvent =
@@ -18,7 +19,8 @@ export type CombatVisualEvent =
 	| { type: CombatEventType.Attack; sourceUid: string; targetUid: string }
 	| { type: CombatEventType.Damage; targetUid: string; amount: number }
 	| { type: CombatEventType.Heal; targetUid: string; amount: number }
-	| { type: CombatEventType.Miss; targetUid: string };
+	| { type: CombatEventType.Miss; targetUid: string }
+	| { type: CombatEventType.Charge; sourceUid: string; targetUid: string };
 
 export class CombatSystem {
 	private static readonly WINDUP_TIME = 0.25;
@@ -39,7 +41,7 @@ export class CombatSystem {
 		this.scene = scene;
 		this.audio = audio;
 
-		this.abilitySystem = new AbilitySystem(this.visualEvents, this.audio, this.statusSystem);
+		this.abilitySystem = new AbilitySystem(this.scene, this.visualEvents, this.audio, this.statusSystem);
 
 		this.hero = this.combatantFactory.makeHero();
 

@@ -13,6 +13,7 @@ export class AbilitySystem {
 	private static readonly WINDUP_TIME = 0.25;
 
 	constructor(
+		private scene: Phaser.Scene,
 		private events: CombatVisualEvent[],
 		private audio: AudioManager,
 		private statusSystem: StatusSystem
@@ -70,7 +71,13 @@ export class AbilitySystem {
 				break;
 
 			case "boar-charge":
-				target.statuses.push({ id: "stun", label: "Оглушение", duration: 1, stacks: 1 });
+				this.audio.playSFX("sfx-boar-charge", { volume: Phaser.Math.FloatBetween(.4, .75) }, { rate: Phaser.Math.FloatBetween(.75, 1.25) });
+				this.scene.time.delayedCall(300, () => {
+					target.statuses.push({ id: "stun", label: "Оглушение", duration: 1, stacks: 1 });
+					source.statuses.push({ id: "stun", label: "Оглушение", duration: 1, stacks: 1 });
+					this.audio.playSFX("sfx-boar-charge-impact", {}, { rate: Phaser.Math.FloatBetween(.75, 1.25) });
+				})
+				this.events.push({ type: CombatEventType.Charge, sourceUid: source.id, targetUid: target.id });
 				break;
 		}
 	}
