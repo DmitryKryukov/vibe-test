@@ -31,10 +31,6 @@ export class StatusBar extends Phaser.GameObjects.Container {
 
         this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.update, this);
         this.tooltipProxy = new Tooltip(this.scene);
-
-        this.on(Phaser.GameObjects.Events.DESTROY, () => {
-            this.cleanup();
-        });
     }
 
     public update(): void {
@@ -91,15 +87,10 @@ export class StatusBar extends Phaser.GameObjects.Container {
             { width: 390 }
         );
     }
-
-    private cleanup(): void {
-        this.root.removeAll(true);
-        this.scene.events.off(Phaser.Scenes.Events.UPDATE, this.update, this);
-    }
-
+    
     public destroy(): void {
-         this.cleanup();
-         super.destroy(true);
+        this.root.removeAll(true);
+        super.destroy(true);
     }
 }
 

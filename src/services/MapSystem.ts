@@ -8,7 +8,7 @@ export function generateMap(extraBranches: number = 1): MapNode[] {
     const grid = new Map<number, number[]>();
 
     nodes.push({
-        id: "n0-1.5",
+        id: "n-0-1.5",
         column: 0,
         row: 1.5,
         type: EncounterType.Start,
@@ -157,7 +157,7 @@ function findNode(
 }
 
 function nodeId(column: number, row: number): string {
-    return `n${column}-${row}`;
+    return `n-${column}-${row}`;
 }
 
 function pickNodeType(column: number, index: number): MapNode['type'] {

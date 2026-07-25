@@ -48,6 +48,7 @@ export class CombatSystem {
 		this.enemies = enemyIds.map((id, index) =>
 			this.combatantFactory.makeEnemy(Enemies[id], index),
 		);
+		console.log(this);
 	}
 
 	update(deltaMs: number): void {

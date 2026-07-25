@@ -23,10 +23,13 @@ export interface RunState {
 	//trainingPoints: number;
 	//equipment: (InventoryItem | null)[];
 	map: MapNode[];
-	//currentNodeId: string;
-	//completedNodeIds: string[];
+
+	currentNodeId: string;
+	completedNodeIds: string[];
+
 	seed: number;
 }
+
 export interface StoredGameState {
 	run: RunState | null;
 	//meta: MetaState;
@@ -61,6 +64,8 @@ class GameStateStore {
 			inventory: Array.from({ length: bagSlots }, (_, index) => {
 				return null;
 			}),
+			currentNodeId: 'n-0-1.5',
+			completedNodeIds: [],
 			map: generateMap(),
 			seed: Math.floor(Math.random() * 999999)
 		};
@@ -94,23 +99,28 @@ class GameStateStore {
 		return pool[randomKey];
 		//return Phaser.Math.RND.shuffle([...pool]).slice(0, count);
 	}
-	/*
-	  
-    
-	  completeNode(nodeId: string, hp?: number): void {
+
+	completeNode(nodeId: string, hp?: number): void {
 		const run = this.requireRun();
+		const node = run.map.find((candidate) => candidate.id === nodeId);
+
 		if (hp !== undefined) run.hp = Math.max(0, Math.min(run.maxHp, hp));
 		if (!run.completedNodeIds.includes(nodeId)) run.completedNodeIds.push(nodeId);
-		const node = run.map.find((candidate) => candidate.id === nodeId);
 		if (!node) return;
+
 		node.visited = true;
 		run.currentNodeId = nodeId;
 		run.map.forEach((candidate) => {
-		  candidate.available = node.links.includes(candidate.id);
-		  if (candidate.column <= node.column + 2) candidate.revealed = true;
+			candidate.available = node.links.includes(candidate.id);
+			if (candidate.column <= node.column + 2) candidate.revealed = true;
 		});
+		/*
 		this.state.meta.bestColumn = Math.max(this.state.meta.bestColumn, node.column);
-	  }
+	  */
+	}
+
+	/*
+	  
     
 	  finishRun(victory: boolean): { wood: number; stone: number; blueprints: number } {
 		const run = this.requireRun();

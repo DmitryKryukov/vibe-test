@@ -64,7 +64,7 @@ export const Heroes: Record<string, HeroScheme> = {
             },
         ],
         slots: ['weapon', 'helmet', 'amulet', 'shield', 'armor', 'ring'],
-        baseStats: { maxHp: 150, baseDamage: 16, baseAttackSpeed: 1 },
+        baseStats: { maxHp: 150, baseDamage: 1226, baseAttackSpeed: 1 },
         basicAttacks: [
             Abilities.strikeAbility as ActiveAbilityScheme,
         ],

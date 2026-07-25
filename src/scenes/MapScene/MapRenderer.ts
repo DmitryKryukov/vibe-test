@@ -3,7 +3,7 @@ import { Background } from "@/partials/ui/components/Background";
 import { MainUI } from "@/partials/ui/MainUI";
 import { CombatSystem } from "@/services/CombatSystem";
 import { GameState } from "@/store/GameState";
-import { EncounterType, getMapMetrics, getNodeLabel, MapNode, getNodeDescription} from "@/data/Map";
+import { EncounterType, getMapMetrics, getNodeStyles, getNodeLabel, MapNode, getNodeDescription } from "@/data/Map";
 import { COLORTOKEN } from "@/partials/styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
 import { TYPETOKEN } from "@/partials/styles/TypeTokens";
@@ -21,7 +21,6 @@ export class MapRenderer {
         this.combatSystem = combatSystem,
             this.mainUI = new MainUI(scene, combatSystem);
         this.render();
-
     }
 
     render(): void {
@@ -31,9 +30,9 @@ export class MapRenderer {
         this.renderMap();
         //this.ui.button(screen.right - 148, screen.top + 42, 180, 46, 'Пауза', () => this.openPause());
     }
+
     private renderBackground(): void {
         this.background = new Background(this.scene, 'map');
-        return;
     }
 
     private renderMap(): void {
@@ -60,9 +59,8 @@ export class MapRenderer {
             node.links.forEach((id) => {
                 const toNode = run.map.find((candidate) => candidate.id === id);
                 const to = positions.get(id);
-                // if (!to || !toNode?.revealed) return;
                 if (!to) return;
-                graphic.lineStyle(node.visited ? 2 : 2, node.visited ? anyToColor(COLORTOKEN.Foreground.Secondary) : anyToColor(COLORTOKEN.Foreground.Quanternary), node.visited ? 1 : .38);
+                graphic.lineStyle(2, node.visited && toNode?.available ? anyToColor(COLORTOKEN.Foreground.Secondary) : anyToColor(COLORTOKEN.Foreground.Quanternary), node.visited && toNode?.available ? 1 : .38);
                 graphic.lineBetween(from.x, from.y, to.x, to.y);
             });
         });
@@ -74,17 +72,17 @@ export class MapRenderer {
         const isAvailableNotVisited = node.available && !node.visited;
         const isInaccessible = !node.available && !node.visited;
 
-        const styles = this.getNodeStyles(node, isInaccessible);
+        const styles = getNodeStyles(node, isInaccessible);
         let angle: number = 0
         if (node.type !== EncounterType.Start) {
             angle = Phaser.Math.Between(-3, 3);
         }
         root.setData('originalAngle', angle);
 
-        const cardGraphics = this.createCardGraphics(styles, angle, node.available);
-        const cardHit = this.createHitArea(angle, isAvailableNotVisited);
-        const label = this.createLabel(node, styles.textColor);
-        const image = this.createImage(node, angle);
+        const cardGraphics = this.renderCardGraphics(styles, angle, node.available);
+        const cardHit = this.renderHitArea(angle, isAvailableNotVisited);
+        const label = this.renderLabel(node, styles.textColor);
+        const image = this.renderImage(node, angle);
 
         root.add([cardGraphics, image, cardHit, label]);
         const tooltip = new Tooltip(this.scene);
@@ -96,25 +94,7 @@ export class MapRenderer {
         }
     }
 
-    private getNodeStyles(node: MapNode, isInaccessible: boolean) {
-        const backgroundColor = node.visited
-            ? anyToColor(COLORTOKEN.Background.Zeroth)
-            : isInaccessible
-                ? anyToColor(COLORTOKEN.Background.Zeroth)
-                : COLORTOKEN.Node[node.type];
-
-        const strokeColor = node.visited
-            ? anyToColor(COLORTOKEN.Background.Zeroth)
-            : anyToColor(COLORTOKEN.Foreground.Secondary);
-
-        const textColor = isInaccessible
-            ? COLORTOKEN.Foreground.Quanternary
-            : COLORTOKEN.Foreground.Primary;
-
-        return { backgroundColor, strokeColor, textColor };
-    }
-
-    private createCardGraphics(styles: any, angle: number, isAvailable: boolean): Phaser.GameObjects.Graphics {
+    private renderCardGraphics(styles: any, angle: number, isAvailable: boolean): Phaser.GameObjects.Graphics {
         const graphics = this.scene.add.graphics();
         graphics.setAngle(angle);
 
@@ -127,7 +107,7 @@ export class MapRenderer {
         return graphics;
     }
 
-    private createHitArea(angle: number, isInteractive: boolean): Phaser.GameObjects.Rectangle {
+    private renderHitArea(angle: number, isInteractive: boolean): Phaser.GameObjects.Rectangle {
         const hit = this.scene.add.rectangle(0, 0, 130, 130, 0xffffff, 0);
         hit.setAngle(angle);
 
@@ -137,7 +117,7 @@ export class MapRenderer {
         return hit;
     }
 
-    private createLabel(node: MapNode, textColor: string): Phaser.GameObjects.Text {
+    private renderLabel(node: MapNode, textColor: string): Phaser.GameObjects.Text {
         const textContent = node.visited ? '' : getNodeLabel(node.type);
 
         return this.scene.add.text(0, 48, textContent, {
@@ -155,7 +135,7 @@ export class MapRenderer {
         }).setOrigin(0.5);
     }
 
-    private createImage(node: MapNode, angle: number): Phaser.GameObjects.Image {
+    private renderImage(node: MapNode, angle: number): Phaser.GameObjects.Image {
         const size = 130;
         let textureKey: string | undefined = this.getNodeTextureKey(node);
         let image = this.scene.add.image(0, 0, "");
@@ -174,6 +154,7 @@ export class MapRenderer {
         }
         return image;
     }
+
     private getNodeTextureKey(node: MapNode) {
         if (node.type === EncounterType.Start) return "map-node-start"
         if (node.type === EncounterType.Battle) return "map-node-battle-" + Phaser.Math.Between(1, 7);
@@ -216,7 +197,7 @@ export class MapRenderer {
             });
             rootContainer.setData('hoverTween', tween);
 
-            
+
         });
 
         hitArea.on('pointerout', () => {

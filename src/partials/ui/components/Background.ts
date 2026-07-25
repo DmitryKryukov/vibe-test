@@ -32,7 +32,6 @@ export class Background {
         }
     }
 
-
     private drawProceduralBackground(): void {
         this.graphic = this.scene.add.graphics();
         this.updateBackground();

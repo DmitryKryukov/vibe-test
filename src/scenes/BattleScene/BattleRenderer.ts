@@ -124,13 +124,12 @@ this.drawFieldLoot();
   }
 
   public getCombatantPosition(id: string): { x: number; y: number } | undefined {
+    console.log(this.combatantViews);
     const combatantView = this.combatantViews.get(id);
     if (combatantView) {
       const x = combatantView.sprite.x;
       const y = combatantView.sprite.y;
       return {x: x, y: y};
-    } else {
-      console.warn(`CombatantView с id ${id} не найден`);
     }
   }
   public getCombatantSprite(id: string): Phaser.GameObjects.GameObject {
@@ -139,18 +138,18 @@ this.drawFieldLoot();
 
   public update(): void {
     const hero = this.combatSystem.hero;
-    if (!hero.alive) {
-      this.removeCombatant(hero.id);
+    if (!this.combatSystem.hero.alive) {
+      this.removeCombatantView(hero.id);
     }
 
     this.combatSystem.enemies.forEach(enemy => {
       if (!enemy.alive) {
-        this.removeCombatant(enemy.id);
+        this.removeCombatantView(enemy.id);
       }
     });
   }
 
-  private removeCombatant(id: string, options?: { moveX?: number; fade?: boolean; shrink?: boolean; duration?: number; }): void {
+  private removeCombatantView(id: string, options?: { moveX?: number; fade?: boolean; shrink?: boolean; duration?: number; }): void {
     const {
       moveX = 0,
       fade = true,
@@ -189,10 +188,8 @@ this.drawFieldLoot();
     this.combatantViews.delete(id);
   }
 
-  
-
-  public renderVictoryPanel(): void {
-    this.mainUI.renderResultPanel('victory');
+  public renderVictoryPanel(callbackArrowButon: () => void): void {
+    this.mainUI.renderVictoryPanel(callbackArrowButon);
   }
 
   public renderDefeatPanel(): void {
@@ -207,7 +204,6 @@ this.drawFieldLoot();
     this.statusContainers.clear();
     this.statusSignatures.clear();
   }
-
 }
 
 /*
