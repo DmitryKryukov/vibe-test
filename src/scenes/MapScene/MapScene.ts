@@ -1,6 +1,8 @@
 import { CombatSystem } from '@/services/CombatSystem';
 import { MapRenderer } from './MapRenderer';
 import { SaveSystem } from '@/services/SaveSystem';
+import { EncounterType } from '@/data/Map';
+import { GameState } from '@/store/GameState';
 
 
 export class MapScene extends Phaser.Scene {
@@ -20,41 +22,35 @@ export class MapScene extends Phaser.Scene {
     */
     }
 
+    public enterNode(node: MapNode): void {
+        if (node.type === EncounterType.Battle || node.type === EncounterType.Elite || node.type === EncounterType.Boss) {
+            const enemies = GameState.getEncounterEnemies(node.type);
+            this.scene.start('BattleScene', { nodeId: node.id, nodeType: node.type, enemyIds: enemies });
+        }
+        /*
+                if (node.type === EncounterType.Battle || node.type === EncounterType.Elite || node.type === EncounterType.Boss) {
+                    const enemies = GameState.getEncounterEnemies(node.type);
+                    this.scene.scene.start('BattleScene', { nodeId: node.id, nodeType: node.type, enemyIds: enemies });
+                    return;
+                }
+                    */
+        /*
+    if (node.type === 'merchant') this.openMerchant(node.id);
+    if (node.type === 'camp') this.openCamp(node.id);
+    if (node.type === 'event') this.openEvent(node.id);
+    */
+    }
 }
 /*
 import { ITEMS } from '../data/items';
 import { EncounterType, MapNodeState } from '../entities/Types';
 import { GameState } from '../state/GameState';
-import { SaveSystem } from '../state/SaveSystem';
 import { UIManager } from '../ui/UIManager';
 import { screenBounds } from '../utils/layout';
-
-const NODE_COLORS: Record<EncounterType, number> = {
-  start: 0x5b6f52,
-  battle: 0x725034,
-  elite: 0x8c2222,
-  merchant: 0xb28a38,
-  event: 0x7561a3,
-  camp: 0x4f875f,
-  boss: 0xc41f1f
-};
-
-const NODE_GLYPHS: Record<EncounterType, string> = {
-  start: '◆',
-  battle: '☠',
-  elite: '☠',
-  merchant: '●',
-  event: '?',
-  camp: '✚',
-  boss: '♛'
-};
 
 export class GlobalMapScene extends Phaser.Scene {
   private ui!: UIManager;
   private readonly handleResize = (): void => this.render();
-
-
-  
 
   render(): void {
     this.children.removeAll();

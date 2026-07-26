@@ -6,14 +6,15 @@ import { CombatSystem } from "@/services/CombatSystem";
 import { GameState } from "@/store/GameState";
 import { COLORTOKEN } from "@/styles/ColorTokens";
 import { TYPETOKEN } from "@/styles/TypeTokens";
+import { MapScene } from "./MapScene";
 
 export class MapRenderer {
-    private scene: Phaser.Scene;
+    private scene: MapScene;
     private background!: Background;
     private mainUI: MainUI;
     private combatSystem: CombatSystem;
 
-    constructor(scene: Phaser.Scene, combatSystem: CombatSystem) {
+    constructor(scene: MapScene, combatSystem: CombatSystem) {
         this.scene = scene;
         this.mainUI = new MainUI(scene, combatSystem);
         this.combatSystem = combatSystem,
@@ -173,7 +174,7 @@ export class MapRenderer {
         rootContainer.setData('pulseTween', pulseTween);
 
         hitArea.on('pointerdown', () => {
-            this.enterNode(node)
+            this.clickOnNode(node)
         });
 
         hitArea.on('pointerover', () => {
@@ -226,20 +227,7 @@ export class MapRenderer {
         });
     }
 
-    enterNode(node: MapNode): void {
-        if (node.type === EncounterType.Battle || node.type === EncounterType.Elite || node.type === EncounterType.Boss) {
-            const enemies = GameState.getEncounterEnemies(node.type);
-            this.scene.scene.start('BattleScene', { nodeId: node.id, nodeType: node.type, enemyIds: enemies });
-            return;
-        }
-        /*
-    if (node.type === 'merchant') this.openMerchant(node.id);
-    if (node.type === 'camp') this.openCamp(node.id);
-    if (node.type === 'event') this.openEvent(node.id);
-    */
+    clickOnNode(node: MapNode): void {
+        this.scene.enterNode(node);
     }
-
-    /*
-    this.ui.tooltip(card, this.labelFor(node.type), this.tooltipFor(node));
-    */
 }
