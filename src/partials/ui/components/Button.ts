@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { COLORTOKEN } from '@/styles/ColorTokens';
 import { TYPETOKEN } from '../../../styles/TypeTokens';
 
-import { anyToColor, parseColor, interpolateColor, interpolateColorToHex } from '@/utils/UtilsColor';
+import { interpolateColor, interpolateColorToHex } from '@/utils/UtilsColor';
 import { createProgressTween, stopTweenSafely } from '@/utils/UtilsTween';
 
 interface StateConfig {

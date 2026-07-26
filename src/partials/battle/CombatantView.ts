@@ -1,8 +1,6 @@
 import Phaser from 'phaser';
 import { Combatant } from '@/services/CombatantFactory';
-import { CombatSystem } from '@/services/CombatSystem';
 
-import { anyToColor } from '@/utils/UtilsColor';
 import { HPBar } from './HPBar';
 import { StatusBar } from './StatusBar';
 
@@ -54,8 +52,8 @@ export class CombatantView {
         const scale = scheme.scale ?? 1;
         const width = scheme.width * scale;
         const height = scheme.height * scale;
-        const anchor = this.scene.add.circle(spriteX, spriteY, 5, anyToColor('#ff00ff'))
-        this.statusBarAnchor = this.scene.add.circle(x + (scheme.statusBarX ?? 0), y + (scheme.statusBarY ?? 0), 5, anyToColor('#ff0000'))
+        const anchor = this.scene.add.circle(spriteX, spriteY, 5, 0xff00ff)
+        this.statusBarAnchor = this.scene.add.circle(x + (scheme.statusBarX ?? 0), y + (scheme.statusBarY ?? 0), 5, 0xff0000)
 
         this.sprite = this.scene.add.image(spriteX, spriteY, scheme.textureKey)
             .setDisplaySize(width, height)
@@ -66,11 +64,11 @@ export class CombatantView {
         if (renderHPBar) {
 
             this.hpBar = new HPBar(this.scene, this, this.combatantViewScheme.type, this.combatant, x, y);
-        }        
+        }
         if (renderStatusBar) {
             this.statusBar = new StatusBar(this.scene, this, this.combatant);
         }
-        
+
 
         this.root.add([
             this.sprite,

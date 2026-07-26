@@ -1,7 +1,4 @@
-import Phaser from 'phaser';
-import { TYPETOKEN } from '../../../styles/TypeTokens';
-import { COLORTOKEN } from '../../../styles/ColorTokens';
-import { anyToColor } from '@/utils/UtilsColor';
+import { COLORTOKEN } from '@/styles/ColorTokens';
 
 interface StateConfig {
     background: {

@@ -3,7 +3,6 @@ import { Combatant } from "@/services/CombatantFactory";
 import { CombatantView } from "./CombatantView";
 import { StatusEffect } from "@/services/StatusSystem";
 import { Tooltip } from "@/partials/ui/components/Tooltip";
-import { anyToColor } from "@/utils/UtilsColor";
 import { StatusInfo } from "@/data/Statuses";
 import { TYPETOKEN } from "@/styles/TypeTokens";
 import { COLORTOKEN } from "@/styles/ColorTokens";
@@ -59,7 +58,7 @@ export class StatusBar extends Phaser.GameObjects.Container {
         const iconKey = `icon-status-${status.id}`;
         const icon = this.scene.textures.exists(iconKey)
             ? this.scene.add.image(0 + PADDING_H + iconSize / 2, PADDING_V + iconSize / 2, iconKey).setDisplaySize(iconSize, iconSize)
-            : this.scene.add.circle(0 + PADDING_H + iconSize / 2, PADDING_V + iconSize / 2, iconSize / 2, anyToColor(info.color));
+            : this.scene.add.circle(0 + PADDING_H + iconSize / 2, PADDING_V + iconSize / 2, iconSize / 2, Phaser.Display.Color.HexStringToColor(info.color).color);
 
         const stackText = status.stacks > 1 ? `: ${status.stacks}` : '';
         const label = this.scene.add.text(0 + icon.displayWidth + PADDING_H + GAP, PADDING_V + icon.displayHeight / 2, `${info.name}${stackText}`, { ...TYPETOKEN.Secondary.Body, color: info.color }).setOrigin(0, .5);

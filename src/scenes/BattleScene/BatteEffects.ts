@@ -1,8 +1,6 @@
-import Phaser from 'phaser';
 import { CombatEventType, CombatSystem, CombatVisualEvent } from '@/services/CombatSystem';
 import { BattleSceneRenderer } from './BattleRenderer';
 import { COLORTOKEN } from '@/styles/ColorTokens';
-import { anyToColor } from '@/utils/UtilsColor';
 import { TYPETOKEN } from '@/styles/TypeTokens';
 
 export class BattleEffects {

@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import { Combatant } from "@/services/CombatantFactory";
-import { anyToColor } from "@/utils/UtilsColor";
 import { Tooltip } from "@/partials/ui/components/Tooltip";
 import { COLORTOKEN } from "@/styles/ColorTokens";
 
@@ -78,7 +77,7 @@ export class AbilityIndicator extends Phaser.GameObjects.Container {
                 0,
                 0,
                 radius,
-                anyToColor('#ff00ff'),
+                0xff00ff,
                 0
             );
 

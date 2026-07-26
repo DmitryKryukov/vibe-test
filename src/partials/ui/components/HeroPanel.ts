@@ -3,8 +3,7 @@ import { GameState } from "@/store/GameState";
 import { Heroes } from "@/data/Heroes";
 import { screenToWorld, screenSpaceScale } from "@/utils/UtilsLayout";
 import { degreesToRadians, getRandomInt } from "@/utils/UtilsMath";
-import { COLORTOKEN } from "../../../styles/ColorTokens";
-import { anyToColor } from "@/utils/UtilsColor";
+import { COLORTOKEN } from "@/styles/ColorTokens";
 
 export class HeroPanel extends Phaser.GameObjects.Container {
     public scene: Phaser.Scene
@@ -52,11 +51,6 @@ export class HeroPanel extends Phaser.GameObjects.Container {
             background.fillRoundedRect(-slotWidth / 2, -slotHeight / 2, slotWidth, slotHeight, radius);
             background.lineStyle(4, COLORTOKEN.Background.Zeroth.Numeric);
             background.strokeRoundedRect(-slotWidth / 2, -slotHeight / 2, slotWidth, slotHeight, radius);
-
-            /*
-            const text = new Phaser.GameObjects.Text(this.scene, 0, 0, slot + "\n" + col + "/" + row, { align: 'center' })
-                .setOrigin(0.5).setDepth(400);
-                */
 
             const icon = this.renderEmptySlotIcon(slot, x, y, slotWidth, slotHeight);
 

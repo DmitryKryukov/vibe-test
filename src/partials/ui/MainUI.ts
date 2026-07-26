@@ -6,7 +6,6 @@ import { CombatSystem } from '@/services/CombatSystem';
 
 import { TYPETOKEN } from '@/styles/TypeTokens';
 import { COLORTOKEN } from '@/styles/ColorTokens';
-import { anyToColor } from '@/utils/UtilsColor';
 import { screenBounds, screenToWorld, screenSpaceScale } from '@/utils/UtilsLayout';
 
 export class MainUI {

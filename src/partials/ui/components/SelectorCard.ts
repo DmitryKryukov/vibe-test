@@ -1,9 +1,8 @@
 import Phaser from 'phaser';
-import { TYPETOKEN } from '../../../styles/TypeTokens';
-import { COLORTOKEN } from '../../../styles/ColorTokens';
-import { anyToColor } from '@/utils/UtilsColor';
+import { TYPETOKEN } from '@/styles/TypeTokens';
+import { COLORTOKEN } from '@/styles/ColorTokens';
 import { stopTweenSafely } from '@/utils/UtilsTween';
-import { parseColor, interpolateColor, interpolateColorToHex } from '@/utils/UtilsColor';
+import { interpolateColor, interpolateColorToHex } from '@/utils/UtilsColor';
 import { createProgressTween } from '@/utils/UtilsTween';
 import { interpolateNumber } from '@/utils/UtilsMath';
 

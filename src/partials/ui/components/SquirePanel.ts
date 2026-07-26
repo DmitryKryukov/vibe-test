@@ -4,9 +4,8 @@ import { GameState, RunState } from "@/store/GameState";
 import { Squires } from "@/data/Squires";
 import { screenToWorld, screenBounds } from "@/utils/UtilsLayout";
 import { degreesToRadians, getRandomInt } from "@/utils/UtilsMath";
-import { COLORTOKEN } from "../../../styles/ColorTokens";
-import { anyToColor } from "@/utils/UtilsColor";
-import { TYPETOKEN } from "../../../styles/TypeTokens";
+import { COLORTOKEN } from "@/styles/ColorTokens";
+import { TYPETOKEN } from "@/styles/TypeTokens";
 
 export class SquirePanel extends Phaser.GameObjects.Container {
     public scene: Phaser.Scene
@@ -33,17 +32,17 @@ export class SquirePanel extends Phaser.GameObjects.Container {
             container.add([portraitImage]);
         }
     }
-    private renderStats(): void {
+    private renderWeight(): void {
         const screen = screenBounds(this.scene);
         const maxWeight = this.squire.baseStats.maxWeight;
         const currentWeight = 0;
-        this.renderTextWithIcon(0, screen.bottom - 220, `${currentWeight.toFixed(0)}/${maxWeight.toFixed(0)}`, 'icon-weight', { color: COLORTOKEN.Foreground.Quanternary }, -2)
+        this.renderTextWithIcon(0, screen.bottom - 220, `${currentWeight.toFixed(0)}/${maxWeight.toFixed(0)}`, 'icon-weight', { color: COLORTOKEN.Foreground.Quanternary.Hex }, -2)
     }
 
     private renderGold(): void {
         const screen = screenBounds(this.scene);
         const currentGold = this.run.gold;
-        this.renderTextWithIcon(0, screen.bottom - 260, `${currentGold.toFixed(0)}`, 'icon-gold', { color: COLORTOKEN.Accent.Gold }, -2)
+        this.renderTextWithIcon(0, screen.bottom - 260, `${currentGold.toFixed(0)}`, 'icon-gold', { color: COLORTOKEN.Accent.Gold.Hex }, -2)
     }
 
     private renderTextWithIcon(x: number, y: number, text: string, textureKey: string, textStyle?: any, rotation: number = 0) {
@@ -85,7 +84,7 @@ export class SquirePanel extends Phaser.GameObjects.Container {
     }
 
     private render(): void {
-        this.renderStats();
+        this.renderWeight();
         this.renderGold();
         this.renderSlots();
         this.renderPortrait();
