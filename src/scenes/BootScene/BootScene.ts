@@ -31,6 +31,6 @@ export class BootScene extends Phaser.Scene {
     }
 
     private startMainMenu(): void {
-        this.scene.start('MainMenuScene');
+        this.navigator.startMainMenu();
     }
 }
