@@ -3,7 +3,7 @@ import { AudioManager } from '@/services/AudioManager';
 
 declare module 'phaser' {
     interface Scene {
-        //navigator: SceneNavigator;
+        navigator: SceneNavigator;
         audio: AudioManager;
     }
 }
