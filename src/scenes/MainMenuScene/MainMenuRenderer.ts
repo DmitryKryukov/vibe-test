@@ -1,5 +1,4 @@
-/*
-import Phaser from 'phaser';
+
 
 import { Heroes } from '@/data/Heroes';
 import { Squires } from '@/data/Squires';
@@ -14,9 +13,9 @@ import { viewBounds } from '@/utils/UtilsLayout';
 
 import { DEFAULT_HERO_ID, DEFAULT_SQUIRE_ID, MAIN_MENU_LAYOUT } from './MainMenuConfig';
 import { MainMenuScene } from './MainMenuScene';
+import { TYPETOKEN } from '@/styles/TypeTokens';
+import { COLORTOKEN } from '@/styles/ColorTokens';
 
-import { COLORTOKEN } from '@/styles/styles/ColorTokens';
-import { TYPETOKEN } from '@/styles/styles/TypeTokens';
 
 interface ButtonConfig {
     readonly text: string;
@@ -60,7 +59,7 @@ export class MainMenuRenderer {
 
         this.scene.add.text(x, y, 'Armory Intendant', {
             ...TYPETOKEN.Primary.Display,
-            color: COLORTOKEN.Foreground.Secondary.Hex,
+            color: COLORTOKEN.Foreground.Secondary,
         });
     }
 
@@ -69,6 +68,7 @@ export class MainMenuRenderer {
             { text: 'Продолжить', onClick: () => this.scene.navigator.continueRun() },
             {
                 text: 'Новый забег',
+                //onClick: () => this.navigator.startRun(this.scene.selectedHero, this.scene.selectedSquire),
                 onClick: () => this.scene.navigator.startRun(this.scene.selectedHero, this.scene.selectedSquire),
             },
             { text: 'Настройки', onClick: () => console.log('Настройки') },
@@ -133,4 +133,4 @@ export class MainMenuRenderer {
             width: entity.locked ? 286 : 390,
         });
     }
-}*/
+}

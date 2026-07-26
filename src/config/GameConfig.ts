@@ -3,6 +3,7 @@ import '../styles/ColorTokens';
 import { COLORTOKEN } from '../styles/ColorTokens';
 import AudioManager from '../services/AudioManager';
 import { SCENE } from './ScenesConfig';
+import { SceneManager } from '@/services/SceneManager';
 
 export const GAME_WIDTH = 1728;
 export const GAME_HEIGHT = 879;
@@ -47,12 +48,20 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     plugins: {
         global: [
             {
-                key: 'AudioManager',
+                key: 'audio',
                 plugin: AudioManager,
                 start: true,
-                mapping: 'audioManager'
+                mapping: 'audio'
             }
-        ]
+        ],
+
+        scene: [
+            {
+                key: 'navigator',
+                plugin: SceneManager,
+                mapping: 'navigator',
+            },
+        ],
     },
 
     scene: SCENE,

@@ -3,9 +3,10 @@ import { ImageAssets } from "@/assets/sprites/AssetsMap";
 import { AssetLoader } from "@/services/AssetLoader";
 import { loadGameFonts } from "@/utils/UtilsFont";
 import { BootRenderer } from "./BootRenderer";
+import { SceneManager } from "@/services/SceneManager";
 
 export class BootScene extends Phaser.Scene {
-
+    navigator!: SceneManager;
     private readonly LOADING_DURATION = 350;
 
     constructor() {
