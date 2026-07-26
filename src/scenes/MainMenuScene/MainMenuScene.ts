@@ -44,8 +44,6 @@ export class MainMenuScene extends Phaser.Scene {
 
     private tooltip: Tooltip | null = null;
 
-    private audio!: AudioManager;
-
     constructor() {
         super({ key: 'MainMenuScene' });
     }
