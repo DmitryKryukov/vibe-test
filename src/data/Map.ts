@@ -1,5 +1,4 @@
-
-import { COLORTOKEN } from "@/partials/styles/ColorTokens";
+import { COLORTOKEN } from "@/styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
 
 export enum EncounterType {

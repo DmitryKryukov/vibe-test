@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import { SelectorCard, SelectableEntity } from './SelectorCard';
 import { LockedSelectorCard } from './LockedSelectorCard';
 
-import { TYPETOKEN } from '../../styles/TypeTokens';
+import { TYPETOKEN } from '../../../styles/TypeTokens';
 import { HeroScheme } from '@/data/Heroes';
 import { SquireScheme } from '@/data/Squires';
 
@@ -35,12 +35,12 @@ export class SelectorPanel<T extends SelectableEntity> extends Phaser.GameObject
         title: Phaser.GameObjects.Text | null;
         background: Phaser.GameObjects.Shape | null;
         cards: Map<string, SelectorCard<T>>;
-    } = { title: null, background: null, cards: new Map<string, SelectorCard<T>>};
+    } = { title: null, background: null, cards: new Map<string, SelectorCard<T>> };
 
     constructor(
-        scene: Phaser.Scene, 
-        data: SelectorPanelDataScheme<HeroScheme | SquireScheme>, 
-        layout?: SelectorPanelLayoutScheme, 
+        scene: Phaser.Scene,
+        data: SelectorPanelDataScheme<HeroScheme | SquireScheme>,
+        layout?: SelectorPanelLayoutScheme,
         interaction?: SelectorPanelInteractScheme<T>) {
         super(scene, layout?.x, layout?.y);
         this.scene = scene;
@@ -94,23 +94,23 @@ export class SelectorPanel<T extends SelectableEntity> extends Phaser.GameObject
                 this.add(card);
                 return;
             }
-            
+
             const card = new SelectorCard(
-                this.scene, 
-                entity, 
+                this.scene,
+                entity,
                 entity.id === entity.selectedId,
                 entity.tooltip,
-                () => {this.interaction.onSelect(entity.id)}
+                () => { this.interaction.onSelect(entity.id) }
             )
-                card.setPosition(228 * index, 40);
-                this.GO.cards?.set(entity.id, card);
-            
-                this.add(card)
+            card.setPosition(228 * index, 40);
+            this.GO.cards?.set(entity.id, card);
+
+            this.add(card)
         })
     }
 
     public setSelected(id: string): void {
-        this.GO.cards?.forEach((card, cardID)=> {
+        this.GO.cards?.forEach((card, cardID) => {
             card.setSelected(cardID === id);
         })
     }

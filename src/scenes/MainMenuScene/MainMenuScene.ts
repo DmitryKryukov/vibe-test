@@ -3,8 +3,8 @@ import Phaser from 'phaser';
 import { Heroes, HeroScheme } from '@/data/Heroes';
 import { Squires, SquireScheme } from '@/data/Squires';
 
-import { COLORTOKEN } from '@/partials/styles/ColorTokens';
-import { TYPETOKEN } from '@/partials/styles/TypeTokens';
+import { COLORTOKEN } from '@/styles/ColorTokens';
+import { TYPETOKEN } from '@/styles/TypeTokens';
 
 import { Background } from '@/partials/ui/components/Background';
 import { Button } from '@/partials/ui/components/Button';
@@ -57,7 +57,7 @@ export class MainMenuScene extends Phaser.Scene {
         this.bindEvents();
         this.renderScene();
     }
-    
+
     private bindEvents(): void {
         this.scale.on('resize', this.handleResize);
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this);

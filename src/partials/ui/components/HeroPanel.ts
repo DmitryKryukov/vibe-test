@@ -3,7 +3,7 @@ import { GameState } from "@/store/GameState";
 import { Heroes, SlotType } from "@/data/Heroes";
 import { screenToWorld, screenSpaceScale } from "@/utils/UtilsLayout";
 import { degreesToRadians, getRandomInt } from "@/utils/UtilsMath";
-import { COLORTOKEN } from "../../styles/ColorTokens";
+import { COLORTOKEN } from "../../../styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
 
 export class HeroPanel extends Phaser.GameObjects.Container {
@@ -57,7 +57,7 @@ export class HeroPanel extends Phaser.GameObjects.Container {
             const text = new Phaser.GameObjects.Text(this.scene, 0, 0, slot + "\n" + col + "/" + row, { align: 'center' })
                 .setOrigin(0.5).setDepth(400);
                 */
-            
+
             const icon = this.renderEmptySlotIcon(slot, x, y, slotWidth, slotHeight);
 
 
@@ -78,9 +78,9 @@ export class HeroPanel extends Phaser.GameObjects.Container {
         })
     }
 
-    private renderEmptySlotIcon(slot: SlotType, x:number, y:number, width: number, height: number): Phaser.GameObjects.Image {
-        const textureKey = slot +'-slot-empty'
-        const GO = new Phaser.GameObjects.Image(this.scene,0,0,textureKey);
+    private renderEmptySlotIcon(slot: SlotType, x: number, y: number, width: number, height: number): Phaser.GameObjects.Image {
+        const textureKey = slot + '-slot-empty'
+        const GO = new Phaser.GameObjects.Image(this.scene, 0, 0, textureKey);
         GO.setDisplaySize(width, height)
         return GO;
 

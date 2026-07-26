@@ -4,8 +4,8 @@ import { SquirePanel } from '@/partials/ui/components/SquirePanel';
 import { HeroPanel } from '@/partials/ui/components/HeroPanel';
 import { CombatSystem } from '@/services/CombatSystem';
 
-import { TYPETOKEN } from '@/partials/styles/TypeTokens';
-import { COLORTOKEN } from '@/partials/styles/ColorTokens';
+import { TYPETOKEN } from '@/styles/TypeTokens';
+import { COLORTOKEN } from '@/styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
 import { screenBounds, screenToWorld, screenSpaceScale } from '@/utils/UtilsLayout';
 

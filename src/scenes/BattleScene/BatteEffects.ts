@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
 import { CombatEventType, CombatSystem, CombatVisualEvent } from '@/services/CombatSystem';
 import { BattleSceneRenderer } from './BattleRenderer';
-import { COLORTOKEN } from '@/partials/styles/ColorTokens';
+import { COLORTOKEN } from '@/styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
-import { TYPETOKEN } from '@/partials/styles/TypeTokens';
+import { TYPETOKEN } from '@/styles/TypeTokens';
 
 export class BattleEffects {
 	private scene: Phaser.Scene;
@@ -38,7 +38,7 @@ export class BattleEffects {
 			}
 
 			if (event.type === CombatEventType.Charge) {
-					this.playCharge(event);
+				this.playCharge(event);
 			}
 
 			if (event.type === CombatEventType.Heal) {
@@ -201,7 +201,7 @@ export class BattleEffects {
 			flashY = combatantSprite.y;
 			particleSpeedX = { min: 140, max: -1000 };
 		}
-		
+
 
 		this.scene.tweens.add({
 			targets: combatantSprite.parentContainer,
@@ -212,7 +212,7 @@ export class BattleEffects {
 			ease: 'Sine.easeInOut',
 			overwrite: 'none',
 		});
-		
+
 
 		const flash = this.scene.add.circle(combatantSprite.x, flashY, flashSize, anyToColor(COLORTOKEN.Accent.Red), 1).setDepth(85);
 		this.scene.tweens.add({

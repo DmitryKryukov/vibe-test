@@ -4,9 +4,9 @@ import { CombatantView } from "./CombatantView";
 import { StatusEffect } from "@/services/StatusSystem";
 import { Tooltip } from "@/partials/ui/components/Tooltip";
 import { anyToColor } from "@/utils/UtilsColor";
-import { COLORTOKEN } from "@/partials/styles/ColorTokens";
 import { StatusInfo } from "@/data/Statuses";
-import { TYPETOKEN } from "@/partials/styles/TypeTokens";
+import { TYPETOKEN } from "@/styles/TypeTokens";
+import { COLORTOKEN } from "@/styles/ColorTokens";
 
 export class StatusBar extends Phaser.GameObjects.Container {
     private readonly combatantView: CombatantView;
@@ -58,8 +58,8 @@ export class StatusBar extends Phaser.GameObjects.Container {
 
         const iconKey = `icon-status-${status.id}`;
         const icon = this.scene.textures.exists(iconKey)
-            ? this.scene.add.image(0 + PADDING_H + iconSize / 2,PADDING_V + iconSize / 2, iconKey).setDisplaySize(iconSize , iconSize )
-            : this.scene.add.circle(0 + PADDING_H + iconSize / 2,PADDING_V + iconSize / 2, iconSize / 2, anyToColor(info.color));
+            ? this.scene.add.image(0 + PADDING_H + iconSize / 2, PADDING_V + iconSize / 2, iconKey).setDisplaySize(iconSize, iconSize)
+            : this.scene.add.circle(0 + PADDING_H + iconSize / 2, PADDING_V + iconSize / 2, iconSize / 2, anyToColor(info.color));
 
         const stackText = status.stacks > 1 ? `: ${status.stacks}` : '';
         const label = this.scene.add.text(0 + icon.displayWidth + PADDING_H + GAP, PADDING_V + icon.displayHeight / 2, `${info.name}${stackText}`, { ...TYPETOKEN.Secondary.Body, color: info.color }).setOrigin(0, .5);
@@ -70,13 +70,13 @@ export class StatusBar extends Phaser.GameObjects.Container {
         const offsetY = background.height / 2;
 
         background.setPosition(-offsetX, -offsetY - y);
-        icon.setPosition(PADDING_H + iconSize / 2 - offsetX,PADDING_V + iconSize / 2 - offsetY - y);
-        label.setPosition(PADDING_H + icon.displayWidth + GAP - offsetX,PADDING_V + icon.displayHeight / 2 - offsetY - y);
+        icon.setPosition(PADDING_H + iconSize / 2 - offsetX, PADDING_V + iconSize / 2 - offsetY - y);
+        label.setPosition(PADDING_H + icon.displayWidth + GAP - offsetX, PADDING_V + icon.displayHeight / 2 - offsetY - y);
 
         this.root.add([background, icon, label]);
 
         //Эта штука уничтожается и не успевается сработать, нужно будет как-то перепилить на событии, видимо
-        
+
         background.setInteractive({ useHandCursor: true })
 
         this.tooltipProxy.show(
@@ -87,7 +87,7 @@ export class StatusBar extends Phaser.GameObjects.Container {
             { width: 390 }
         );
     }
-    
+
     public destroy(): void {
         this.root.removeAll(true);
         super.destroy(true);

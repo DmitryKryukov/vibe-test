@@ -4,10 +4,10 @@ import { MainUI } from "@/partials/ui/MainUI";
 import { CombatSystem } from "@/services/CombatSystem";
 import { GameState } from "@/store/GameState";
 import { EncounterType, getMapMetrics, getNodeStyles, getNodeLabel, MapNode, getNodeDescription } from "@/data/Map";
-import { COLORTOKEN } from "@/partials/styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
-import { TYPETOKEN } from "@/partials/styles/TypeTokens";
+import { TYPETOKEN } from "@/styles/TypeTokens";
 import { Tooltip } from "@/partials/ui/components/Tooltip";
+import { COLORTOKEN } from "@/styles/ColorTokens";
 
 export class MapRenderer {
     private scene: Phaser.Scene;

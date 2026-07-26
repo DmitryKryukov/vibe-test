@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 import { Combatant } from "@/services/CombatantFactory";
-import { COLORTOKEN } from "@/partials/styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
 import { Tooltip } from "@/partials/ui/components/Tooltip";
+import { COLORTOKEN } from "@/styles/ColorTokens";
 
 export class AttackIndicator extends Phaser.GameObjects.Container {
     private target: Combatant;

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import '../partials/styles/ColorTokens';
-import { COLORTOKEN } from '../partials/styles/ColorTokens';
+import '../styles/ColorTokens';
+import { COLORTOKEN } from '../styles/ColorTokens';
 import AudioManager from '../services/AudioManager';
 import { SCENE } from './ScenesConfig';
 
@@ -11,10 +11,10 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     type: Phaser.WEBGL,
     parent: 'gameRoot',
     backgroundColor: COLORTOKEN.Background.Zeroth,
-   
+
     scale: {
         mode: Phaser.Scale.RESIZE,
-        width: window.innerWidth * 1, 
+        width: window.innerWidth * 1,
         height: window.innerHeight * 1,
         zoom: 2,
         autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -29,7 +29,7 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     },
 
     fps: {
-        target: 120 ,
+        target: 120,
         forceSetTimeOut: true
     },
 
@@ -46,9 +46,9 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     },
     plugins: {
         global: [
-            { 
-                key: 'AudioManager', 
-                plugin: AudioManager, 
+            {
+                key: 'AudioManager',
+                plugin: AudioManager,
                 start: true,
                 mapping: 'audioManager'
             }

@@ -4,9 +4,9 @@ import { GameState, RunState } from "@/store/GameState";
 import { Squires, SquireScheme } from "@/data/Squires";
 import { screenToWorld, screenBounds } from "@/utils/UtilsLayout";
 import { degreesToRadians, getRandomInt } from "@/utils/UtilsMath";
-import { COLORTOKEN } from "../../styles/ColorTokens";
+import { COLORTOKEN } from "../../../styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
-import { TYPETOKEN } from "../../styles/TypeTokens";
+import { TYPETOKEN } from "../../../styles/TypeTokens";
 
 export class SquirePanel extends Phaser.GameObjects.Container {
     public scene: Phaser.Scene
@@ -64,7 +64,7 @@ export class SquirePanel extends Phaser.GameObjects.Container {
         const slotWidth = 72;
         const slotHeight = 72;
         const slotGap = 2;
-        const startPos = { x: 150, y: screen.bottom};
+        const startPos = { x: 150, y: screen.bottom };
 
         this.run.inventory.forEach((item, index) => {
             const col = Math.floor(index % (this.run.inventory.length / 2));

@@ -1,5 +1,5 @@
-import { COLORTOKEN } from "@/partials/styles/ColorTokens";
-import { TYPETOKEN } from "@/partials/styles/TypeTokens";
+import { COLORTOKEN } from "@/styles/ColorTokens";
+import { TYPETOKEN } from "@/styles/TypeTokens";
 import { Background } from "@/partials/ui/components/Background";
 import { viewBounds } from "@/utils/UtilsLayout";
 import { BOOT_LAYOUT } from "./BootConfig";

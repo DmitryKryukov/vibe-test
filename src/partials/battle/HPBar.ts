@@ -1,13 +1,13 @@
 import Phaser from "phaser";
 import { Combatant } from "@/services/CombatantFactory";
-import { COLORTOKEN } from "@/partials/styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
 import { CombatantView } from "./CombatantView";
-import { TYPETOKEN } from "@/partials/styles/TypeTokens";
 import { Tooltip } from "@/partials/ui/components/Tooltip";
 import { Factions } from "@/data/Enemies";
 import { AttackIndicator } from "./AttackIndicator";
 import { AbilityIndicator } from "./AbilityIndicator";
+import { TYPETOKEN } from "@/styles/TypeTokens";
+import { COLORTOKEN } from "../../styles/ColorTokens";
 
 interface BarDimensions {
     width: number;

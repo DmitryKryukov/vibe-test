@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 import { Combatant } from "@/services/CombatantFactory";
-import { COLORTOKEN } from "@/partials/styles/ColorTokens";
 import { anyToColor } from "@/utils/UtilsColor";
 import { Tooltip } from "@/partials/ui/components/Tooltip";
+import { COLORTOKEN } from "@/styles/ColorTokens";
 
 export class AbilityIndicator extends Phaser.GameObjects.Container {
     private target: Combatant;
@@ -53,12 +53,12 @@ export class AbilityIndicator extends Phaser.GameObjects.Container {
 
             const progressGraphics = this.scene.add.graphics();
             container.add(progressGraphics);
-            
+
             const imagePadding = 4;
 
             const img = this.scene.add.image(imagePadding, imagePadding, ability.id);
             img.setDisplaySize(size - imagePadding * 2, size - imagePadding * 2);
-            img.setOrigin(0,0);
+            img.setOrigin(0, 0);
             container.add(img);
 
             const imageMaskGraphics = this.scene.make.graphics();
@@ -73,7 +73,7 @@ export class AbilityIndicator extends Phaser.GameObjects.Container {
             maskGraphics.fillRoundedRect(this.root.x + posX, this.root.y + posY, size, size, 12);
 
             progressGraphics.setMask(maskGraphics.createGeometryMask());
-            
+
             const circle = this.scene.add.circle(
                 0,
                 0,
@@ -94,7 +94,7 @@ export class AbilityIndicator extends Phaser.GameObjects.Container {
             (container as any).radius = radius;
 
             circle.setInteractive({ useHandCursor: true });
-            
+
             const tooltip = new Tooltip(this.scene);
             // Интерактивность и тултип
             tooltip.show(
@@ -105,7 +105,7 @@ export class AbilityIndicator extends Phaser.GameObjects.Container {
                 { width: 390 }
             );
             this.tooltips.push(tooltip);
-            
+
             this.add(container);
             this.abilityContainers.push(container);
         });

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORTOKEN } from '@/partials/styles/ColorTokens';
-import { TYPETOKEN } from '../../styles/TypeTokens';
+import { COLORTOKEN } from '@/styles/ColorTokens';
+import { TYPETOKEN } from '../../../styles/TypeTokens';
 
 import { anyToColor, parseColor, interpolateColor, interpolateColorToHex } from '@/utils/UtilsColor';
 import { createProgressTween, stopTweenSafely } from '@/utils/UtilsTween';
@@ -146,7 +146,7 @@ export class Button extends Phaser.GameObjects.Container {
 
         const buttonWidth = Math.max(textWidth + this.style.paddings.x * 2, this.style.minWidth);
         const buttonHeight = Math.max(textHeight + this.style.paddings.y * 2, this.style.minHeight);
-        
+
 
         this.GO.background = new Phaser.GameObjects.Rectangle(
             this.scene,
@@ -176,9 +176,9 @@ export class Button extends Phaser.GameObjects.Container {
             .on('pointerdown', this.handlePointerDown, this)
             .on('pointerup', this.handlePointerUp, this);
 
-            this.once(Phaser.GameObjects.Events.DESTROY, this.cleanup, this);
+        this.once(Phaser.GameObjects.Events.DESTROY, this.cleanup, this);
     }
-     private cleanup(): void {
+    private cleanup(): void {
         this.tween?.stop();
     }
 
@@ -197,7 +197,7 @@ export class Button extends Phaser.GameObjects.Container {
         this.applyState('hover', this.style.animationDuration.pressOut);
         this.onClickHandler();
     }
-    
+
 
     private applyState(stateName: keyof ButtonState, duration: number): void {
         stopTweenSafely(this.tween);
@@ -235,7 +235,7 @@ export class Button extends Phaser.GameObjects.Container {
                     this.GO.background?.lineWidth,
                     interpolateColor(from.stroke, to.stroke, progress)
                 );
-        },
+            },
         });
     }
 
