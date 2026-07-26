@@ -3,6 +3,7 @@ import { AbilitySystem } from "./AbilitySystem";
 import { AudioManager } from "./AudioManager";
 import { Combatant, CombatantFactory } from "./CombatantFactory";
 import { StatusSystem } from "./StatusSystem";
+import { GameState } from "@/store/GameState";
 
 export enum CombatEventType {
     Damage,
@@ -97,6 +98,8 @@ export class CombatSystem {
         }
 
         if (this.enemies.every(enemy => !enemy.alive)) {
+            const run = GameState.requireRun();
+            run.hp = Math.min(run.maxHp, this.hero.stats.hp);
             this.ended = "victory";
         }
     }

@@ -74,8 +74,8 @@ export class BattleScene extends Phaser.Scene {
         if (result === 'victory') {
             //this.combat.applyRewards();
             const run = GameState.requireRun();
+            run.hp = Math.min(run.maxHp, run.hp);
             //const robertRepair = run.squireId === 'robert' ? run.bag.filter(Boolean).length * 3 : 0;
-            //run.hp = Math.min(run.maxHp, run.hp + robertRepair);
 
             //this.victorySummary = [
             //  `Золото: +${this.combat.rewards.gold}`,
