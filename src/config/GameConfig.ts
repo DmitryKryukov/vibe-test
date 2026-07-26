@@ -1,9 +1,7 @@
-import Phaser from 'phaser';
-import '../styles/ColorTokens';
-import { COLORTOKEN } from '../styles/ColorTokens';
-import AudioManager from '../services/AudioManager';
-import { SCENE } from './ScenesConfig';
+import { AudioManager } from '@/services/AudioManager';
 import { SceneManager } from '@/services/SceneManager';
+import { COLORTOKEN } from '@/styles/ColorTokens';
+import { SCENE } from './ScenesConfig';
 
 export const GAME_WIDTH = 1728;
 export const GAME_HEIGHT = 879;

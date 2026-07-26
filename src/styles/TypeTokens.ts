@@ -1,4 +1,3 @@
-import Phaser from 'phaser';
 import { FONTTOKEN } from './FontTokens';
 import { COLORTOKEN } from './ColorTokens';
 import { METRICTOKEN } from './MetricTokens';

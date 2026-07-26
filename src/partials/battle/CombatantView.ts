@@ -1,6 +1,4 @@
-import Phaser from 'phaser';
 import { Combatant } from '@/services/CombatantFactory';
-
 import { HPBar } from './HPBar';
 import { StatusBar } from './StatusBar';
 
@@ -62,7 +60,6 @@ export class CombatantView {
         this.zone = this.scene.add.zone(spriteX, spriteY, width, height)
             .setRectangleDropZone(width, height);
         if (renderHPBar) {
-
             this.hpBar = new HPBar(this.scene, this, this.combatantViewScheme.type, this.combatant, x, y);
         }
         if (renderStatusBar) {

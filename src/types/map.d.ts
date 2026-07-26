@@ -1,14 +1,4 @@
-/* declare global {
-    export enum EncounterType {
-        Start = 'start',
-        Battle = 'battle',
-        Elite = 'elite',
-        Merchant = 'merchant',
-        Event = 'event',
-        Camp = 'camp',
-        Boss = 'boss'
-    }
-
+declare global {
     export interface MapNode {
         id: string;
         column: number;
@@ -22,4 +12,3 @@
     }
 }
 export { }
-*/

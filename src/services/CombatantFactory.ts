@@ -1,8 +1,6 @@
-import { FactionId } from "@/data/Enemies";
-import { StatusEffect } from "./StatusSystem";
-import { GameState } from "@/store/GameState";
 import { Heroes } from "@/data/Heroes";
-import { EnemyScheme } from "@/data/Enemies";
+import { GameState } from "@/store/GameState";
+import { StatusEffect } from "./StatusSystem";
 
 export interface Combatant {
     id: string;

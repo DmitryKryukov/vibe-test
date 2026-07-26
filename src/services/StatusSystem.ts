@@ -1,4 +1,5 @@
 import { Combatant } from "./CombatantFactory";
+
 export interface StatusEffect {
     id: string;
     label: string;

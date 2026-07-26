@@ -1,5 +1,4 @@
 import { COLORTOKEN } from "@/styles/ColorTokens";
-import { anyToColor } from "@/utils/UtilsColor";
 
 export enum EncounterType {
     Start = 'start',
@@ -9,18 +8,6 @@ export enum EncounterType {
     Event = 'event',
     Camp = 'camp',
     Boss = 'boss'
-}
-
-export interface MapNode {
-    id: string;
-    column: number;
-    row: number;
-    type: EncounterType;
-    links: string[];
-    visited: boolean;
-    available: boolean;
-    revealed: boolean;
-    elite?: boolean;
 }
 
 export function getMapMetrics(): { startX: number; startY: number; gapX: number; gapY: number; randomX: number; randomY: number } {
@@ -55,7 +42,7 @@ export function getNodeStyles(node: MapNode, isInaccessible: boolean) {
         ? COLORTOKEN.Background.Zeroth.Numeric
         : isInaccessible
             ? COLORTOKEN.Background.Zeroth.Numeric
-            : COLORTOKEN.Node[node.type].Numeric;
+            : COLORTOKEN.Node[node.type as EncounterType].Numeric;
 
     const strokeColor = node.visited
         ? COLORTOKEN.Background.Zeroth.Numeric

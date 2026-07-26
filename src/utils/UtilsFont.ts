@@ -1,4 +1,3 @@
-
 import { FONTTOKEN } from '../styles/FontTokens';
 
 const STYLE_ELEMENT_ID = 'armory-intendant-fonts';

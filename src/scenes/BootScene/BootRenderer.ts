@@ -1,9 +1,9 @@
+import { Background } from "@/partials/ui/components/Background";
+import { LoadingBar } from "@/partials/ui/components/LoadingBar";
 import { COLORTOKEN } from "@/styles/ColorTokens";
 import { TYPETOKEN } from "@/styles/TypeTokens";
-import { Background } from "@/partials/ui/components/Background";
 import { viewBounds } from "@/utils/UtilsLayout";
 import { BOOT_LAYOUT } from "./BootConfig";
-import { LoadingBar } from "@/partials/ui/components/LoadingBar";
 
 export class BootRenderer {
     constructor(private scene: Phaser.Scene) { }

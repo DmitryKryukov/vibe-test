@@ -1,12 +1,9 @@
-import Phaser from 'phaser';
-
-import { SquirePanel } from '@/partials/ui/components/SquirePanel';
 import { HeroPanel } from '@/partials/ui/components/HeroPanel';
+import { SquirePanel } from '@/partials/ui/components/SquirePanel';
 import { CombatSystem } from '@/services/CombatSystem';
-
-import { TYPETOKEN } from '@/styles/TypeTokens';
 import { COLORTOKEN } from '@/styles/ColorTokens';
-import { screenBounds, screenToWorld, screenSpaceScale } from '@/utils/UtilsLayout';
+import { TYPETOKEN } from '@/styles/TypeTokens';
+import { screenBounds, screenSpaceScale, screenToWorld } from '@/utils/UtilsLayout';
 
 export class MainUI {
     private scene: Phaser.Scene;

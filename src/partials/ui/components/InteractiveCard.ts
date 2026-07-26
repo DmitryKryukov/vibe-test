@@ -1,9 +1,4 @@
-
-import Phaser, { Display } from 'phaser';
-import {
-    interpolateColor,
-    interpolateColorToHex,
-} from '@/utils/UtilsColor';
+import { interpolateColor, interpolateColorToHex } from '@/utils/UtilsColor';
 import { createProgressTween, stopTweenSafely } from '@/utils/UtilsTween';
 
 export interface BaseStateConfig {

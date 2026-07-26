@@ -1,10 +1,8 @@
-import Phaser from 'phaser';
-import { TYPETOKEN } from '@/styles/TypeTokens';
 import { COLORTOKEN } from '@/styles/ColorTokens';
-import { stopTweenSafely } from '@/utils/UtilsTween';
+import { TYPETOKEN } from '@/styles/TypeTokens';
 import { interpolateColor, interpolateColorToHex } from '@/utils/UtilsColor';
-import { createProgressTween } from '@/utils/UtilsTween';
 import { interpolateNumber } from '@/utils/UtilsMath';
+import { createProgressTween, stopTweenSafely } from '@/utils/UtilsTween';
 
 interface StateConfig {
     name: { color: Color };

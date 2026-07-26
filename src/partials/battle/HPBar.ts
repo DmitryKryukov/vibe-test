@@ -1,13 +1,11 @@
-import Phaser from "phaser";
-import { Combatant } from "@/services/CombatantFactory";
-import { anyToColor } from "@/utils/UtilsColor";
-import { CombatantView } from "./CombatantView";
-import { Tooltip } from "@/partials/ui/components/Tooltip";
 import { Factions } from "@/data/Enemies";
-import { AttackIndicator } from "./AttackIndicator";
-import { AbilityIndicator } from "./AbilityIndicator";
+import { Tooltip } from "@/partials/ui/components/Tooltip";
+import { Combatant } from "@/services/CombatantFactory";
 import { TYPETOKEN } from "@/styles/TypeTokens";
 import { COLORTOKEN } from "../../styles/ColorTokens";
+import { AbilityIndicator } from "./AbilityIndicator";
+import { AttackIndicator } from "./AttackIndicator";
+import { CombatantView } from "./CombatantView";
 
 interface BarDimensions {
     width: number;
@@ -111,7 +109,7 @@ export class HPBar extends Phaser.GameObjects.Container {
     }
 
     private renderEnemyFactionIcon(width: number, height: number, x: number, y: number): void {
-        const factionIconKey = `icon-faction-${this.target.faction}`;
+        const factionIconKey = `icon-faction-${String(this.target.faction)}`;
 
         if (this.scene.textures.exists(factionIconKey)) {
             this.factionIcon = this.scene.add.image(-4, height, factionIconKey)

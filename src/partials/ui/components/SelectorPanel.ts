@@ -1,11 +1,6 @@
-import Phaser from 'phaser';
-
-import { SelectorCard, SelectableEntity } from './SelectorCard';
+import { TYPETOKEN } from '@/styles/TypeTokens';
 import { LockedSelectorCard } from './LockedSelectorCard';
-
-import { TYPETOKEN } from '../../../styles/TypeTokens';
-import { HeroScheme } from '@/data/Heroes';
-import { SquireScheme } from '@/data/Squires';
+import { SelectableEntity, SelectorCard } from './SelectorCard';
 
 export interface SelectorPanelLayoutScheme {
     x: number;

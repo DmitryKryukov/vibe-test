@@ -1,11 +1,11 @@
+import { EncounterType, getMapMetrics, getNodeDescription, getNodeLabel, getNodeStyles } from "@/data/Map";
 import { Background } from "@/partials/ui/components/Background";
+import { Tooltip } from "@/partials/ui/components/Tooltip";
 import { MainUI } from "@/partials/ui/MainUI";
 import { CombatSystem } from "@/services/CombatSystem";
 import { GameState } from "@/store/GameState";
-import { EncounterType, getMapMetrics, getNodeStyles, getNodeLabel, MapNode, getNodeDescription } from "@/data/Map";
-import { TYPETOKEN } from "@/styles/TypeTokens";
-import { Tooltip } from "@/partials/ui/components/Tooltip";
 import { COLORTOKEN } from "@/styles/ColorTokens";
+import { TYPETOKEN } from "@/styles/TypeTokens";
 
 export class MapRenderer {
     private scene: Phaser.Scene;
@@ -54,7 +54,7 @@ export class MapRenderer {
             const from = positions.get(node.id);
             if (!from) return;
 
-            node.links.forEach((id) => {
+            node.links.forEach((id: string) => {
                 const toNode = run.map.find((candidate) => candidate.id === id);
                 const to = positions.get(id);
                 if (!to) return;

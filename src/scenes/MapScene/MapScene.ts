@@ -1,7 +1,6 @@
-import Phaser from 'phaser';
-import AudioManager from '@/services/AudioManager';
-import { MapRenderer } from './MapRenderer';
+import { AudioManager } from '@/services/AudioManager';
 import { CombatSystem } from '@/services/CombatSystem';
+import { MapRenderer } from './MapRenderer';
 
 
 export class MapScene extends Phaser.Scene {
@@ -11,7 +10,7 @@ export class MapScene extends Phaser.Scene {
 
     constructor() {
         super('MapScene');
-        
+
     }
     create(): void {
         this.audio = this.plugins.get('AudioManager') as AudioManager;

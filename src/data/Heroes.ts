@@ -1,4 +1,5 @@
 import { Abilities } from "./Abilities";
+
 export const Heroes: Record<string, HeroScheme> = {
     galahad: {
         id: 'galahad-hero',

@@ -1,4 +1,3 @@
-import Phaser from "phaser"
 import { GameState } from "@/store/GameState";
 import { Heroes } from "@/data/Heroes";
 import { screenToWorld, screenSpaceScale } from "@/utils/UtilsLayout";

@@ -1,5 +1,3 @@
-
-
 import { Heroes } from '@/data/Heroes';
 import { Squires } from '@/data/Squires';
 
@@ -11,10 +9,10 @@ import { Tooltip } from '@/partials/ui/components/Tooltip';
 
 import { viewBounds } from '@/utils/UtilsLayout';
 
+import { COLORTOKEN } from '@/styles/ColorTokens';
+import { TYPETOKEN } from '@/styles/TypeTokens';
 import { DEFAULT_HERO_ID, DEFAULT_SQUIRE_ID, MAIN_MENU_LAYOUT } from './MainMenuConfig';
 import { MainMenuScene } from './MainMenuScene';
-import { TYPETOKEN } from '@/styles/TypeTokens';
-import { COLORTOKEN } from '@/styles/ColorTokens';
 
 
 interface ButtonConfig {

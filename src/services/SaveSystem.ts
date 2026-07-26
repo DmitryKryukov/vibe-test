@@ -1,7 +1,6 @@
-import Phaser from 'phaser';
 import { GameState, StoredGameState } from '../store/GameState';
 
-const SAVE_KEY = 'armory-intendant-save-v1';
+const SAVE_KEY = 'armory-intendant-save';
 
 export class SaveSystem {
     static load(): boolean {

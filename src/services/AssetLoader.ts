@@ -1,5 +1,3 @@
-import Phaser from 'phaser';
-
 export class AssetLoader {
     public static loadImages(
         loader: Phaser.Loader.LoaderPlugin,

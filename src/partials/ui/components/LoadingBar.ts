@@ -1,4 +1,3 @@
-import Phaser from 'phaser';
 import { COLORTOKEN } from '@/styles/ColorTokens';
 
 export interface LoadingBarStyleScheme {

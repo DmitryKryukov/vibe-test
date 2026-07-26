@@ -1,6 +1,6 @@
-import { viewBounds } from '@/utils/UtilsLayout';
-import { TYPETOKEN } from '@/styles/TypeTokens';
 import { COLORTOKEN } from '@/styles/ColorTokens';
+import { TYPETOKEN } from '@/styles/TypeTokens';
+import { viewBounds } from '@/utils/UtilsLayout';
 
 export interface TooltipScheme {
     width: number;

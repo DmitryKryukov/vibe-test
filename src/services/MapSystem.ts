@@ -1,6 +1,4 @@
-
-import Phaser from 'phaser';
-import { EncounterType, MapNode } from '@/data/Map';
+import { EncounterType } from "@/data/Map";
 
 export function generateMap(extraBranches: number = 1): MapNode[] {
     const MAP_LENGTH = 9;

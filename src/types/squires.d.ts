@@ -1,4 +1,3 @@
-
 declare global {
     export interface SquireScheme {
         id: string,

@@ -1,209 +1,207 @@
-import Phaser from 'phaser';
+import { Enemies } from '@/data/Enemies';
+import { Heroes } from '@/data/Heroes';
+import { CombatantView } from '@/partials/battle/CombatantView';
 import { Background } from '@/partials/ui/components/Background';
 import { Combatant } from '@/services/CombatantFactory';
 import { CombatSystem } from '@/services/CombatSystem';
-import { CombatantView } from '@/partials/battle/CombatantView';
 import { GameState } from '@/store/GameState';
-import { Heroes } from '@/data/Heroes';
-
-import { Enemies } from '@/data/Enemies';
 import { screenBounds } from '@/utils/UtilsLayout';
 import { getEnemySlots, getHeroSlots } from '../../data/Battleground';
 import { MainUI } from '../../partials/ui/MainUI';
 
 export class BattleSceneRenderer {
-  private scene: Phaser.Scene;
-  private background!: Background;
-  private combatSystem: CombatSystem;
+    private scene: Phaser.Scene;
+    private background!: Background;
+    private combatSystem: CombatSystem;
 
-  private mainUI: MainUI;
+    private mainUI: MainUI;
 
-  private combatantViews = new Map<string, CombatantView>();
+    private combatantViews = new Map<string, CombatantView>();
 
-  private statusContainers = new Map<string, Phaser.GameObjects.Container>();
-  private statusSignatures = new Map<string, string>();
+    private statusContainers = new Map<string, Phaser.GameObjects.Container>();
+    private statusSignatures = new Map<string, string>();
 
-  constructor(scene: Phaser.Scene, combatSystem: CombatSystem) {
-    this.scene = scene;
-    this.combatSystem = combatSystem;
-    this.mainUI = new MainUI(scene, combatSystem);
-  }
-
-  public renderStatic(): void {
-    this.sceneClear();
-    this.renderBackground();
-    this.mainUI.renderPanels();
-    this.renderHero();
-    this.renderEnemies();
-
-    /*
-this.enemyPositions.clear();
-this.lootItems = [];
-this.bagSlotZones = [];
-this.equipZones = [];
-this.slotHighlights = [];
-
- 
-this.drawInventoryInteractives();
-this.drawTopControls();
-this.drawFieldLoot();
-*/
-  }
-
-  private renderBackground(): void {
-    this.background = new Background(this.scene, 'battle');
-  }
-
-  private renderHero(): void {
-    const hero = this.combatSystem.hero;
-    const heroScheme = Heroes[GameState.requireRun().heroId];
-
-    const { x, y } = getHeroSlots();
-    const view = new CombatantView(
-      this.scene, hero, x, y,
-      {
-        textureKey:
-          heroScheme.content?.spriteImage ?? '__White',
-        width:
-          heroScheme.content?.spriteWidth ?? 390,
-        height:
-          heroScheme.content?.spriteHeight ?? 510,
-        scale:
-          heroScheme.content?.spriteScale ?? 1,
-        offsetX:
-          heroScheme.content?.spriteOffsetX ?? 0,
-        offsetY:
-          heroScheme.content?.spriteOffsetY ?? -84,
-          statusBarX:
-          heroScheme.content?.statusBarX ?? 0,
-        statusBarY:
-          heroScheme.content?.statusBarY ?? -84,
-        type: 'hero',
-      },
-    );
-    this.combatantViews.set(hero.id, view);
-  }
-
-  private renderEnemies(): void {
-    const screen = screenBounds(this.scene);
-    const enemies = this.combatSystem.enemies;
-    const slots = getEnemySlots(enemies.length, screen)
-
-    this.combatSystem.enemies.forEach((enemy, index) => {
-      const position = slots[index] ?? slots[0];
-      this.renderEnemy(enemy, position.x, position.y);
-    })
-  }
-
-  private renderEnemy(enemy: Combatant, x: number, y: number): void {
-    if (!enemy.alive) return;
-    const enemyScheme = Enemies[enemy.definitionId];
-    const view = new CombatantView(
-      this.scene, enemy, x, y,
-      {
-        textureKey:
-          enemyScheme.content?.spriteImage ?? '__White',
-        width:
-          enemyScheme.content?.spriteWidth ?? 390,
-        height:
-          enemyScheme.content?.spriteHeight ?? 510,
-        scale:
-          enemyScheme.content?.spriteScale ?? 1,
-        offsetX:
-          enemyScheme.content?.spriteOffsetX ?? 0,
-        offsetY:
-          enemyScheme.content?.spriteOffsetY ?? -84,
-        statusBarX:
-          enemyScheme.content?.statusBarX ?? 0,
-        statusBarY:
-          enemyScheme.content?.statusBarY ?? -84,
-        type: 'enemy',
-      },
-    );
-    this.combatantViews.set(enemy.id, view);
-  }
-
-  public getCombatantPosition(id: string): { x: number; y: number } | undefined {
-    console.log(this.combatantViews);
-    const combatantView = this.combatantViews.get(id);
-    if (combatantView) {
-      const x = combatantView.sprite.x;
-      const y = combatantView.sprite.y;
-      return {x: x, y: y};
-    }
-  }
-  public getCombatantSprite(id: string): Phaser.GameObjects.GameObject {
-    return this.combatantViews.get(id)?.sprite as Phaser.GameObjects.GameObject
-  }
-
-  public update(): void {
-    const hero = this.combatSystem.hero;
-    if (!this.combatSystem.hero.alive) {
-      this.removeCombatantView(hero.id);
+    constructor(scene: Phaser.Scene, combatSystem: CombatSystem) {
+        this.scene = scene;
+        this.combatSystem = combatSystem;
+        this.mainUI = new MainUI(scene, combatSystem);
     }
 
-    this.combatSystem.enemies.forEach(enemy => {
-      if (!enemy.alive) {
-        this.removeCombatantView(enemy.id);
-      }
-    });
-  }
+    public renderStatic(): void {
+        this.sceneClear();
+        this.renderBackground();
+        this.mainUI.renderPanels();
+        this.renderHero();
+        this.renderEnemies();
 
-  private removeCombatantView(id: string, options?: { moveX?: number; fade?: boolean; shrink?: boolean; duration?: number; }): void {
-    const {
-      moveX = 0,
-      fade = true,
-      shrink = true,
-      duration = 460,
-    } = options ?? {};
+        /*
+    this.enemyPositions.clear();
+    this.lootItems = [];
+    this.bagSlotZones = [];
+    this.equipZones = [];
+    this.slotHighlights = [];
+    
+     
+    this.drawInventoryInteractives();
+    this.drawTopControls();
+    this.drawFieldLoot();
+    */
+    }
 
-    const view = this.combatantViews.get(id);
+    private renderBackground(): void {
+        this.background = new Background(this.scene, 'battle');
+    }
 
-    if (!view) return;
+    private renderHero(): void {
+        const hero = this.combatSystem.hero;
+        const heroScheme = Heroes[GameState.requireRun().heroId];
 
-    const sprite = view.sprite;
+        const { x, y } = getHeroSlots();
+        const view = new CombatantView(
+            this.scene, hero, x, y,
+            {
+                textureKey:
+                    heroScheme.content?.spriteImage ?? '__White',
+                width:
+                    heroScheme.content?.spriteWidth ?? 390,
+                height:
+                    heroScheme.content?.spriteHeight ?? 510,
+                scale:
+                    heroScheme.content?.spriteScale ?? 1,
+                offsetX:
+                    heroScheme.content?.spriteOffsetX ?? 0,
+                offsetY:
+                    heroScheme.content?.spriteOffsetY ?? -84,
+                statusBarX:
+                    heroScheme.content?.statusBarX ?? 0,
+                statusBarY:
+                    heroScheme.content?.statusBarY ?? -84,
+                type: 'hero',
+            },
+        );
+        this.combatantViews.set(hero.id, view);
+    }
 
-    view.hpBar?.destroy();
-    view.statusBar?.destroy();
+    private renderEnemies(): void {
+        const screen = screenBounds(this.scene);
+        const enemies = this.combatSystem.enemies;
+        const slots = getEnemySlots(enemies.length, screen)
 
-    this.scene.tweens.add({
-      targets: sprite,
+        this.combatSystem.enemies.forEach((enemy, index) => {
+            const position = slots[index] ?? slots[0];
+            this.renderEnemy(enemy, position.x, position.y);
+        })
+    }
 
-      alpha: fade ? 0 : 1,
+    private renderEnemy(enemy: Combatant, x: number, y: number): void {
+        if (!enemy.alive) return;
+        const enemyScheme = Enemies[enemy.definitionId];
+        const view = new CombatantView(
+            this.scene, enemy, x, y,
+            {
+                textureKey:
+                    enemyScheme.content?.spriteImage ?? '__White',
+                width:
+                    enemyScheme.content?.spriteWidth ?? 390,
+                height:
+                    enemyScheme.content?.spriteHeight ?? 510,
+                scale:
+                    enemyScheme.content?.spriteScale ?? 1,
+                offsetX:
+                    enemyScheme.content?.spriteOffsetX ?? 0,
+                offsetY:
+                    enemyScheme.content?.spriteOffsetY ?? -84,
+                statusBarX:
+                    enemyScheme.content?.statusBarX ?? 0,
+                statusBarY:
+                    enemyScheme.content?.statusBarY ?? -84,
+                type: 'enemy',
+            },
+        );
+        this.combatantViews.set(enemy.id, view);
+    }
 
-      x: sprite.x + moveX,
-      y: sprite.y,
+    public getCombatantPosition(id: string): { x: number; y: number } | undefined {
+        console.log(this.combatantViews);
+        const combatantView = this.combatantViews.get(id);
+        if (combatantView) {
+            const x = combatantView.sprite.x;
+            const y = combatantView.sprite.y;
+            return { x: x, y: y };
+        }
+    }
+    public getCombatantSprite(id: string): Phaser.GameObjects.GameObject {
+        return this.combatantViews.get(id)?.sprite as Phaser.GameObjects.GameObject
+    }
 
-      scaleX: shrink ? 0 : sprite.scaleX,
-      scaleY: shrink ? 0 : sprite.scaleY,
+    public update(): void {
+        const hero = this.combatSystem.hero;
+        if (!this.combatSystem.hero.alive) {
+            this.removeCombatantView(hero.id);
+        }
 
-      duration,
+        this.combatSystem.enemies.forEach(enemy => {
+            if (!enemy.alive) {
+                this.removeCombatantView(enemy.id);
+            }
+        });
+    }
 
-      ease: 'Quint.easeOut',
+    private removeCombatantView(id: string, options?: { moveX?: number; fade?: boolean; shrink?: boolean; duration?: number; }): void {
+        const {
+            moveX = 0,
+            fade = true,
+            shrink = true,
+            duration = 460,
+        } = options ?? {};
 
-      onComplete: () => {
-        view.destroy();
-      },
-    });
-    this.combatantViews.delete(id);
-  }
+        const view = this.combatantViews.get(id);
 
-  public renderVictoryPanel(callbackArrowButon: () => void): void {
-    this.mainUI.renderVictoryPanel(callbackArrowButon);
-  }
+        if (!view) return;
 
-  public renderDefeatPanel(): void {
-    this.mainUI.renderResultPanel('defeat')
-  }
+        const sprite = view.sprite;
 
-  private sceneClear(): void {
-    this.scene.children.removeAll();
-    this.scene.input.off('drop');
-    this.scene.input.off('dragend');
+        view.hpBar?.destroy();
+        view.statusBar?.destroy();
 
-    this.statusContainers.clear();
-    this.statusSignatures.clear();
-  }
+        this.scene.tweens.add({
+            targets: sprite,
+
+            alpha: fade ? 0 : 1,
+
+            x: sprite.x + moveX,
+            y: sprite.y,
+
+            scaleX: shrink ? 0 : sprite.scaleX,
+            scaleY: shrink ? 0 : sprite.scaleY,
+
+            duration,
+
+            ease: 'Quint.easeOut',
+
+            onComplete: () => {
+                view.destroy();
+            },
+        });
+        this.combatantViews.delete(id);
+    }
+
+    public renderVictoryPanel(callbackArrowButon: () => void): void {
+        this.mainUI.renderVictoryPanel(callbackArrowButon);
+    }
+
+    public renderDefeatPanel(): void {
+        this.mainUI.renderResultPanel('defeat')
+    }
+
+    private sceneClear(): void {
+        this.scene.children.removeAll();
+        this.scene.input.off('drop');
+        this.scene.input.off('dragend');
+
+        this.statusContainers.clear();
+        this.statusSignatures.clear();
+    }
 }
 
 /*

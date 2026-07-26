@@ -1,10 +1,10 @@
 import { AudioAssets } from "@/assets/audio/AudioMap";
 import { ImageAssets } from "@/assets/sprites/AssetsMap";
 import { AssetLoader } from "@/services/AssetLoader";
+import { SaveSystem } from "@/services/SaveSystem";
+import { SceneManager } from "@/services/SceneManager";
 import { loadGameFonts } from "@/utils/UtilsFont";
 import { BootRenderer } from "./BootRenderer";
-import { SceneManager } from "@/services/SceneManager";
-import { SaveSystem } from "@/services/SaveSystem";
 
 export class BootScene extends Phaser.Scene {
     navigator!: SceneManager;

@@ -1,6 +1,4 @@
-import Phaser from 'phaser';
-
-export default class AudioManager extends Phaser.Plugins.BasePlugin {
+export class AudioManager extends Phaser.Plugins.BasePlugin {
     private currentMusic: Phaser.Sound.WebAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.NoAudioSound | null = null;
 
     private _masterVolume: number = 1.0;
@@ -11,7 +9,6 @@ export default class AudioManager extends Phaser.Plugins.BasePlugin {
         super(pluginManager);
     }
 
-    // Инициализация плагина
     public init(): void {
         this.game.events.on(Phaser.Core.Events.DESTROY, this.destroy, this);
     }
@@ -25,42 +22,39 @@ export default class AudioManager extends Phaser.Plugins.BasePlugin {
  *  - { detune?: number }       – высота тона в центах (1200 = октава вверх)
  *  - { rate: number, detune: number } – можно комбинировать
  */
-public playSFX(
-    key: string,
-    config: Phaser.Types.Sound.SoundConfig = {},
-    pitchOptions?: { rate?: number; detune?: number }
-): void {
-    const scene = this.pluginManager.game.scene.getScenes(true)[0];
-    if (!scene) return;
+    public playSFX(
+        key: string,
+        config: Phaser.Types.Sound.SoundConfig = {},
+        pitchOptions?: { rate?: number; detune?: number }
+    ): void {
+        const scene = this.pluginManager.game.scene.getScenes(true)[0];
+        if (!scene) return;
 
-    const soundConfig = { ...config };
+        const soundConfig = { ...config };
 
-    // Применяем параметры питча
-    if (pitchOptions) {
-        if (pitchOptions.rate !== undefined) {
-            soundConfig.rate = pitchOptions.rate;
+        if (pitchOptions) {
+            if (pitchOptions.rate !== undefined) {
+                soundConfig.rate = pitchOptions.rate;
+            }
+            if (pitchOptions.detune !== undefined) {
+                soundConfig.detune = pitchOptions.detune;
+            }
         }
-        if (pitchOptions.detune !== undefined) {
-            soundConfig.detune = pitchOptions.detune;
+
+        soundConfig.volume = (config.volume ?? 1) * this._sfxVolume * this._masterVolume;
+
+        const sfx = scene.sound.add(key, soundConfig);
+
+        if (pitchOptions?.rate !== undefined && sfx.rate !== pitchOptions.rate) {
+            console.warn(`playSFX: rate не поддерживается для "${key}" (возможно, HTML5 Audio). Используйте detune.`);
         }
+
+        sfx.play();
+
+        sfx.on(Phaser.Sound.Events.COMPLETE, () => {
+            sfx.destroy();
+        });
     }
-
-    // Громкость
-    soundConfig.volume = (config.volume ?? 1) * this._sfxVolume * this._masterVolume;
-
-    const sfx = scene.sound.add(key, soundConfig);
-
-    // Проверка: если звук не поддерживает rate, выведем предупреждение
-    if (pitchOptions?.rate !== undefined && sfx.rate !== pitchOptions.rate) {
-        console.warn(`playSFX: rate не поддерживается для "${key}" (возможно, HTML5 Audio). Используйте detune.`);
-    }
-
-    sfx.play();
-
-    sfx.on(Phaser.Sound.Events.COMPLETE, () => {
-        sfx.destroy();
-    });
-}
 
     /**
      * Воспроизведение фоновой музыки
@@ -71,7 +65,6 @@ public playSFX(
         const scene = this.pluginManager.game.scene.getScenes(true)[0];
         if (!scene) return;
 
-        // Если этот трек уже играет, ничего не делаем
         if (this.currentMusic && this.currentMusic.key === key && this.currentMusic.isPlaying) {
             return;
         }
@@ -123,7 +116,6 @@ public playSFX(
         this._sfxVolume = Phaser.Math.Clamp(value, 0, 1);
     }
 
-    // Геттеры для получения текущих настроек громкости
     public get masterVolume(): number { return this._masterVolume; }
     public get sfxVolume(): number { return this._sfxVolume; }
     public get musicVolume(): number { return this._musicVolume; }
@@ -134,7 +126,6 @@ public playSFX(
         }
     }
 
-    // Очистка при уничтожении плагина
     public override destroy(): void {
         this.stopMusic();
         if (this.game) {
