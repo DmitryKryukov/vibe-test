@@ -1,4 +1,4 @@
-import { BootScene } from '@/scenes/BootScene';
+import { BootScene } from '@/scenes/BootScene/BootScene';
 import { MainMenuScene } from '@/scenes/MainMenuScene/MainMenuScene';
 import { BattleScene } from '@/scenes/BattleScene/BattleScene';
 import { MapScene } from '@/scenes/MapScene/MapScene';
