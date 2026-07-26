@@ -1,7 +1,6 @@
 import { DEFAULT_HERO_ID, DEFAULT_SQUIRE_ID } from './MainMenuConfig';
 import { MainMenuRenderer } from './MainMenuRenderer';
 
-
 export class MainMenuScene extends Phaser.Scene {
     public selectedHero = DEFAULT_HERO_ID;
     public selectedSquire = DEFAULT_SQUIRE_ID;
