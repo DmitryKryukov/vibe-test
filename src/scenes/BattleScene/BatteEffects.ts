@@ -1,7 +1,7 @@
 import { CombatEventType, CombatSystem, CombatVisualEvent } from '@/services/CombatSystem';
-import { BattleSceneRenderer } from './BattleRenderer';
 import { COLORTOKEN } from '@/styles/ColorTokens';
 import { TYPETOKEN } from '@/styles/TypeTokens';
+import { BattleSceneRenderer } from './BattleRenderer';
 
 export class BattleEffects {
     private scene: Phaser.Scene;
