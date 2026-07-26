@@ -66,7 +66,6 @@ export class MainMenuRenderer {
             { text: 'Продолжить', onClick: () => this.scene.navigator.continueRun() },
             {
                 text: 'Новый забег',
-                //onClick: () => this.navigator.startRun(this.scene.selectedHero, this.scene.selectedSquire),
                 onClick: () => this.scene.navigator.startRun(this.scene.selectedHero, this.scene.selectedSquire),
             },
             { text: 'Настройки', onClick: () => console.log('Настройки') },

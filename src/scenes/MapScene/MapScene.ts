@@ -1,25 +1,21 @@
-import { AudioManager } from '@/services/AudioManager';
 import { CombatSystem } from '@/services/CombatSystem';
 import { MapRenderer } from './MapRenderer';
+import { SaveSystem } from '@/services/SaveSystem';
 
 
 export class MapScene extends Phaser.Scene {
     private mapRender!: MapRenderer
     private combatSystem!: CombatSystem;
-    public audio!: AudioManager;
 
     constructor() {
         super('MapScene');
 
     }
     create(): void {
-        this.audio = this.plugins.get('AudioManager') as AudioManager;
         this.combatSystem = new CombatSystem(this, [], this.audio);
         this.mapRender = new MapRenderer(this, this.combatSystem);
+        SaveSystem.startAutosave(this);
         /*
-    this.ui = new UIManager(this);
-    SaveSystem.startAutosave(this);
-    
     this.input.keyboard?.on('keydown-ESC', () => this.openPause());
     */
     }

@@ -15,4 +15,4 @@ export const MAIN_MENU_LAYOUT = {
         x: 745,
         y: 200
     }
-} as const;
+};
