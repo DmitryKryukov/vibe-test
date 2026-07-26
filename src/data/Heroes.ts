@@ -1,44 +1,4 @@
-import { ActiveAbilityScheme, Abilities } from "./Abilities";
-
-export interface HeroScheme {
-    id: string;
-    name: string;
-    class: string;
-    lore: string;
-    slots: SlotType[];
-    baseStats: HeroStats;
-    basicAttacks: ActiveAbilityScheme[];
-    activeAbilities: ActiveAbilityScheme[];
-    perks: HeroPerk[];
-    content?: {
-        portraitImage?: string;
-        spriteImage?: string;
-        spriteWidth?: number;
-        spriteHeight?: number;
-        spriteScale?: number;
-        spriteOffsetX?: number;
-        spriteOffsetY?: number;
-        statusBarX?: number;
-        statusBarY?: number;
-    },
-    locked?: boolean;
-}
-
-export interface HeroStats {
-    maxHp: number;
-    baseDamage: number;
-    baseAttackSpeed: number;
-}
-
-export type SlotType = 'weapon' | 'shield' | 'armor' | 'helmet' | 'amulet' | 'ring';
-
-export interface HeroPerk {
-    name: string,
-    description: string,
-    type: 'passive' | 'active',
-    cooldown?: number,
-}
-
+import { Abilities } from "./Abilities";
 export const Heroes: Record<string, HeroScheme> = {
     galahad: {
         id: 'galahad-hero',
@@ -82,7 +42,7 @@ export const Heroes: Record<string, HeroScheme> = {
             statusBarX: 0,
             statusBarY: -150,
         },
-        locked : false,
+        locked: false,
     },
     beatrice: {
         id: 'beatrice-hero',
@@ -113,11 +73,11 @@ export const Heroes: Record<string, HeroScheme> = {
             Abilities.mechaStrikeAbility as ActiveAbilityScheme,
         ],
         activeAbilities: [
-               //  { id: 'widow-veil', name: 'Саван Изгоя', cooldown: 25.6, kind: 'utility', description: 'Ослепляет текущую цель.' }
+            //  { id: 'widow-veil', name: 'Саван Изгоя', cooldown: 25.6, kind: 'utility', description: 'Ослепляет текущую цель.' }
         ],
         slots: ['weapon', 'weapon', 'weapon', 'weapon', 'amulet', 'ring'],
         baseStats: { maxHp: 90, baseDamage: 8, baseAttackSpeed: 0.8 },
-        locked : true,
+        locked: true,
     },
     placeholder: {
         id: 'placeholder-hero',
@@ -129,6 +89,6 @@ export const Heroes: Record<string, HeroScheme> = {
         activeAbilities: [],
         slots: [],
         baseStats: { maxHp: 0, baseDamage: 0, baseAttackSpeed: 0 },
-        locked : true,
+        locked: true,
     }
 };

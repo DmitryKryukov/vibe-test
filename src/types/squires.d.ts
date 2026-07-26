@@ -1,3 +1,4 @@
+
 declare global {
     export interface SquireScheme {
         id: string,
@@ -11,6 +12,7 @@ declare global {
         perks: string[];
         portraitTint: number;
         */
+
         perks: SquirePerk[],
         baseStats: SquireStats,
         content: {

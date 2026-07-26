@@ -1,3 +1,4 @@
+/*
 declare global {
     export interface FactionInfo {
         id: string;
@@ -40,3 +41,4 @@ declare global {
     }
 }
 export { }; 
+*/

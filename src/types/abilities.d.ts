@@ -10,5 +10,10 @@ declare global {
     export interface ActiveAbilityScheme extends AbilityScheme {
         cooldown: number;
     }
+
+    export interface ActiveAbilityBattle extends ActiveAbilityScheme {
+        progress: number;
+        windupQueued?: boolean;
+    }
 }
 export { }; 

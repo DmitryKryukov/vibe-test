@@ -1,4 +1,4 @@
-declare global {
+/* declare global {
     export enum EncounterType {
         Start = 'start',
         Battle = 'battle',
@@ -22,3 +22,4 @@ declare global {
     }
 }
 export { }
+*/

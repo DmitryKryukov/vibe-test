@@ -1,5 +1,4 @@
 import { FactionId } from "@/data/Enemies";
-import { ActiveAbilityBattle } from "./AbilitySystem";
 import { StatusEffect } from "./StatusSystem";
 import { GameState } from "@/store/GameState";
 import { Heroes } from "@/data/Heroes";

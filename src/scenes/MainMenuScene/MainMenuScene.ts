@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
-import { Heroes, HeroScheme } from '@/data/Heroes';
-import { Squires, SquireScheme } from '@/data/Squires';
+import { Heroes } from '@/data/Heroes';
+import { Squires } from '@/data/Squires';
 
 import { COLORTOKEN } from '@/styles/ColorTokens';
 import { TYPETOKEN } from '@/styles/TypeTokens';
@@ -15,8 +15,6 @@ import { Tooltip } from '@/partials/ui/components/Tooltip';
 import { viewBounds } from '@/utils/UtilsLayout';
 import { SceneNavigator } from '@/services/SceneNavigator';
 import { DEFAULT_HERO_ID, DEFAULT_SQUIRE_ID, MAIN_MENU_LAYOUT } from '@/scenes/MainMenuScene/MainMenuConfig';
-
-import AudioManager from '@/services/AudioManager';
 
 
 interface ButtonConfig {
@@ -50,7 +48,6 @@ export class MainMenuScene extends Phaser.Scene {
 
 
     public create(): void {
-        this.audio = this.plugins.get('AudioManager') as AudioManager;
         this.tooltip = new Tooltip(this);
         this.bindEvents();
         this.renderScene();

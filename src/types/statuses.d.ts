@@ -1,3 +1,4 @@
+/*
 declare global {
     export interface StatusScheme {
         name: string;
@@ -6,3 +7,4 @@ declare global {
     }
 }
 export { }; 
+*/
