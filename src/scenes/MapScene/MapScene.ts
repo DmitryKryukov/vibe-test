@@ -4,7 +4,6 @@ import { SaveSystem } from '@/services/SaveSystem';
 import { EncounterType } from '@/data/Map';
 import { GameState } from '@/store/GameState';
 
-
 export class MapScene extends Phaser.Scene {
     private mapRender!: MapRenderer
     private combatSystem!: CombatSystem;
