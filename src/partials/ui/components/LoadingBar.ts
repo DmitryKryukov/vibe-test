@@ -7,13 +7,13 @@ export interface LoadingBarStyleScheme {
     height: number;
     paddings: number;
     bar: {
-        backgroundColor: number | string,
-        strokeColor: number | string,
+        backgroundColor: Color,
+        strokeColor: Color,
         strokeWidth: number,
     }
     fill: {
-        backgroundColor: number | string,
-        strokeColor: number | string,
+        backgroundColor: Color,
+        strokeColor: Color,
         strokeWidth: number,
     }
 }
@@ -66,8 +66,8 @@ export class LoadingBar {
         const fillHeight = this.style.height - this.style.paddings * 2;
 
         this.GO = {
-            bar: this.scene.add.rectangle(this.layout.x, this.layout.y, this.style.width, this.style.height, anyToColor(this.style.bar.backgroundColor)).setStrokeStyle(this.style.bar.strokeWidth, anyToColor(this.style.bar.strokeColor)),
-            fill: this.scene.add.rectangle(fillStartX, this.layout.y, 0, fillHeight, anyToColor(this.style.fill.backgroundColor)).setStrokeStyle(this.style.fill.strokeWidth, anyToColor(this.style.fill.strokeColor)).setOrigin(0, 0.5),
+            bar: this.scene.add.rectangle(this.layout.x, this.layout.y, this.style.width, this.style.height, this.style.bar.backgroundColor.Numeric).setStrokeStyle(this.style.bar.strokeWidth, this.style.bar.strokeColor.Numeric),
+            fill: this.scene.add.rectangle(fillStartX, this.layout.y, 0, fillHeight, this.style.fill.backgroundColor.Numeric).setStrokeStyle(this.style.fill.strokeWidth, this.style.fill.strokeColor.Numeric).setOrigin(0, 0.5),
         }
     }
 

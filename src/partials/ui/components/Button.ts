@@ -6,10 +6,10 @@ import { anyToColor, parseColor, interpolateColor, interpolateColorToHex } from 
 import { createProgressTween, stopTweenSafely } from '@/utils/UtilsTween';
 
 interface StateConfig {
-    text: { color: string };
+    text: { color: Color };
     background: {
-        backgroundColor: string;
-        strokeColor: string;
+        backgroundColor: Color;
+        strokeColor: Color;
         strokeWidth: number;
         cornerRadius: number;
     }
@@ -137,7 +137,7 @@ export class Button extends Phaser.GameObjects.Container {
             this.buttonText,
             {
                 ...TYPETOKEN.Secondary.Lead,
-                color: this.style.states.idle.text.color,
+                color: this.style.states.idle.text.color.Hex,
             }
         ).setOrigin(0.5);
 
@@ -154,11 +154,11 @@ export class Button extends Phaser.GameObjects.Container {
             0,
             buttonWidth,
             buttonHeight,
-            anyToColor(this.style.states.idle.background.backgroundColor)
+            this.style.states.idle.background.backgroundColor.Numeric
         )
             .setStrokeStyle(
                 this.style.states.idle.background.strokeWidth,
-                anyToColor(this.style.states.idle.background.strokeColor)
+                this.style.states.idle.background.strokeColor.Numeric
             )
             .setOrigin(0.5)
             .setRounded(this.style.states.idle.background.cornerRadius)
@@ -212,16 +212,16 @@ export class Button extends Phaser.GameObjects.Container {
         }
 
         const from = {
-            text: parseColor(fromState.text.color),
-            background: parseColor(fromState.background.backgroundColor),
-            stroke: parseColor(fromState.background.strokeColor),
+            text: Phaser.Display.Color.HexStringToColor(fromState.text.color.Hex),
+            background: Phaser.Display.Color.HexStringToColor(fromState.background.backgroundColor.Hex),
+            stroke: Phaser.Display.Color.HexStringToColor(fromState.background.strokeColor.Hex),
             cornerRadius: fromState.background.cornerRadius,
         };
 
         const to = {
-            text: parseColor(toState.text.color),
-            background: parseColor(toState.background.backgroundColor),
-            stroke: parseColor(toState.background.strokeColor),
+            text: Phaser.Display.Color.HexStringToColor(toState.text.color.Hex),
+            background: Phaser.Display.Color.HexStringToColor(toState.background.backgroundColor.Hex),
+            stroke: Phaser.Display.Color.HexStringToColor(toState.background.strokeColor.Hex),
             cornerRadius: toState.background.cornerRadius,
         };
 
@@ -240,8 +240,8 @@ export class Button extends Phaser.GameObjects.Container {
     }
 
     private applyColorsImmediate(state: StateConfig): void {
-        this.GO.text?.setColor(state.text.color);
-        this.GO.background?.setFillStyle(anyToColor(state.background.backgroundColor));
-        this.GO.background?.setStrokeStyle(state.background.strokeWidth, anyToColor(state.background.strokeColor));
+        this.GO.text?.setColor(state.text.color.Hex);
+        this.GO.background?.setFillStyle(state.background.backgroundColor.Numeric);
+        this.GO.background?.setStrokeStyle(state.background.strokeWidth, state.background.strokeColor.Numeric);
     }
 }

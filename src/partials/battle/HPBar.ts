@@ -92,15 +92,15 @@ export class HPBar extends Phaser.GameObjects.Container {
     private renderHPBarText(width: number, height: number): void {
         this.hpTextStroke = this.scene.add.text(width / 2, height / 2, '', {
             ...TYPETOKEN.Primary.Tagline,
-            color: COLORTOKEN.Background.Zeroth,
-            stroke: COLORTOKEN.Background.Zeroth,
+            color: COLORTOKEN.Background.Zeroth.Hex,
+            stroke: COLORTOKEN.Background.Zeroth.Hex,
             strokeThickness: 10,
         }).setOrigin(0.5).setDepth(0);
 
         this.hpText = this.scene.add.text(width / 2, height / 2, '', {
             ...TYPETOKEN.Primary.Tagline,
-            color: COLORTOKEN.Background.Zeroth,
-            stroke: COLORTOKEN.Accent.Red,
+            color: COLORTOKEN.Background.Zeroth.Hex,
+            stroke: COLORTOKEN.Accent.Red.Hex,
             strokeThickness: 4,
         }).setOrigin(0.5).setDepth(75);
 
@@ -123,8 +123,8 @@ export class HPBar extends Phaser.GameObjects.Container {
                 x - width / 2,
                 y + 40,
                 15,
-                anyToColor(COLORTOKEN.Background.Zeroth)
-            ).setStrokeStyle(2, anyToColor(COLORTOKEN.Accent.Red)).setOrigin(0, 0.5);
+                COLORTOKEN.Background.Zeroth.Numeric
+            ).setStrokeStyle(2, COLORTOKEN.Accent.Red.Numeric).setOrigin(0, 0.5);
         }
 
         this.factionIcon.setInteractive({ useHandCursor: true });
@@ -142,7 +142,7 @@ export class HPBar extends Phaser.GameObjects.Container {
     }
 
     private renderHpBarBackground(width: number, height: number, cornerRadius: number): void {
-        this.hpBarGraphics.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
+        this.hpBarGraphics.fillStyle(COLORTOKEN.Background.Zeroth.Numeric);
         this.hpBarGraphics.fillRoundedRect(0, 0, width, height, cornerRadius);
     }
 
@@ -151,7 +151,7 @@ export class HPBar extends Phaser.GameObjects.Container {
         const fillWidth = (width - 8) * hpRatio;
         if (fillWidth > 0) {
             const fillRadius = Math.min(fillWidth, cornerRadius - 4);
-            this.hpBarGraphics.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
+            this.hpBarGraphics.fillStyle(COLORTOKEN.Accent.Red.Numeric);
             this.hpBarGraphics.fillRoundedRect(4, 4, fillWidth, height - 8, fillRadius);
         }
     }

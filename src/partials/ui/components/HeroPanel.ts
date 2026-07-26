@@ -1,6 +1,6 @@
 import Phaser from "phaser"
 import { GameState } from "@/store/GameState";
-import { Heroes, SlotType } from "@/data/Heroes";
+import { Heroes } from "@/data/Heroes";
 import { screenToWorld, screenSpaceScale } from "@/utils/UtilsLayout";
 import { degreesToRadians, getRandomInt } from "@/utils/UtilsMath";
 import { COLORTOKEN } from "../../../styles/ColorTokens";
@@ -24,7 +24,7 @@ export class HeroPanel extends Phaser.GameObjects.Container {
         const portraitKey = this.hero.content?.portraitImage;
 
         if (portraitKey && this.scene.textures.exists(portraitKey)) {
-            const backdrop = new Phaser.GameObjects.Rectangle(this.scene, 0, 0, 100, 144, anyToColor(COLORTOKEN.Background.Zeroth)).setOrigin(0).setRotation(degreesToRadians(2));
+            const backdrop = new Phaser.GameObjects.Rectangle(this.scene, 0, 0, 100, 144, COLORTOKEN.Background.Zeroth.Numeric).setOrigin(0).setRotation(degreesToRadians(2));
             const portraitImage = new Phaser.GameObjects.Image(this.scene, 0, 0, portraitKey).setDisplaySize(100, 144).setOrigin(0).setRotation(degreesToRadians(2));
             container.add(backdrop);
             container.add(portraitImage);
@@ -48,9 +48,9 @@ export class HeroPanel extends Phaser.GameObjects.Container {
             const background = new Phaser.GameObjects.Graphics(this.scene);
             const radius = 8;
 
-            background.fillStyle(anyToColor(COLORTOKEN.Background.Primary));
+            background.fillStyle(COLORTOKEN.Background.Primary.Numeric);
             background.fillRoundedRect(-slotWidth / 2, -slotHeight / 2, slotWidth, slotHeight, radius);
-            background.lineStyle(4, anyToColor(COLORTOKEN.Background.Zeroth));
+            background.lineStyle(4, COLORTOKEN.Background.Zeroth.Numeric);
             background.strokeRoundedRect(-slotWidth / 2, -slotHeight / 2, slotWidth, slotHeight, radius);
 
             /*

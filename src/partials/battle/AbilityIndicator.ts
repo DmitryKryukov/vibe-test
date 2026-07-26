@@ -47,7 +47,7 @@ export class AbilityIndicator extends Phaser.GameObjects.Container {
             const container = this.scene.add.container(posX, posY);
 
             const bg = this.scene.add.graphics();
-            bg.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth), 1);
+            bg.fillStyle(COLORTOKEN.Background.Zeroth.Numeric, 1);
             bg.fillRoundedRect(0, 0, size, size, 12);
             container.add(bg);
 
@@ -123,7 +123,7 @@ export class AbilityIndicator extends Phaser.GameObjects.Container {
             pg.clear();
             const progress = Math.min(1, ability.progress / ability.cooldown);
             if (progress > 0) {
-                pg.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
+                pg.fillStyle(COLORTOKEN.Accent.Red.Numeric);
                 pg.slice(
                     radius,
                     radius,

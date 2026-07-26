@@ -2,17 +2,11 @@ import Phaser from 'phaser';
 import { TYPETOKEN } from '../../../styles/TypeTokens';
 import { COLORTOKEN } from '../../../styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
-import { HeroScheme } from '@/data/Heroes';
-import { SquireScheme } from '@/data/Squires';
-import { stopTweenSafely } from '@/utils/UtilsTween';
-import { parseColor, interpolateColor, interpolateColorToHex } from '@/utils/UtilsColor';
-import { createProgressTween } from '@/utils/UtilsTween';
-import { interpolateNumber } from '@/utils/UtilsMath';
 
 interface StateConfig {
     background: {
-        backgroundColor: string;
-        strokeColor: string;
+        backgroundColor: Color;
+        strokeColor: Color;
         strokeWidth: number;
         cornerRadius: number;
     }
@@ -150,7 +144,7 @@ export class LockedSelectorCard<T extends SelectableEntity> extends Phaser.GameO
 
     private renderBackground(): void {
         this.GO.background = new Phaser.GameObjects.Rectangle(
-            this.scene, 0, 0, this.style.width, this.style.height, anyToColor(this.style.states.idle.background.backgroundColor)
+            this.scene, 0, 0, this.style.width, this.style.height, this.style.states.idle.background.backgroundColor.Numeric
         ).setOrigin(0).setRounded(this.style.states.idle.background.cornerRadius);
         this.add(this.GO.background);
     }

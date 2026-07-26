@@ -60,7 +60,7 @@ export class MapRenderer {
                 const toNode = run.map.find((candidate) => candidate.id === id);
                 const to = positions.get(id);
                 if (!to) return;
-                graphic.lineStyle(2, node.visited && toNode?.available ? anyToColor(COLORTOKEN.Foreground.Secondary) : anyToColor(COLORTOKEN.Foreground.Quanternary), node.visited && toNode?.available ? 1 : .38);
+                graphic.lineStyle(2, node.visited && toNode?.available ? COLORTOKEN.Foreground.Secondary.Numeric : COLORTOKEN.Foreground.Quanternary.Numeric, node.visited && toNode?.available ? 1 : .38);
                 graphic.lineBetween(from.x, from.y, to.x, to.y);
             });
         });
@@ -127,7 +127,7 @@ export class MapRenderer {
             shadow: {
                 offsetX: 0,
                 offsetY: 4,
-                color: COLORTOKEN.Background.Zeroth,
+                color: COLORTOKEN.Background.Zeroth.Hex,
                 blur: 0,
                 stroke: true,
                 fill: true

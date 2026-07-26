@@ -2,20 +2,18 @@ import Phaser from 'phaser';
 import { TYPETOKEN } from '../../../styles/TypeTokens';
 import { COLORTOKEN } from '../../../styles/ColorTokens';
 import { anyToColor } from '@/utils/UtilsColor';
-import { HeroScheme } from '@/data/Heroes';
-import { SquireScheme } from '@/data/Squires';
 import { stopTweenSafely } from '@/utils/UtilsTween';
 import { parseColor, interpolateColor, interpolateColorToHex } from '@/utils/UtilsColor';
 import { createProgressTween } from '@/utils/UtilsTween';
 import { interpolateNumber } from '@/utils/UtilsMath';
 
 interface StateConfig {
-    name: { color: string };
-    class: { color: string };
+    name: { color: Color };
+    class: { color: Color };
     portraitBrightness: number;
     background: {
-        backgroundColor: string;
-        strokeColor: string;
+        backgroundColor: Color;
+        strokeColor: Color;
         strokeWidth: number;
         cornerRadius: number;
     }
@@ -148,9 +146,9 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
     }
 
     private applySelectedState() {
-        this.GO.outline?.setStrokeStyle(0, anyToColor(COLORTOKEN.Foreground.Secondary))
+        this.GO.outline?.setStrokeStyle(0, COLORTOKEN.Foreground.Secondary.Numeric)
         if (this.selected == true) {
-            this.GO.outline?.setStrokeStyle(4, anyToColor(COLORTOKEN.Foreground.Secondary));
+            this.GO.outline?.setStrokeStyle(4, COLORTOKEN.Foreground.Secondary.Numeric);
         }
     }
 
@@ -203,15 +201,15 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
         ).setOrigin(0, 1).setLetterSpacing(1);
 
         this.GO.class = new Phaser.GameObjects.Text(
-            this.scene, 11, this.style.height - 9, entity.class, { ...TYPETOKEN.Secondary.Caption, ...{ color: this.style.states.idle.class.color, } }
+            this.scene, 11, this.style.height - 9, entity.class, { ...TYPETOKEN.Secondary.Caption, ...{ color: this.style.states.idle.class.color.Hex, } }
         ).setOrigin(0, 1);
 
         const fadeGraphics = this.scene.add.graphics();
         const fadeHeight = 180;
 
         fadeGraphics.fillGradientStyle(
-            anyToColor(COLORTOKEN.Background.Zeroth), anyToColor(COLORTOKEN.Background.Primary),
-            anyToColor(COLORTOKEN.Background.Zeroth), anyToColor(COLORTOKEN.Background.Primary),
+            COLORTOKEN.Background.Zeroth.Numeric, COLORTOKEN.Background.Primary.Numeric,
+            COLORTOKEN.Background.Zeroth.Numeric, COLORTOKEN.Background.Primary.Numeric,
             0, 0,
             1, 1
         );
@@ -249,7 +247,7 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
 
     private renderBackground(): void {
         this.GO.background = new Phaser.GameObjects.Rectangle(
-            this.scene, 0, 0, this.style.width, this.style.height, anyToColor(this.style.states.idle.background.backgroundColor)
+            this.scene, 0, 0, this.style.width, this.style.height, this.style.states.idle.background.backgroundColor.Numeric
         ).setOrigin(0).setRounded(this.style.states.idle.background.cornerRadius);
         this.add(this.GO.background);
     }
@@ -293,19 +291,19 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
         }
 
         const from = {
-            name: parseColor(fromState.name.color),
-            class: parseColor(fromState.class.color),
-            background: parseColor(fromState.background.backgroundColor),
-            stroke: parseColor(fromState.background.strokeColor),
+            name: Phaser.Display.Color.HexStringToColor(fromState.name.color.Hex),
+            class: Phaser.Display.Color.HexStringToColor(fromState.class.color.Hex),
+            background: Phaser.Display.Color.HexStringToColor(fromState.background.backgroundColor.Hex),
+            stroke: Phaser.Display.Color.HexStringToColor(fromState.background.strokeColor.Hex),
             cornerRadius: fromState.background.cornerRadius,
             portraitBrightness: fromState.portraitBrightness,
         };
 
         const to = {
-            name: parseColor(toState.name.color),
-            class: parseColor(toState.class.color),
-            background: parseColor(toState.background.backgroundColor),
-            stroke: parseColor(toState.background.strokeColor),
+            name: Phaser.Display.Color.HexStringToColor(toState.name.color.Hex),
+            class: Phaser.Display.Color.HexStringToColor(toState.class.color.Hex),
+            background: Phaser.Display.Color.HexStringToColor(toState.background.backgroundColor.Hex),
+            stroke: Phaser.Display.Color.HexStringToColor(toState.background.strokeColor.Hex),
             cornerRadius: toState.background.cornerRadius,
             portraitBrightness: toState.portraitBrightness,
         };
@@ -328,10 +326,10 @@ export class SelectorCard<T extends SelectableEntity> extends Phaser.GameObjects
     }
 
     private applyColorsImmediate(state: StateConfig): void {
-        this.GO.name?.setColor(state.name.color);
-        this.GO.class?.setColor(state.class.color);
-        this.GO.background?.setFillStyle(anyToColor(state.background.backgroundColor));
-        this.GO.background?.setStrokeStyle(state.background.strokeWidth, anyToColor(state.background.strokeColor));
+        this.GO.name?.setColor(state.name.color.Hex);
+        this.GO.class?.setColor(state.class.color.Hex);
+        this.GO.background?.setFillStyle(state.background.backgroundColor.Numeric);
+        this.GO.background?.setStrokeStyle(state.background.strokeWidth, state.background.strokeColor.Numeric);
 
         this.fxPlugin?.brightness(state.portraitBrightness);
     }

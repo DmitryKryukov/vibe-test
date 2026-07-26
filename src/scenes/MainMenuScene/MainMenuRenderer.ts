@@ -59,7 +59,7 @@ export class MainMenuRenderer {
 
         this.scene.add.text(x, y, 'Armory Intendant', {
             ...TYPETOKEN.Primary.Display,
-            color: COLORTOKEN.Foreground.Secondary,
+            color: COLORTOKEN.Foreground.Secondary.Hex,
         });
     }
 

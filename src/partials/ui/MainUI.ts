@@ -27,7 +27,7 @@ export class MainUI {
 
     public renderResultPanel(type: 'victory' | 'defeat'): void {
         const screen = screenBounds(this.scene);
-        const dimmer = this.scene.add.rectangle(0, 0, screen.width, screen.height, anyToColor(COLORTOKEN.Background.Zeroth), 0.62)
+        const dimmer = this.scene.add.rectangle(0, 0, screen.width, screen.height, COLORTOKEN.Background.Zeroth.Numeric, 0.62)
             .setOrigin(0)
             .setDepth(5000);
         const title = 'Поражение';
@@ -42,12 +42,12 @@ export class MainUI {
             .setScale(screenSpaceScale(this.scene))
             .setDepth(8000);
 
-        const background = this.scene.add.rectangle(0, 0, panelSize.width, panelSize.height, anyToColor(COLORTOKEN.Background.Zeroth), 0.9)
-            .setStrokeStyle(2, anyToColor(COLORTOKEN.Foreground.Tertiary));
+        const background = this.scene.add.rectangle(0, 0, panelSize.width, panelSize.height, COLORTOKEN.Background.Zeroth.Numeric, 0.9)
+            .setStrokeStyle(2, COLORTOKEN.Foreground.Tertiary.Numeric);
 
         const heading = this.scene.add.text(0, -panelSize.height / 2 + 30, title, {
             ...TYPETOKEN.Secondary.Tagline,
-            color: COLORTOKEN.Foreground.Secondary
+            color: COLORTOKEN.Foreground.Secondary.Hex
         }).setOrigin(0.5);
 
         panel.add([background, heading]);
@@ -55,17 +55,17 @@ export class MainUI {
     public renderVictoryPanel(callbackArrowButon: () => void): void {
         const screen = screenBounds(this.scene);
         const position = screenToWorld(this.scene, screen.right - 74, screen.centerY);
-        const arrow = this.createExitButton(position.x, position.y, callbackArrowButon);
+        const arrow = this.renderExitButton(position.x, position.y, callbackArrowButon);
         this.animateExitButton(arrow, screenToWorld(this.scene, screen.right - 86, screen.centerY).x);
     }
 
-    private createExitButton(x: number, y: number, callbackArrowButon: () => void): Phaser.GameObjects.Container {
+    private renderExitButton(x: number, y: number, callbackArrowButon: () => void): Phaser.GameObjects.Container {
         const container = this.scene.add.container(x, y).setDepth(1900);
 
-        const button = this.scene.add.circle(0, 0, 44, Phaser.Display.Color.HexStringToColor(COLORTOKEN.Background.Primary).color)
-            .setStrokeStyle(3, Phaser.Display.Color.HexStringToColor(COLORTOKEN.Foreground.Secondary).color);
+        const button = this.scene.add.circle(0, 0, 44, COLORTOKEN.Background.Primary.Numeric)
+            .setStrokeStyle(3, COLORTOKEN.Foreground.Secondary.Numeric);
 
-        const icon = this.scene.add.text(1, -2, '›', { ...TYPETOKEN.Primary.Display, color: COLORTOKEN.Foreground.Secondary })
+        const icon = this.scene.add.text(1, -2, '›', { ...TYPETOKEN.Primary.Display, color: COLORTOKEN.Foreground.Secondary.Hex })
             .setOrigin(0.5);
 
         container.add([button, icon]);
@@ -76,8 +76,8 @@ export class MainUI {
     }
 
     private setupExitButtonInteraction(container: Phaser.GameObjects.Container, button: Phaser.GameObjects.Arc, callbackArrowButon: () => void): void {
-        const defaultColor = Phaser.Display.Color.HexStringToColor(COLORTOKEN.Background.Primary).color;
-        const hoverColor = Phaser.Display.Color.HexStringToColor(COLORTOKEN.Background.Tertiary).color;
+        const defaultColor = COLORTOKEN.Background.Primary.Numeric;
+        const hoverColor = COLORTOKEN.Background.Tertiary.Numeric;
 
         button.setInteractive({ useHandCursor: true })
             .on('pointerover', () => {

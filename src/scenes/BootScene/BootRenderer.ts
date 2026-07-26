@@ -15,7 +15,7 @@ export class BootRenderer {
 
         this.scene.add.text(view.centerX, view.centerY + BOOT_LAYOUT.titleOffsetY, 'Armory Intendant', {
             ...TYPETOKEN.Primary.Display,
-            color: COLORTOKEN.Foreground.Secondary,
+            color: COLORTOKEN.Foreground.Secondary.Hex,
         }).setOrigin(0.5);
 
         const loadingBar = new LoadingBar(this.scene, {

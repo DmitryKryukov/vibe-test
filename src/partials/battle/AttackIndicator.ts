@@ -65,13 +65,13 @@ export class AttackIndicator extends Phaser.GameObjects.Container {
             const posX = -offset - 4;
             const posY = this.height / 2 - radius;
 
-            this.graphics.fillStyle(anyToColor(COLORTOKEN.Background.Zeroth));
+            this.graphics.fillStyle(COLORTOKEN.Background.Zeroth.Numeric);
             this.graphics.fillCircle(
                 posX - radius,
                 posY + radius,
                 radius
             )
-            this.graphics.fillStyle(anyToColor(COLORTOKEN.Accent.Red));
+            this.graphics.fillStyle(COLORTOKEN.Accent.Red.Numeric);
             this.graphics.slice(
                 posX - radius,
                 posY + radius,

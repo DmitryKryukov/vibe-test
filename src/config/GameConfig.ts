@@ -11,7 +11,7 @@ export const GAME_HEIGHT = 879;
 export const GameConfig: Phaser.Types.Core.GameConfig = {
     type: Phaser.WEBGL,
     parent: 'gameRoot',
-    backgroundColor: COLORTOKEN.Background.Zeroth,
+    backgroundColor: COLORTOKEN.Background.Zeroth.Hex,
 
     scale: {
         mode: Phaser.Scale.RESIZE,

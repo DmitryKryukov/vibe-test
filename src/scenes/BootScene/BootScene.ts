@@ -4,6 +4,7 @@ import { AssetLoader } from "@/services/AssetLoader";
 import { loadGameFonts } from "@/utils/UtilsFont";
 import { BootRenderer } from "./BootRenderer";
 import { SceneManager } from "@/services/SceneManager";
+import { SaveSystem } from "@/services/SaveSystem";
 
 export class BootScene extends Phaser.Scene {
     navigator!: SceneManager;
@@ -21,7 +22,7 @@ export class BootScene extends Phaser.Scene {
     public async create(): Promise<void> {
         await loadGameFonts();
 
-        //SaveSystem.load();
+        SaveSystem.load();
 
         new BootRenderer(this).render(
             () => this.startMainMenu(),

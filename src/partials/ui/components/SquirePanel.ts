@@ -1,7 +1,7 @@
 import Phaser from "phaser"
 import { GameState, RunState } from "@/store/GameState";
 
-import { Squires, SquireScheme } from "@/data/Squires";
+import { Squires } from "@/data/Squires";
 import { screenToWorld, screenBounds } from "@/utils/UtilsLayout";
 import { degreesToRadians, getRandomInt } from "@/utils/UtilsMath";
 import { COLORTOKEN } from "../../../styles/ColorTokens";
@@ -75,9 +75,9 @@ export class SquirePanel extends Phaser.GameObjects.Container {
             const background = new Phaser.GameObjects.Graphics(this.scene);
             const radius = 8;
 
-            background.fillStyle(anyToColor(COLORTOKEN.Background.Primary));
+            background.fillStyle(COLORTOKEN.Background.Primary.Numeric);
             background.fillRoundedRect(-slotWidth / 2, -slotHeight / 2, slotWidth, slotHeight, radius);
-            background.lineStyle(4, anyToColor(COLORTOKEN.Background.Zeroth));
+            background.lineStyle(4, COLORTOKEN.Background.Zeroth.Numeric);
             background.strokeRoundedRect(-slotWidth / 2, -slotHeight / 2, slotWidth, slotHeight, radius);
             container.add([background]);
             container.setRotation(degreesToRadians(getRandomInt(5, -5)));

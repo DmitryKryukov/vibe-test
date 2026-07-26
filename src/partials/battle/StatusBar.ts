@@ -53,7 +53,7 @@ export class StatusBar extends Phaser.GameObjects.Container {
         const info = StatusInfo[status.id as keyof typeof StatusInfo];
         const y = index * 40;
 
-        const background = this.scene.add.rectangle(0, 0, 0, 0, anyToColor(COLORTOKEN.Background.Zeroth));
+        const background = this.scene.add.rectangle(0, 0, 0, 0, COLORTOKEN.Background.Zeroth.Numeric);
         const iconSize = 32;
 
         const iconKey = `icon-status-${status.id}`;

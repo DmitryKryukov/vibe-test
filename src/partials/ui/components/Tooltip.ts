@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import { viewBounds } from '@/utils/UtilsLayout';
 import { anyToColor } from '@/utils/UtilsColor';
-import { TYPETOKEN } from '../../../styles/TypeTokens';
-import { COLORTOKEN } from '../../../styles/ColorTokens';
+import { TYPETOKEN } from '@/styles/TypeTokens';
+import { COLORTOKEN } from '@/styles/ColorTokens';
 
 export interface TooltipScheme {
     width: number;
@@ -107,7 +107,7 @@ export class Tooltip extends Phaser.GameObjects.Container {
             titleText,
             {
                 ...TYPETOKEN.Tertiary.Lead,
-                color: COLORTOKEN.Foreground.Secondary,
+                color: COLORTOKEN.Foreground.Secondary.Hex,
                 wordWrap: { width: this.tooltipStyle.width - this.tooltipStyle.paddingLeft - this.tooltipStyle.paddingRight },
             }
         );
@@ -122,7 +122,7 @@ export class Tooltip extends Phaser.GameObjects.Container {
                 entity.class,
                 {
                     ...TYPETOKEN.Secondary.Caption,
-                    color: COLORTOKEN.Foreground.Tertiary,
+                    color: COLORTOKEN.Foreground.Tertiary.Hex,
                     wordWrap: { width: this.tooltipStyle.width - this.tooltipStyle.paddingLeft - this.tooltipStyle.paddingRight },
                 },
             );
@@ -137,7 +137,7 @@ export class Tooltip extends Phaser.GameObjects.Container {
                 "«" + entity.lore + "»",
                 {
                     ...TYPETOKEN.Secondary.Caption,
-                    color: COLORTOKEN.Foreground.Quanternary,
+                    color: COLORTOKEN.Foreground.Quanternary.Hex,
                     wordWrap: { width: this.tooltipStyle.width - this.tooltipStyle.paddingLeft - this.tooltipStyle.paddingRight },
                 },
             );
@@ -156,7 +156,7 @@ export class Tooltip extends Phaser.GameObjects.Container {
                     perk.name,
                     {
                         ...TYPETOKEN.Secondary.Body,
-                        color: COLORTOKEN.Foreground.Secondary,
+                        color: COLORTOKEN.Foreground.Secondary.Hex,
                         wordWrap: { width: this.tooltipStyle.width - this.tooltipStyle.paddingLeft - this.tooltipStyle.paddingRight },
                     },
                 );
@@ -169,7 +169,7 @@ export class Tooltip extends Phaser.GameObjects.Container {
                     perk.description,
                     {
                         ...TYPETOKEN.Secondary.Caption,
-                        color: COLORTOKEN.Foreground.Tertiary,
+                        color: COLORTOKEN.Foreground.Tertiary.Hex,
                         wordWrap: { width: this.tooltipStyle.width - this.tooltipStyle.paddingLeft - this.tooltipStyle.paddingRight },
                     },
                 );
@@ -208,13 +208,13 @@ export class Tooltip extends Phaser.GameObjects.Container {
     private renderBackground(width: number, height: number): Phaser.GameObjects.Graphics {
         const background = this.scene.add.graphics();
         background.fillGradientStyle(
-            anyToColor(COLORTOKEN.Background.Secondary),
-            anyToColor(COLORTOKEN.Background.Zeroth),
-            anyToColor(COLORTOKEN.Background.Secondary),
+            COLORTOKEN.Background.Secondary.Numeric,
+            COLORTOKEN.Background.Zeroth.Numeric,
+            COLORTOKEN.Background.Secondary.Numeric,
             1
         );
         background.fillRoundedRect(0, 0, width, height, 0);
-        background.lineStyle(4, anyToColor(COLORTOKEN.Background.Primary));
+        background.lineStyle(4, COLORTOKEN.Background.Primary.Numeric);
         background.strokeRoundedRect(0, 0, width, height, 8);
         return background;
     }
