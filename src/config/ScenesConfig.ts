@@ -3,7 +3,7 @@ import { MainMenuScene } from '@/scenes/MainMenuScene/MainMenuScene';
 import { BattleScene } from '@/scenes/BattleScene/BattleScene';
 import { MapScene } from '@/scenes/MapScene/MapScene';
 
-export const SCENE = [
+export const SCENES = [
     BootScene,
     MainMenuScene,
     MapScene,

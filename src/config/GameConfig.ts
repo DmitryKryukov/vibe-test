@@ -1,7 +1,7 @@
 import { AudioManager } from '@/services/AudioManager';
 import { SceneManager } from '@/services/SceneManager';
 import { COLORTOKEN } from '@/styles/ColorTokens';
-import { SCENE } from './ScenesConfig';
+import { SCENES } from './ScenesConfig';
 
 export const GAME_WIDTH = 1728;
 export const GAME_HEIGHT = 879;
@@ -62,5 +62,5 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
         ],
     },
 
-    scene: SCENE,
+    scene: SCENES,
 }
