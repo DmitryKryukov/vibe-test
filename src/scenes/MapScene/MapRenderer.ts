@@ -1,24 +1,19 @@
-import { EncounterType, getMapMetrics, getNodeDescription, getNodeLabel, getNodeStyles } from "@/data/Map";
 import { Background } from "@/partials/ui/components/Background";
-import { Tooltip } from "@/partials/ui/components/Tooltip";
 import { MainUI } from "@/partials/ui/MainUI";
 import { CombatSystem } from "@/services/CombatSystem";
-import { GameState } from "@/store/GameState";
+import { GameState, RunState } from "@/store/GameState";
 import { COLORTOKEN } from "@/styles/ColorTokens";
-import { TYPETOKEN } from "@/styles/TypeTokens";
 import { MapScene } from "./MapScene";
+import { MapLayout } from "./MapLayout";
+import { MapNodeView } from "./MapNodeView";
 
 export class MapRenderer {
     private scene: MapScene;
-    private background!: Background;
     private mainUI: MainUI;
-    private combatSystem: CombatSystem;
 
     constructor(scene: MapScene, combatSystem: CombatSystem) {
         this.scene = scene;
         this.mainUI = new MainUI(scene, combatSystem);
-        this.combatSystem = combatSystem,
-            this.mainUI = new MainUI(scene, combatSystem);
         this.render();
     }
 
@@ -31,203 +26,37 @@ export class MapRenderer {
     }
 
     private renderBackground(): void {
-        this.background = new Background(this.scene, 'map');
+        new Background(this.scene, 'map');
     }
 
     private renderMap(): void {
         const run = GameState.requireRun();
-        const positions = new Map<string, { x: number; y: number }>();
-        const { startX, startY: baseY, gapX, gapY, randomX, randomY } = getMapMetrics();
+        const layout = MapLayout.build(run.map);
+        this.renderConnections(run, layout);
+        this.renderNodes(run, layout);
+    }
 
+    private renderNodes(run: RunState, layout: Map<string, Position>) {
         run.map.forEach((node) => {
-            positions.set(node.id, { x: startX + Phaser.Math.Between(-randomX, randomX) + node.column * gapX, y: baseY + Phaser.Math.Between(-randomY, randomY) + node.row * gapY });
-        })
-
-        const graphic = this.scene.add.graphics();
-
-        run.map.forEach((node) => {
-            const pos = positions.get(node.id);
+            const pos = layout.get(node.id);
             if (!pos) return;
-            this.renderNode(node, pos.x, pos.y);
+            new MapNodeView(this.scene, node, pos.x, pos.y, (node) => this.scene.enterNode(node));
         });
+    }
 
+    private renderConnections(run: RunState, layout: Map<string, Position>) {
+        const graphic = this.scene.add.graphics();
         run.map.forEach((node) => {
-            const from = positions.get(node.id);
+            const from = layout.get(node.id);
             if (!from) return;
 
             node.links.forEach((id: string) => {
                 const toNode = run.map.find((candidate) => candidate.id === id);
-                const to = positions.get(id);
+                const to = layout.get(id);
                 if (!to) return;
                 graphic.lineStyle(2, node.visited && toNode?.available ? COLORTOKEN.Foreground.Secondary.Numeric : COLORTOKEN.Foreground.Quanternary.Numeric, node.visited && toNode?.available ? 1 : .38);
                 graphic.lineBetween(from.x, from.y, to.x, to.y);
             });
         });
-
-    }
-
-    renderNode(node: MapNode, x: number, y: number): void {
-        const root = this.scene.add.container(x, y);
-        const isAvailableNotVisited = node.available && !node.visited;
-        const isInaccessible = !node.available && !node.visited;
-
-        const styles = getNodeStyles(node, isInaccessible);
-        let angle: number = 0
-        if (node.type !== EncounterType.Start) {
-            angle = Phaser.Math.Between(-3, 3);
-        }
-        root.setData('originalAngle', angle);
-
-        const cardGraphics = this.renderCardGraphics(styles, angle, node.available);
-        const cardHit = this.renderHitArea(angle, isAvailableNotVisited);
-        const label = this.renderLabel(node, styles.textColor);
-        const image = this.renderImage(node, angle);
-
-        root.add([cardGraphics, image, cardHit, label]);
-        const tooltip = new Tooltip(this.scene);
-
-        tooltip.show(cardHit, getNodeLabel(node.type), getNodeDescription(node.type), {}, { width: 320 });
-
-        if (isAvailableNotVisited) {
-            this.addNodeInteractions(node, cardHit, root, isAvailableNotVisited);
-        }
-    }
-
-    private renderCardGraphics(styles: any, angle: number, isAvailable: boolean): Phaser.GameObjects.Graphics {
-        const graphics = this.scene.add.graphics();
-        graphics.setAngle(angle);
-
-        graphics.fillStyle(styles.backgroundColor, 1);
-        graphics.fillRoundedRect(-65, -65, 130, 130, 20);
-
-        graphics.lineStyle(isAvailable ? 3 : 0, styles.strokeColor, 1);
-        graphics.strokeRoundedRect(-65, -65, 130, 130, 20);
-
-        return graphics;
-    }
-
-    private renderHitArea(angle: number, isInteractive: boolean): Phaser.GameObjects.Rectangle {
-        const hit = this.scene.add.rectangle(0, 0, 130, 130, 0xffffff, 0);
-        hit.setAngle(angle);
-
-        if (isInteractive) {
-            hit.setInteractive({ useHandCursor: true });
-        }
-        return hit;
-    }
-
-    private renderLabel(node: MapNode, textColor: string): Phaser.GameObjects.Text {
-        const textContent = node.visited ? '' : getNodeLabel(node.type);
-
-        return this.scene.add.text(0, 48, textContent, {
-            ...TYPETOKEN.Secondary.Caption,
-            color: textColor,
-
-            shadow: {
-                offsetX: 0,
-                offsetY: 4,
-                color: COLORTOKEN.Background.Zeroth.Hex,
-                blur: 0,
-                stroke: true,
-                fill: true
-            }
-        }).setOrigin(0.5);
-    }
-
-    private renderImage(node: MapNode, angle: number): Phaser.GameObjects.Image {
-        const size = 130;
-        let textureKey: string | undefined = this.getNodeTextureKey(node);
-        let image = this.scene.add.image(0, 0, "");
-        if (textureKey) {
-            image.setTexture(textureKey);
-            image.setDisplaySize(size, size);
-            image.setAngle(angle);
-        }
-        else {
-            image.setDisplaySize(0, 0);
-        }
-        if (!node.available) {
-            const fx = image.postFX?.addColorMatrix();
-            fx.saturate(-.8);
-            image.setTint(0x555555)
-        }
-        return image;
-    }
-
-    private getNodeTextureKey(node: MapNode) {
-        if (node.type === EncounterType.Start) return "map-node-start"
-        if (node.type === EncounterType.Battle) return "map-node-battle-" + Phaser.Math.Between(1, 7);
-        if (node.type === EncounterType.Camp) return "map-node-camp";
-    }
-
-    private addNodeInteractions(node: MapNode, hitArea: Phaser.GameObjects.Rectangle, rootContainer: Phaser.GameObjects.Container, isAvailableNotVisited: boolean): void {
-
-        const originalAngle = rootContainer.getData('originalAngle') as number || 0;
-
-        const pulseTween = this.scene.tweens.add({
-            targets: rootContainer,
-            scale: 1.06,
-            yoyo: true,
-            repeat: -1,
-            duration: 500,
-        });
-        rootContainer.setData('pulseTween', pulseTween);
-
-        hitArea.on('pointerdown', () => {
-            this.clickOnNode(node)
-        });
-
-        hitArea.on('pointerover', () => {
-            const pulse = rootContainer.getData('pulseTween');
-            if (pulse) {
-                pulse.stop();
-            }
-
-            const hoverTween = rootContainer.getData('hoverTween');
-            if (hoverTween) {
-                hoverTween.stop();
-            }
-            const tween = this.scene.tweens.add({
-                targets: rootContainer,
-                scale: 1.25,
-                angle: -originalAngle,
-                duration: 200,
-                ease: 'Quint.easeOut',
-            });
-            rootContainer.setData('hoverTween', tween);
-
-
-        });
-
-        hitArea.on('pointerout', () => {
-            const hoverTween = rootContainer.getData('hoverTween');
-            if (hoverTween) {
-                hoverTween.stop();
-            }
-            const tween = this.scene.tweens.add({
-                targets: rootContainer,
-                scale: 1,
-                angle: originalAngle,
-                duration: 200,
-                ease: 'Quint.easeOut',
-                onComplete: () => {
-                    if (isAvailableNotVisited) {
-                        const newPulse = this.scene.tweens.add({
-                            targets: rootContainer,
-                            scale: 1.06,
-                            yoyo: true,
-                            repeat: -1,
-                            duration: 500,
-                        });
-                        rootContainer.setData('pulseTween', newPulse);
-                    }
-                }
-            });
-            rootContainer.setData('hoverTween', tween);
-        });
-    }
-
-    clickOnNode(node: MapNode): void {
-        this.scene.enterNode(node);
     }
 }

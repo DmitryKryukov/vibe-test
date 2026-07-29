@@ -44,7 +44,7 @@ export function getNodeStyles(node: MapNode, isInaccessible: boolean) {
             ? COLORTOKEN.Background.Zeroth.Numeric
             : COLORTOKEN.Node[node.type as EncounterType].Numeric;
 
-    const strokeColor = node.visited
+    const strokeColor = !node.visited && !node.available
         ? COLORTOKEN.Background.Zeroth.Numeric
         : COLORTOKEN.Foreground.Secondary.Numeric;
 

@@ -27,13 +27,6 @@ export class MapScene extends Phaser.Scene {
             this.scene.start('BattleScene', { nodeId: node.id, nodeType: node.type, enemyIds: enemies });
         }
         /*
-                if (node.type === EncounterType.Battle || node.type === EncounterType.Elite || node.type === EncounterType.Boss) {
-                    const enemies = GameState.getEncounterEnemies(node.type);
-                    this.scene.scene.start('BattleScene', { nodeId: node.id, nodeType: node.type, enemyIds: enemies });
-                    return;
-                }
-                    */
-        /*
     if (node.type === 'merchant') this.openMerchant(node.id);
     if (node.type === 'camp') this.openCamp(node.id);
     if (node.type === 'event') this.openEvent(node.id);

@@ -20,5 +20,9 @@ declare global {
         centerX: number;
         centerY: number;
     }
+    export type Position = {
+        x: number;
+        y: number;
+    };
 }
 export { };
