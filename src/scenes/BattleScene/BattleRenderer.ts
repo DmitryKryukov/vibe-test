@@ -1,29 +1,32 @@
+import { GameState } from '@/store/GameState';
+
+import { CombatSystem } from '@/services/CombatSystem';
 import { Enemies } from '@/data/Enemies';
 import { Heroes } from '@/data/Heroes';
 import { CombatantView } from '@/partials/battle/CombatantView';
-import { Background } from '@/partials/ui/components/Background';
 import { Combatant } from '@/services/CombatantFactory';
-import { CombatSystem } from '@/services/CombatSystem';
-import { GameState } from '@/store/GameState';
+import { getEnemySlots, getHeroSlots } from '@/data/Battleground';
+
+import { ItemsRenderer } from './ItemsRenderer';
+
+import { Background } from '@/partials/ui/components/Background';
+
+import { MainUI } from '@/partials/ui/MainUI';
+
 import { screenBounds } from '@/utils/UtilsLayout';
-import { getEnemySlots, getHeroSlots } from '../../data/Battleground';
-import { MainUI } from '../../partials/ui/MainUI';
 
 export class BattleSceneRenderer {
     private scene: Phaser.Scene;
-    private background!: Background;
     private combatSystem: CombatSystem;
-
     private mainUI: MainUI;
-
     private combatantViews = new Map<string, CombatantView>();
-
-    private statusContainers = new Map<string, Phaser.GameObjects.Container>();
-    private statusSignatures = new Map<string, string>();
+    public itemRenderer: ItemsRenderer;
+    public removedEnemies = new Set<string>();
 
     constructor(scene: Phaser.Scene, combatSystem: CombatSystem) {
         this.scene = scene;
         this.combatSystem = combatSystem;
+        this.itemRenderer = new ItemsRenderer(scene, combatSystem, this);
         this.mainUI = new MainUI(scene, combatSystem);
     }
 
@@ -33,23 +36,17 @@ export class BattleSceneRenderer {
         this.mainUI.renderPanels();
         this.renderHero();
         this.renderEnemies();
+        this.itemRenderer.clear();
+        this.itemRenderer.render();
 
-        /*
-    this.enemyPositions.clear();
-    this.lootItems = [];
-    this.bagSlotZones = [];
-    this.equipZones = [];
-    this.slotHighlights = [];
-    
-     
+        /* Перенести в UI
     this.drawInventoryInteractives();
-    this.drawTopControls();
-    this.drawFieldLoot();
+    this.drawTopControls(); 
     */
     }
 
     private renderBackground(): void {
-        this.background = new Background(this.scene, 'battle');
+        new Background(this.scene, 'battle');
     }
 
     private renderHero(): void {
@@ -122,7 +119,6 @@ export class BattleSceneRenderer {
     }
 
     public getCombatantPosition(id: string): { x: number; y: number } | undefined {
-        console.log(this.combatantViews);
         const combatantView = this.combatantViews.get(id);
         if (combatantView) {
             const x = combatantView.sprite.x;
@@ -130,6 +126,7 @@ export class BattleSceneRenderer {
             return { x: x, y: y };
         }
     }
+
     public getCombatantSprite(id: string): Phaser.GameObjects.GameObject {
         return this.combatantViews.get(id)?.sprite as Phaser.GameObjects.GameObject
     }
@@ -142,6 +139,7 @@ export class BattleSceneRenderer {
 
         this.combatSystem.enemies.forEach(enemy => {
             if (!enemy.alive) {
+                this.removedEnemies.add(enemy.id);
                 this.removeCombatantView(enemy.id);
             }
         });
@@ -158,6 +156,7 @@ export class BattleSceneRenderer {
         const view = this.combatantViews.get(id);
 
         if (!view) return;
+
 
         const sprite = view.sprite;
 
@@ -198,77 +197,36 @@ export class BattleSceneRenderer {
         this.scene.children.removeAll();
         this.scene.input.off('drop');
         this.scene.input.off('dragend');
-
-        this.statusContainers.clear();
-        this.statusSignatures.clear();
     }
 }
 
 /*
-import Phaser from 'phaser';
-import { ITEMS } from '../data/items';
 import { CombatantState, InventoryItem } from '../entities/Types';
-import { EnemyContentDefinition, HeroContentDefinition, loadContentPack } from '../content/ContentSystem';
-import { STATUS_INFO, ENEMY_SLOTS } from './constants';
 
-export interface FieldLoot {
-  item: InventoryItem;
-  x: number;
-  y: number;
-}
 
 export class BattleSceneRenderer {
-  private effects: BattleEffects;
 
-  // Карты и коллекции объектов
+// Карты и коллекции объектов
   private bagZone!: Phaser.GameObjects.Zone;
   private bagSlotZones: Phaser.GameObjects.Zone[] = [];
   private equipZones: Phaser.GameObjects.Zone[] = [];
   private lootItems: Phaser.GameObjects.Container[] = [];
   private slotHighlights: Phaser.GameObjects.Rectangle[] = [];
-  public fieldLoot: FieldLoot[] = [];
-  private enemyObjects = new Map<string, Phaser.GameObjects.GameObject[]>();
-  private enemyPositions = new Map<string, { x: number; y: number }>();
-  private combatantPositions = new Map<string, { x: number; y: number }>();
-  private removedEnemies = new Set<string>();
-  public spawnedRewardItems = 0;
-  private statusSignatures = new Map<string, string>();
 
-  constructor(
-    scene: Phaser.Scene,
-    combat: CombatSystem,
-    ui: UIManager,
-    effects: BattleEffects,
-    backgroundKey: string
-  ) {
-    this.effects = effects;\
-  }
+  public spawnedRewardItems = 0;
 
   // ----- Полная перерисовка всей сцены -----
   public renderStatic(): void {
-    this.scene.children.removeAll();
-    this.scene.input.off('drop');
-    this.scene.input.off('dragend');
-
-    this.statusContainers.clear();
-    this.enemyObjects.clear();
-    this.enemyPositions.clear();
-    this.removedEnemies.clear();
-    this.drawnEnemies.clear();
-    this.lootItems = [];
+    
     this.bagSlotZones = [];
     this.equipZones = [];
     this.slotHighlights = [];
     this.statusSignatures.clear();
 
-
     this.drawInventoryInteractives();
     this.drawTopControls();
-    this.drawFieldLoot();
     this.ui.drawHeroEmptySlotIconOverlay();
   }
-
-  // ----- Отрисовка героя -----
   
   // ----- Инвентарь (только визуальная часть, без drag-обработчиков) -----
   private drawInventoryInteractives(): void {
@@ -316,111 +274,6 @@ export class BattleSceneRenderer {
     run.equipment.forEach((item, index) => {
       if (item) this.createStaticEquipmentItem(item, index);
     });
-  }
-
-  // Создаёт статический предмет (только визуал) – DragManager позже добавит интерактивность
-  private createStaticItem(item: InventoryItem, index: number): void {
-    const screen = screenBounds(this.scene);
-    const pos = screenToWorld(
-      this.scene,
-      124 + Math.floor(index / 2) * 76,
-      screen.bottom - 141 + (index % 2) * 76
-    );
-    const container = this.createItemContainer(item, pos.x, pos.y);
-    container.setData('bagIndex', index);
-    container.setData('origin', 'bag');
-    // Сразу сохраняем в lootItems для возможности удаления – но это не loot, а инвентарь
-    // Можно сохранить отдельно, но для единообразия добавим в массив, если нужно.
-    // Однако у нас есть отдельные списки для дропа. Здесь просто добавим на сцену.
-  }
-
-  private createStaticEquipmentItem(item: InventoryItem, index: number): void {
-    const pos = screenToWorld(this.scene, 10 + 124 + (index % 3) * 76, 10 + 38 + Math.floor(index / 3) * 76);
-    const container = this.createItemContainer(item, pos.x, pos.y);
-    container.setData('slotIndex', index);
-    container.setData('origin', 'equipment');
-  }
-
-  // Создаёт контейнер с иконкой предмета (используется и для лута)
-  public createItemContainer(item: InventoryItem, x: number, y: number): Phaser.GameObjects.Container {
-    const def = ITEMS[item.itemId];
-    const c = this.scene.add.container(x, y).setDepth(500);
-    c.setData('itemUid', item.uid);
-    c.setData('homeX', x);
-    c.setData('homeY', y);
-    const bg = this.scene.add.rectangle(0, 0, 58, 58, def.color, 0.98).setStrokeStyle(3, 0x090909);
-    const icon = this.ui.drawItemIcon(item.itemId, 0, 0, 48);
-    c.add([bg, icon]);
-    c.setSize(58, 58);
-    // Интерактивность будет добавлена позже в DragManager
-    return c;
-  }
-
-  // ----- Полевой лут -----
-  public spawnLoot(itemId: string, x?: number, y?: number): void {
-    const posX = x ?? Phaser.Math.Between(720, 940);
-    const posY = y ?? Phaser.Math.Between(560, 820);
-    const item: InventoryItem = { uid: `${itemId}-loot-${Date.now()}-${Math.random()}`, itemId };
-    this.fieldLoot.push({ item, x: posX, y: posY });
-    this.createFieldLootObject(item, posX, posY, true);
-  }
-
-  private drawFieldLoot(): void {
-    this.fieldLoot.forEach((loot) => this.createFieldLootObject(loot.item, loot.x, loot.y, false));
-  }
-
-  private createFieldLootObject(item: InventoryItem, x: number, y: number, animateIn: boolean): void {
-    const obj = this.createItemContainer(item, x, y);
-    this.lootItems.push(obj);
-    if (animateIn) {
-      obj.setScale(0.2);
-      obj.setAlpha(0);
-      obj.setY(y - 70);
-      this.scene.tweens.add({
-        targets: obj,
-        alpha: 1,
-        scale: 1,
-        y,
-        duration: 360,
-        ease: 'Back.Out',
-      });
-    }
-    // Плавающая анимация
-    this.scene.tweens.add({
-      targets: obj,
-      y: y - 22,
-      yoyo: true,
-      repeat: -1,
-      duration: 900,
-      delay: animateIn ? 260 : 0,
-    });
-  }
-
-  public removeFieldLoot(uid: string): void {
-    this.fieldLoot = this.fieldLoot.filter((loot) => loot.item.uid !== uid);
-    this.lootItems = this.lootItems.filter((loot) => loot.getData('itemUid') !== uid);
-  }
-
-  // ----- Статусы -----
-  // ----- Синхронизация врагов (появление/исчезновение) -----
-  
-
-
-  // ----- Выпадающий лут из боёв -----
-  public spawnPendingCombatLoot(): void {
-    const pending = this.combat.rewards.items.slice(this.spawnedRewardItems);
-    const removed = [...this.removedEnemies];
-    pending.forEach((itemId, index) => {
-      const deadEnemyUid = removed[removed.length - pending.length + index];
-      const pos = deadEnemyUid ? this.enemyPositions.get(deadEnemyUid) : undefined;
-      this.spawnLoot(
-        itemId,
-        (pos?.x ?? Phaser.Math.Between(720, 940)) + Phaser.Math.Between(-42, 42),
-        (pos?.y ?? Phaser.Math.Between(560, 820)) + Phaser.Math.Between(28, 86)
-      );
-      this.ui.toast(`Выпал артефакт: ${ITEMS[itemId].name}`);
-    });
-    this.spawnedRewardItems = this.combat.rewards.items.length;
   }
 
   // ----- Верхние кнопки (пауза, ускорение) -----

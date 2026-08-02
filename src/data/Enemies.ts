@@ -17,6 +17,9 @@ export const Enemies: Record<string, EnemyScheme> = {
             maxHp: 32,
             baseDamage: 5,
             baseAttackSpeed: 1,
+            goldRewardMin: 100,
+            goldRewardMax: 100,
+            xpReward: 100,
         },
         basicAttacks: [
             Abilities.rottenBiteAbility as ActiveAbilityScheme,
@@ -43,6 +46,9 @@ export const Enemies: Record<string, EnemyScheme> = {
             maxHp: 64,
             baseDamage: 13,
             baseAttackSpeed: 1,
+            goldRewardMin: 100,
+            goldRewardMax: 100,
+            xpReward: 100,
         },
         basicAttacks: [
             Abilities.rottenBiteAbility as ActiveAbilityScheme,

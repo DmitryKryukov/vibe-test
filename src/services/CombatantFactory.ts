@@ -12,6 +12,9 @@ export interface Combatant {
         maxHp: number;
         damage: number;
         attackSpeed: number;
+        goldRewardMin?: number;
+        goldRewardMax?: number;
+        xpReward?: number;
     }
     basicAttacks: ActiveAbilityBattle[];
     activeAbilities: ActiveAbilityBattle[];
@@ -52,7 +55,10 @@ export class CombatantFactory {
                 hp: enemy.enemyStats.maxHp,
                 maxHp: enemy.enemyStats.maxHp,
                 damage: enemy.enemyStats.baseDamage,
-                attackSpeed: enemy.enemyStats.baseAttackSpeed
+                attackSpeed: enemy.enemyStats.baseAttackSpeed,
+                goldRewardMin: enemy.enemyStats.goldRewardMin,
+                goldRewardMax: enemy.enemyStats.goldRewardMax,
+                xpReward: enemy.enemyStats.xpReward,
             },
             basicAttacks: enemy.basicAttacks.map((attack) => ({ ...attack, progress: 0 })),
             activeAbilities: enemy.activeAbilities.map((ability) => ({ ...ability, progress: 0 })),

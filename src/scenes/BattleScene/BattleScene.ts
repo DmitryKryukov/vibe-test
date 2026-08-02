@@ -1,7 +1,7 @@
 import { EncounterType } from '@/data/Map';
 import { CombatSystem } from '@/services/CombatSystem';
 import { GameState } from '@/store/GameState';
-import { BattleEffects } from './BatteEffects';
+import { BattleEffects } from './BattleEffects';
 import { BattleSceneRenderer } from './BattleRenderer';
 //import { ITEMS } from '../data/items';
 //import { SaveSystem } from '../state/SaveSystem';
@@ -11,12 +11,6 @@ interface BattleData {
     nodeId: string;
     nodeType: EncounterType;
     enemyIds: string[];
-}
-
-interface FieldLoot {
-    //item: InventoryItem;
-    x: number;
-    y: number;
 }
 
 export class BattleScene extends Phaser.Scene {
@@ -58,9 +52,9 @@ export class BattleScene extends Phaser.Scene {
         if (this.combatSystem.ended) {
             this.time.delayedCall(0, () => this.finishBattle(this.combatSystem.ended));
         }
+        this.sceneRenderer.itemRenderer.spawnPendingCombatLoot();
+
         /*
-	
-        this.renderer.spawnPendingCombatLoot();
         if (this.combat.ended && !this.finishQueued) {
           this.finishQueued = true;
           this.time.delayedCall(950, () => this.finishBattle(this.combat.ended));

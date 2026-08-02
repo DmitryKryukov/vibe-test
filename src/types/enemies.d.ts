@@ -9,6 +9,20 @@ declare global {
         maxHp: number;
         baseDamage: number;
         baseAttackSpeed: number;
+        goldRewardMin: number;
+        goldRewardMax: number;
+        xpReward: number;
+    }
+
+    export interface EnemyContent {
+        spriteImage: string;
+        spriteWidth: number;
+        spriteHeight: number;
+        spriteScale: number;
+        spriteOffsetX: number;
+        spriteOffsetY: number;
+        statusBarX: number;
+        statusBarY: number;
     }
 
     export type FactionId = keyof typeof Factions;
@@ -18,16 +32,7 @@ declare global {
         name: string;
         faction: FactionId;
         enemyStats: EnemyStats;
-        content: {
-            spriteImage: string,
-            spriteWidth: number,
-            spriteHeight: number,
-            spriteScale: number,
-            spriteOffsetX: number,
-            spriteOffsetY: number,
-            statusBarX: number,
-            statusBarY: number,
-        },
+        content: EnemyContent;
         basicAttacks: ActiveAbilityScheme[];
         activeAbilities: ActiveAbilityScheme[];
         //leavesRemains?: boolean;

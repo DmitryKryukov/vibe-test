@@ -4,6 +4,7 @@ import { AudioManager } from "./AudioManager";
 import { Combatant, CombatantFactory } from "./CombatantFactory";
 import { StatusSystem } from "./StatusSystem";
 import { GameState } from "@/store/GameState";
+import { LootTable } from "@/data/Items";
 
 export enum CombatEventType {
     Damage,
@@ -22,7 +23,15 @@ export type CombatVisualEvent =
     | { type: CombatEventType.Miss; targetUid: string }
     | { type: CombatEventType.Charge; sourceUid: string; targetUid: string };
 
+export interface CombatRewards {
+    gold: number;
+    xp: number;
+    items: string[];
+}
+
 export class CombatSystem {
+    public rewards: CombatRewards = { gold: 0, xp: 0, items: [] };
+
     private static readonly WINDUP_TIME = 0.25;
 
     private readonly scene: Phaser.Scene;
@@ -85,10 +94,22 @@ export class CombatSystem {
         combatant.alive = false;
 
         if (combatant !== this.hero) {
-            this.audio.playSFX(`${combatant.definitionId}-death`, {}, { rate: Phaser.Math.FloatBetween(0.75, 1.25) });
+            this.onKillEnemy(combatant);
         }
 
         this.checkBattleEnd();
+    }
+
+    private onKillEnemy(combatant: Combatant): void {
+        const data = Enemies[combatant.definitionId];
+        //if (def.leavesRemains) this.remains.count += 1;
+        //const goldBonus = GameState.requireRun().equipment.some((item) => item?.itemId === 'golden_signet') ? 1.1 : 1;
+        const goldMultiplier = 1;
+        this.rewards.gold += Math.ceil(Phaser.Math.Between(data.enemyStats.goldRewardMin, data.enemyStats.goldRewardMax) * goldMultiplier);
+        this.rewards.xp += data.enemyStats.xpReward;
+        this.rewards.items.push(Phaser.Utils.Array.GetRandom(LootTable));
+        console.log(this.rewards.items)
+        this.audio.playSFX(`${combatant.definitionId}-death`, {}, { rate: Phaser.Math.FloatBetween(0.75, 1.25) });
     }
 
     private checkBattleEnd(): void {
