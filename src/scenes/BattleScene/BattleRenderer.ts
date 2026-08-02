@@ -20,23 +20,27 @@ export class BattleSceneRenderer {
     private combatSystem: CombatSystem;
     private mainUI: MainUI;
     private combatantViews = new Map<string, CombatantView>();
+    private defeatedCombatantPositions = new Map<string, Position>();
     public itemRenderer: ItemsRenderer;
-    public removedEnemies = new Set<string>();
 
     constructor(scene: Phaser.Scene, combatSystem: CombatSystem) {
         this.scene = scene;
         this.combatSystem = combatSystem;
-        this.itemRenderer = new ItemsRenderer(scene, combatSystem, this);
+        this.itemRenderer = new ItemsRenderer(
+            scene,
+            combatSystem,
+            (combatantId) => this.getCombatantPosition(combatantId),
+        );
         this.mainUI = new MainUI(scene, combatSystem);
     }
 
     public renderStatic(): void {
+        this.itemRenderer.clear();
         this.sceneClear();
         this.renderBackground();
         this.mainUI.renderPanels();
         this.renderHero();
         this.renderEnemies();
-        this.itemRenderer.clear();
         this.itemRenderer.render();
 
         /* Перенести в UI
@@ -125,6 +129,8 @@ export class BattleSceneRenderer {
             const y = combatantView.sprite.y;
             return { x: x, y: y };
         }
+
+        return this.defeatedCombatantPositions.get(id);
     }
 
     public getCombatantSprite(id: string): Phaser.GameObjects.GameObject {
@@ -139,7 +145,6 @@ export class BattleSceneRenderer {
 
         this.combatSystem.enemies.forEach(enemy => {
             if (!enemy.alive) {
-                this.removedEnemies.add(enemy.id);
                 this.removeCombatantView(enemy.id);
             }
         });
@@ -159,6 +164,10 @@ export class BattleSceneRenderer {
 
 
         const sprite = view.sprite;
+        this.defeatedCombatantPositions.set(id, {
+            x: sprite.x,
+            y: sprite.y,
+        });
 
         view.hpBar?.destroy();
         view.statusBar?.destroy();

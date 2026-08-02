@@ -23,10 +23,15 @@ export type CombatVisualEvent =
     | { type: CombatEventType.Miss; targetUid: string }
     | { type: CombatEventType.Charge; sourceUid: string; targetUid: string };
 
+export interface CombatLootReward {
+    itemId: string;
+    sourceCombatantId: string;
+}
+
 export interface CombatRewards {
     gold: number;
     xp: number;
-    items: string[];
+    items: CombatLootReward[];
 }
 
 export class CombatSystem {
@@ -107,8 +112,10 @@ export class CombatSystem {
         const goldMultiplier = 1;
         this.rewards.gold += Math.ceil(Phaser.Math.Between(data.enemyStats.goldRewardMin, data.enemyStats.goldRewardMax) * goldMultiplier);
         this.rewards.xp += data.enemyStats.xpReward;
-        this.rewards.items.push(Phaser.Utils.Array.GetRandom(LootTable));
-        console.log(this.rewards.items)
+        this.rewards.items.push({
+            itemId: Phaser.Utils.Array.GetRandom(LootTable),
+            sourceCombatantId: combatant.id,
+        });
         this.audio.playSFX(`${combatant.definitionId}-death`, {}, { rate: Phaser.Math.FloatBetween(0.75, 1.25) });
     }
 

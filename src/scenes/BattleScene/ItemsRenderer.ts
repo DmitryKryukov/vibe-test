@@ -1,183 +1,152 @@
 import { Items } from '@/data/Items';
-import { CombatSystem } from '@/services/CombatSystem';
-import { screenBounds, screenToWorld } from '@/utils/UtilsLayout';
-import { BattleSceneRenderer } from './BattleRenderer';
+import { DraggableItemBehavior } from '@/partials/battle/DraggableItemBehavior';
+import { LootView } from '@/partials/battle/LootView';
 import { Tooltip } from '@/partials/ui/components/Tooltip';
+import { CombatSystem } from '@/services/CombatSystem';
+
+interface RenderedLoot {
+    view: LootView;
+    dragBehavior: DraggableItemBehavior;
+    detachTooltip: () => void;
+}
+
+interface LootPosition {
+    x: number;
+    y: number;
+}
+
+type LootPositionResolver = (combatantId: string) => LootPosition | undefined;
 
 export class ItemsRenderer {
-    public fieldLoot: FieldLoot[] = [];
-    private scene: Phaser.Scene;
-    private sceneRenderer: BattleSceneRenderer;
-    private lootItems: Phaser.GameObjects.Container[] = [];
-    private combatSystem: CombatSystem;
+    private readonly scene: Phaser.Scene;
+    private readonly combatSystem: CombatSystem;
+    private readonly resolveLootPosition: LootPositionResolver;
+    private readonly tooltip: Tooltip;
+    private readonly renderedLoot = new Map<string, RenderedLoot>();
+    private fieldLoot: FieldLoot[] = [];
     private spawnedRewardItems = 0;
+    private destroyed = false;
 
-    constructor(scene: Phaser.Scene, combatSystem: CombatSystem, sceneRenderer: BattleSceneRenderer) {
+    constructor(
+        scene: Phaser.Scene,
+        combatSystem: CombatSystem,
+        resolveLootPosition: LootPositionResolver,
+    ) {
         this.scene = scene;
         this.combatSystem = combatSystem;
-        this.sceneRenderer = sceneRenderer;
+        this.resolveLootPosition = resolveLootPosition;
+        this.tooltip = new Tooltip(scene);
+
+        this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.handleSceneShutdown);
     }
 
-    render() {
+    public render(): void {
+        this.fieldLoot.forEach((loot) => {
+            if (!this.renderedLoot.has(loot.item.uid)) {
+                this.renderLootView(loot, false);
+            }
+        });
     }
 
-    clear() {
-        this.lootItems = [];
-        //this.bagSlotZones = [];
-        //this.equipZones = [];
-        //this.slotHighlights = [];
+    public clear(): void {
+        this.tooltip.hide();
+
+        this.renderedLoot.forEach(({ view, dragBehavior, detachTooltip }) => {
+            detachTooltip();
+            dragBehavior.destroy();
+            view.destroy(true);
+        });
+        this.renderedLoot.clear();
     }
 
-    /*
-        private renderStaticItem(item: InventoryItem, index: number): void {
-            const screen = screenBounds(this.scene);
-            const pos = screenToWorld(
-                this.scene,
-                124 + Math.floor(index / 2) * 76,
-                screen.bottom - 141 + (index % 2) * 76
-            );
-            const container = this.renderItem(item, pos.x, pos.y);
-            //container.setData('bagIndex', index);
-            //container.setData('origin', 'bag');
-        }
-    */
-    public renderItem(item: InventoryItem, x: number, y: number): Phaser.GameObjects.Container {
-        const itemData = Items[item.itemId];
-        const container = this.scene.add.container(x, y).setDepth(500);
-        container.setData('itemUid', item.uid);
-        container.setData('startX', x);
-        container.setData('startY', y);
-        const background = this.scene.add.rectangle(0, 0, 58, 58, itemData.color, 0.98).setStrokeStyle(3, 0x090909);
-        const icon = this.drawItemIcon(item.itemId, 0, 0, 48);
-        container.add([background, icon]);
-        container.add([background, icon]);
-        container.setSize(58, 58);
-        return container;
+    public destroy(): void {
+        if (this.destroyed) return;
+
+        this.scene.events.off(Phaser.Scenes.Events.SHUTDOWN, this.handleSceneShutdown);
+        this.clear();
+        this.tooltip.destroy(true);
+        this.fieldLoot = [];
+        this.spawnedRewardItems = 0;
+        this.destroyed = true;
     }
 
-    /*
-    private renderStaticEquipmentItem(item: InventoryItem, index: number): void {
-        const pos = screenToWorld(this.scene, 10 + 124 + (index % 3) * 76, 10 + 38 + Math.floor(index / 3) * 76);
-        const container = this.renderItem(item, pos.x, pos.y);
-        container.setData('slotIndex', index);
-        container.setData('origin', 'equipment');
+    public getFieldLoot(): ReadonlyArray<FieldLoot> {
+        return this.fieldLoot.map(({ item, x, y }) => ({
+            item: { ...item },
+            x,
+            y,
+        }));
     }
-    */
-
-
-
-    /*
-    private drawFieldLoot(): void {
-        this.fieldLoot.forEach((loot) => this.createFieldLootObject(loot.item, loot.x, loot.y, false));
-    }
-        */
-
-
-    /*
-        public removeFieldLoot(uid: string): void {
-            this.fieldLoot = this.fieldLoot.filter((loot) => loot.item.uid !== uid);
-            this.lootItems = this.lootItems.filter((loot) => loot.getData('itemUid') !== uid);
-        }
-    */
 
     public spawnPendingCombatLoot(): void {
-        const pending = this.combatSystem.rewards.items.slice(this.spawnedRewardItems);
-        const removed = [...this.sceneRenderer.removedEnemies];
-        pending.forEach((itemId, index) => {
-            //const deadEnemyId = removed[removed.length - pending.length + index];
-            this.spawnLoot(
-                itemId,
-                (Phaser.Math.Between(720, 940)) + Phaser.Math.Between(-42, 42),
-                (Phaser.Math.Between(560, 820)) + Phaser.Math.Between(28, 86)
-            );
+        while (this.spawnedRewardItems < this.combatSystem.rewards.items.length) {
+            const reward = this.combatSystem.rewards.items[this.spawnedRewardItems];
+            const position = this.resolveLootPosition(reward.sourceCombatantId);
 
-            //this.ui.toast(`Выпал артефакт: ${ITEMS[itemId].name}`);
-        });
+            if (!position) return;
 
-        this.spawnedRewardItems = this.combatSystem.rewards.items.length;
+            this.spawnLoot(reward.itemId, position);
+            this.spawnedRewardItems += 1;
+        }
     }
 
-    public spawnLoot(itemId: string, x?: number, y?: number): void {
-        const posX = x ?? Phaser.Math.Between(720, 940);
-        const posY = y ?? Phaser.Math.Between(560, 820);
-        const item: InventoryItem = { uid: `${itemId}-loot-${Date.now()}-${Math.random()}`, itemId };
-        this.fieldLoot.push({ item, x: posX, y: posY });
-        this.renderFieldLootObject(item, posX, posY, true);
-    }
-
-    private renderFieldLootObject(item: InventoryItem, x: number, y: number, animateIn: boolean): void {
-        const Loot = this.renderDraggableItem(item, x, y, "");
-        this.lootItems.push(Loot);
-        if (animateIn) {
-            Loot.setScale(0.2);
-            Loot.setAlpha(0);
-            Loot.setY(y - 70);
-            this.scene.tweens.add({
-                targets: Loot,
-                alpha: 1,
-                scale: 1,
-                y,
-                duration: 360,
-                ease: 'Back.Out',
-            });
+    public spawnLoot(itemId: string, position: LootPosition): void {
+        if (!Items[itemId]) {
+            throw new Error(`Unknown item definition: ${itemId}`);
         }
 
-        this.scene.tweens.add({
-            targets: Loot,
-            y: y - 22,
-            yoyo: true,
-            repeat: -1,
-            duration: 900,
-            delay: animateIn ? 260 : 0,
-        });
+        const loot: FieldLoot = {
+            item: {
+                uid: this.generateLootUid(itemId),
+                itemId,
+            },
+            x: position.x,
+            y: position.y,
+        };
+
+        this.fieldLoot.push(loot);
+        this.renderLootView(loot, true);
     }
 
-    renderDraggableItem(item: InventoryItem, x: number, y: number, origin: string): Phaser.GameObjects.Container {
-        const data = Items[item.itemId];
-        const container = this.scene.add.container(x, y).setDepth(500);
-        container.setData('itemUid', item.uid);
-        container.setData('origin', origin);
-        container.setData('startX', x);
-        container.setData('startY', y);
-        container.setData('lastParticleAt', 0);
-        const background = this.scene.add.rectangle(0, 0, 58, 58, data.color, 0.98).setStrokeStyle(3, 0x090909);
-        container.add([background, this.drawItemIcon(item.itemId, 0, 0, 48)]);
-        container.setSize(58, 58);
-        container.setInteractive({ draggable: true, useHandCursor: true });
-        this.scene.input.setDraggable(container);
-        container.on('dragstart', () => {
-            this.scene.tweens.killTweensOf(container);
-            container.setScale(1);
-            container.setDepth(900);
-            //this.showSlotHighlights(item.itemId);
+    private renderLootView(loot: FieldLoot, animateIn: boolean): void {
+        const view = new LootView(this.scene, loot.item, loot.x, loot.y);
+        const dragBehavior = new DraggableItemBehavior(this.scene, view, {
+            dragDepth: 900,
+            onDragStart: () => view.stopAnimations(),
         });
-
-        container.on('drag', (_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
-            container.setPosition(dragX, dragY);
-            //this.scene.emitDragParticle(container);
-        });
-        const tooltip = new Tooltip(this.scene); const description = [
-            data.bagText,
-            data.equipText,
-            data.throwText,
+        const description = [
+            view.itemDefinition.bagText,
+            view.itemDefinition.equipText,
+            view.itemDefinition.throwText,
         ]
             .filter(Boolean)
             .join('\n');
+        const detachTooltip = this.tooltip.show(
+            view,
+            view.itemDefinition.name,
+            description,
+            loot.item,
+            { width: 300 },
+        );
 
-        tooltip.show(container, data.name, description, item, { width: 300 });
+        this.renderedLoot.set(loot.item.uid, {
+            view,
+            dragBehavior,
+            detachTooltip,
+        });
 
-        return container;
-    }
-
-    drawItemIcon(itemId: string, x: number, y: number, size: number): Phaser.GameObjects.GameObject {
-        const key = this.itemTextureKey(itemId);
-        if (this.scene.textures.exists(key)) {
-            return this.scene.add.image(x, y, key).setDisplaySize(size, size).setDepth(2);
+        if (animateIn) {
+            view.renderThrowEntrance();
+            // this.scene.audio.playSFX('replace-with-loot-sfx-key');
         }
-        return this.scene.add.text(x, y, Items[itemId].glyph, { resolution: Math.min(window.devicePixelRatio || 1, 2), fontSize: `${Math.floor(size * 0.46)}px`, color: '#170b08' }).setOrigin(0.5);
+        view.renderFloating(animateIn ? LootView.THROW_DURATION : 0);
     }
 
-    itemTextureKey(itemId: string): string {
-        return `icon-item-${itemId}`;
+    private generateLootUid(itemId: string): string {
+        return `${itemId}-loot-${Date.now()}-${Math.random()}`;
     }
+
+    private readonly handleSceneShutdown = (): void => {
+        this.destroy();
+    };
 }
